@@ -1,12 +1,26 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Question } from "../types";
 
+// Initialize AI client
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export async function gradeOpenEndedResponse(question: Question, userAnswer: string): Promise<{ score: number, feedback: string }> {
+export async function gradeOpenEndedResponse(question: Question, userAnswer: string, language?: 'english' | 'somali'): Promise<{ score: number, feedback: string }> {
+  const isSomali = language === 'somali';
+
   // Simple heuristic for MCQs
   if (question.type === 'mcq') {
     const isCorrect = userAnswer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+    
+    if (isSomali) {
+         return {
+          score: isCorrect ? question.marks : 0,
+          feedback: isCorrect 
+            ? "✅ **Sax**" 
+            : `❌ **Qalad**\n\nJawaabta saxda ah waa: **${question.correctAnswer}**\n\n${question.explanation}`
+        };
+    }
+
     return {
       score: isCorrect ? question.marks : 0,
       feedback: isCorrect 
@@ -18,49 +32,73 @@ export async function gradeOpenEndedResponse(question: Question, userAnswer: str
   // Use Gemini for short answers and calculations
   try {
     // Detect language direction/type for better prompting
-    const isArabic = /[\u0600-\u06FF]/.test(question.text);
+    // If explicitly Somali, use Somali prompt. Else check for Arabic.
+    const isArabic = !isSomali && /[\u0600-\u06FF]/.test(question.text);
 
-    const systemInstruction = isArabic 
-      ? `أنت مصحح أكاديمي خبير لامتحانات الشهادة الثانوية (Form IV). مهمتك هي تصحيح إجابة الطالب بدقة متناهية بناءً على نموذج الإجابة وتوزيع الدرجات.
+    let systemInstruction = "";
+
+    if (isSomali) {
+        systemInstruction = `Adigu waxaad tahay macalin Soomaaliyeed oo caddaalad ah. Ujeedadaadu waa inaad qiimeyso fahanka ardayga ee ma ahan xafiditaan.
          
-         يجب أن تكون ملاحظاتك هيكلية واحترافية كما يلي:
+         Qawaaniinta sixitaanka:
+         1. **Fududeyn:** Haddii jawaabta ardaygu ay xambaarsan tahay macnaha saxda ah, sii dhibcaha oo dhan (Full Mark).
+         2. **Jawaabaha Gaaban:** Aqbal jawaabaha gaaban haddii ay sax yihiin.
+         3. **Luqadda:** Jawaab-celintu (feedback) waa inay noqotaa Af-Soomaali cad oo dhiirigelin leh.
+         4. **Qaabka:** Ha isticmaalin hashtags (#). Isticmaal (**) cinwaanada.
+
+         Qaabka Jawaab-celinta:
+         **Falanqeyn:**
+         (Qodobbada muhiimka ah)
          
-         ### 🔍 التحليل (Analysis)
-         * ✔ (للنقاط الصحيحة التي ذكرها الطالب)
-         * ❌ (للنقاط المفقودة أو الخاطئة)
+         **Qiimeyn:**
+         (Sababta dhibcaha)
          
-         ### 🧮 التقدير (Evaluation)
-         * (شرح موجز لكيفية احتساب الدرجة بناءً على التحليل)
+         Dhibcaha ugu badan: ${question.marks}.`;
+    } else if (isArabic) {
+       systemInstruction = `أنت مصحح مرن وعادل جداً. هدفك هو تقييم الفهم العام وليس الحفظ الحرفي للنص.
          
-         ### 📝 ملاحظة (Note)
-         * (تعليق بناء أو تبرير نهائي)
+         قواعد التصحيح الصارمة:
+         1. **التساهل في الدرجات:** إذا كانت إجابة الطالب تحمل نفس المعنى الصحيح للإجابة النموذجية، امنحه الدرجة الكاملة (Full Mark) فوراً، حتى لو كانت الكلمات مختلفة.
+         2. **أسئلة الإعراب:** اقبل الإجابات المختصرة. مثال: "فاعل مرفوع" تكفي وتعتبر صحيحة تماماً بدلاً من "فاعل مرفوع وعلامة رفعه الضمة الظاهرة". لا تخصم درجات على الاختصار.
+         3. **التعبير (Essay):** قيم بناءً على: (1) المنطق وتسلسل الأفكار، (2) وضوح اللغة، (3) أن يكون الموضوع في حدود 10 أسطر. إذا كان المعنى واضحاً، كن كريماً في الدرجات.
+         4. **التنسيق:** لا تستخدم علامات الهاشتاج (#) أبداً. استخدم الخط العريض (**) للعناوين.
+
+         نسق ردك كالتالي:
+         **التحليل:**
+         (نقاط القوة أو الخطأ باختصار شديد)
          
-         كن عادلاً، ولا تعطِ الدرجة الكاملة إلا إذا كانت الإجابة تامة. الدرجة القصوى هي ${question.marks}.`
-      : `You are a strict, world-class academic examiner for national examinations. Grade the student's answer with extreme precision based on the model answer.
+         **التقييم:**
+         (سبب الدرجة)
          
-         Structure your feedback strictly as follows:
+         الدرجة القصوى: ${question.marks}. كن في صف الطالب.`;
+    } else {
+        systemInstruction = `You are a fair and lenient examiner. Grade based on semantic understanding, not exact phrasing.
+
+         Rules:
+         1. **Lenient Grading:** If the student's answer conveys the correct meaning, award FULL MARKS. Do not penalize for minor spelling or phrasing differences.
+         2. **Short Answers:** Accept standard short forms (e.g., "Voltmeter" is enough, no need for a full sentence).
+         3. **Essay:** Grade based on Logic, Clarity, and Length (~10 lines). If it is readable and logical, give a high score.
+         4. **Formatting:** Do NOT use hashtags (#). Use Bold (**) for headers.
+
+         Format:
+         **Analysis:**
+         (Brief points)
          
-         ### 🔍 Analysis
-         * ✔ (List correct points found in student answer)
-         * ❌ (List missed or incorrect points)
+         **Evaluation:**
+         (Reasoning)
          
-         ### 🧮 Evaluation
-         * (Brief explanation of deduction or award)
-         
-         ### 📝 Note
-         * (Constructive final remark)
-         
-         Max Marks: ${question.marks}. Be fair but strictly academic.`;
+         Max Marks: ${question.marks}. Be generous if the answer is right.`;
+    }
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite-latest", // Switching to Flash Lite for speed and lower cost/quota usage
+      model: "gemini-3-flash-preview", 
       contents: `
         Question: ${question.text}
-        Model Answer/Rubric: ${question.correctAnswer}
+        Model Answer: ${question.correctAnswer}
         Student Answer: ${userAnswer}
         Max Marks: ${question.marks}
         
-        Grade this response. Return a JSON object with a numerical 'score' (integer or .5) and a string 'feedback' containing the formatted markdown text.
+        Grade this response. Return a JSON object with a numerical 'score' (integer or .5) and a string 'feedback'.
       `,
       config: {
         systemInstruction: systemInstruction,
@@ -76,18 +114,28 @@ export async function gradeOpenEndedResponse(question: Question, userAnswer: str
       }
     });
 
+    const text = response.text;
+    if (!text) {
+      throw new Error("Empty response from AI model");
+    }
+
     // Robust parsing
-    const cleanText = response.text.replace(/```json\n?|```/g, '').trim();
+    const cleanText = text.replace(/```json\n?|```/g, '').trim();
     const result = JSON.parse(cleanText);
     
+    // Append the standard Model Answer to the feedback
+    let finalFeedback = result.feedback;
+    const modelAnswerLabel = isSomali ? "**Jawaabta Saxda ah:**" : (isArabic ? "**الإجابة النموذجية:**" : "**Model Answer:**");
+    finalFeedback += `\n\n${modelAnswerLabel}\n${question.correctAnswer}`;
+
     return {
       score: Math.min(Math.max(0, result.score), question.marks),
-      feedback: result.feedback
+      feedback: finalFeedback
     };
   } catch (error: any) {
     console.error("Grading error:", error);
     
-    // Heuristic fallback
+    // Heuristic fallback logic
     const normUser = userAnswer.toLowerCase().trim();
     const normCorrect = question.correctAnswer.toLowerCase().trim();
     
@@ -102,13 +150,21 @@ export async function gradeOpenEndedResponse(question: Question, userAnswer: str
     else if (normUser.length > 10 && normCorrect.length > 10) estimatedScore = 1; // Pity point for effort if not empty
     
     const isQuota = error.status === 429 || (error.message && error.message.includes('429')) || (error.toString().includes('429'));
-    const message = isQuota 
-      ? "⚠️ **System Overload (Quota)**: The AI examiner is currently busy. Your score was estimated based on keyword matching." 
-      : "⚠️ **Connection Error**: Could not reach the AI examiner. Score estimated.";
+    
+    let message = "";
+    if (isSomali) {
+        message = isQuota 
+        ? "⚠️ **Culeys Jira**: Nidaamka sixitaanka ayaa mashquul ah. Dhibcaha waxaa lagu qiyaasay ereyada muhiimka ah."
+        : "⚠️ **Cilad Jirta**: Lama xiriiri karo nidaamka sixitaanka. Dhibcaha waa qiyaas.";
+    } else {
+        message = isQuota 
+        ? "⚠️ **System Overload**: The AI examiner is currently experiencing high traffic. Score estimated based on keywords." 
+        : "⚠️ **Grading Unavailable**: Could not connect to the AI examiner. Score estimated based on keywords.";
+    }
 
     return {
       score: estimatedScore,
-      feedback: `${message}\n\n### 🔍 Standard Model Answer\n${question.correctAnswer}\n\n### 📝 Explanation\n${question.explanation}`
+      feedback: `${message}\n\n**Model Answer**\n${question.correctAnswer}\n\n**Note**\nAutomated grading fallback active.`
     };
   }
 }

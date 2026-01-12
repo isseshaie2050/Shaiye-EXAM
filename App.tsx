@@ -21,10 +21,29 @@ const formatTime = (seconds: number) => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
+// Helper to render text with bold formatting by parsing **text**
+const renderFormattedFeedback = (text: string) => {
+  if (!text) return null;
+  // Split by **text** pattern
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <span>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+           // Remove asterisks and render bold
+           return <strong key={i} className="font-black text-slate-800">{part.slice(2, -2)}</strong>;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </span>
+  );
+};
+
 const App: React.FC = () => {
   const [view, setView] = useState<AppState>(AppState.HOME);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<'english' | 'somali'>('english');
   
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
@@ -38,17 +57,87 @@ const App: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
   const [dashboardStats, setDashboardStats] = useState<any[]>([]);
-
-  const baseExam = getExam(selectedYear, selectedSubject);
+  
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setExamHistory(getExamHistory());
     setDashboardStats(getSubjectStats());
-  }, [view]); 
+  }, [view]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!activeExam) return;
+
+    setIsGrading(true);
+    setIsPaused(true);
+    setTimeTaken((activeExam.durationMinutes * 60) - timeLeft);
+
+    let totalScore = 0;
+    const maxScore = activeExam.questions.reduce((sum, q) => sum + q.marks, 0);
+    const feedbackList: any[] = [];
+    const sectionScores: Record<string, { score: number, total: number }> = {};
+
+    activeExam.questions.forEach(q => {
+      if (!sectionScores[q.section]) {
+        sectionScores[q.section] = { score: 0, total: 0 };
+      }
+      sectionScores[q.section].total += q.marks;
+    });
+
+    try {
+      let processedCount = 0;
+      const totalQuestions = activeExam.questions.length;
+
+      const resultsPromises = activeExam.questions.map(async (q) => {
+        const userAnswer = answers.find(a => a.questionId === q.id)?.answer || '';
+        const grading = await gradeOpenEndedResponse(q, userAnswer, activeExam.language);
+        
+        processedCount++;
+        setGradingProgress(Math.round((processedCount / totalQuestions) * 100));
+
+        return {
+          questionId: q.id,
+          score: grading.score,
+          feedback: grading.feedback,
+          userAnswer,
+          question: q
+        };
+      });
+
+      const gradedQuestions = await Promise.all(resultsPromises);
+
+      gradedQuestions.forEach(g => {
+        totalScore += g.score;
+        sectionScores[g.question.section].score += g.score;
+        feedbackList.push(g);
+      });
+
+      const finalResult: ExamResult = {
+        examId: activeExam.id,
+        subject: activeExam.subject,
+        year: activeExam.year,
+        score: totalScore,
+        maxScore,
+        grade: calculateGrade(totalScore, maxScore),
+        date: new Date().toISOString()
+      };
+
+      saveExamResult(finalResult);
+      setResults({ score: totalScore, maxScore, feedback: feedbackList, sectionScores });
+      setView(AppState.RESULTS);
+
+    } catch (e) {
+      console.error("Grading failed", e);
+      alert("Error submitting exam. Please try again.");
+    } finally {
+      setIsGrading(false);
+      setShowSubmitModal(false);
+    }
+  }, [activeExam, answers, timeLeft]);
 
   useEffect(() => {
     let timer: any;
-    if (view === AppState.EXAM_ACTIVE && timeLeft > 0) {
+    if (view === AppState.EXAM_ACTIVE && timeLeft > 0 && !isPaused) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
@@ -56,10 +145,19 @@ const App: React.FC = () => {
       handleSubmit();
     }
     return () => clearInterval(timer);
-  }, [view, timeLeft]);
+  }, [view, timeLeft, isPaused, handleSubmit]);
+
+  const handleSubjectSelect = (subject: string) => {
+    setSelectedSubject(subject);
+    if (subject === 'History') {
+        setView(AppState.LANGUAGE_SELECT);
+    } else {
+        setView(AppState.EXAM_OVERVIEW);
+    }
+  };
 
   const startExam = () => {
-    const examTemplate = getExam(selectedYear, selectedSubject);
+    const examTemplate = getExam(selectedYear, selectedSubject, selectedLanguage);
     if (!examTemplate) return;
 
     const shuffledQuestions = examTemplate.questions.map(q => {
@@ -76,612 +174,309 @@ const App: React.FC = () => {
     setCurrentQuestionIndex(0);
     setTimeLeft(examTemplate.durationMinutes * 60);
     setShowSubmitModal(false);
+    setIsPaused(false);
     setView(AppState.EXAM_ACTIVE);
   };
 
-  const handleAnswer = (questionId: string, value: string) => {
-    setAnswers(prev => {
-      const filtered = prev.filter(a => a.questionId !== questionId);
-      return [...filtered, { questionId, answer: value }];
-    });
-  };
-
-  const handleTrySubmit = () => {
-    setShowSubmitModal(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!activeExam) return;
-    setShowSubmitModal(false);
-    
-    // Calculate time taken
-    const totalSeconds = activeExam.durationMinutes * 60;
-    setTimeTaken(totalSeconds - timeLeft);
-
-    setView(AppState.RESULTS);
-    setIsGrading(true);
-    setGradingProgress(0);
-    
-    let totalScore = 0;
-    const maxScore = activeExam.questions.reduce((sum, q) => sum + q.marks, 0);
-    const feedbackList = [];
-    const sectionScores: Record<string, {score: number, total: number}> = {};
-
-    // Initialize section scores
-    activeExam.questions.forEach(q => {
-        if(!sectionScores[q.section]) {
-            sectionScores[q.section] = { score: 0, total: 0 };
-        }
-        sectionScores[q.section].total += q.marks;
-    });
-
-    let processedCount = 0;
-    const totalQuestions = activeExam.questions.length;
-
-    for (const q of activeExam.questions) {
-      const userAnswer = answers.find(a => a.questionId === q.id)?.answer || "";
+  const handleAnswer = (answer: string) => {
+      if (!activeExam) return;
+      const currentQ = activeExam.questions[currentQuestionIndex];
       
-      // Add slight delay for AI requests to prevent 429 Quota errors for Open Ended questions
-      if (q.type !== 'mcq') {
-        await new Promise(resolve => setTimeout(resolve, 2000)); 
-      }
-
-      const result = await gradeOpenEndedResponse(q, userAnswer);
-      
-      totalScore += result.score;
-      if (sectionScores[q.section]) {
-          sectionScores[q.section].score += result.score;
-      }
-
-      feedbackList.push({
-        ...q,
-        studentAnswer: userAnswer,
-        awardedMarks: result.score,
-        feedback: result.feedback,
-        isCorrect: result.score === q.marks
+      setAnswers(prev => {
+          const existing = prev.filter(a => a.questionId !== currentQ.id);
+          return [...existing, { questionId: currentQ.id, answer }];
       });
-
-      processedCount++;
-      setGradingProgress(Math.round((processedCount / totalQuestions) * 100));
-    }
-
-    const finalResult = { score: Math.round(totalScore), maxScore, feedback: feedbackList, sectionScores };
-    setResults(finalResult);
-
-    const percentage = (finalResult.score / maxScore) * 100;
-    let grade = 'F';
-    if (percentage >= 80) grade = 'A';
-    else if (percentage >= 70) grade = 'B';
-    else if (percentage >= 60) grade = 'C';
-    else if (percentage >= 50) grade = 'D';
-
-    saveExamResult({
-      examId: activeExam.id,
-      subject: activeExam.subject,
-      year: activeExam.year,
-      score: finalResult.score,
-      maxScore,
-      grade,
-      date: new Date().toLocaleDateString()
-    });
-
-    setIsGrading(false);
   };
 
-  // --- RENDER METHODS ---
-
-  const renderHome = () => (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] text-center px-4 bg-slate-50">
-      <div className="mb-12">
-        <div className="bg-blue-600 w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-2xl border-4 border-white">
-           <span className="text-white font-black text-4xl">S</span>
-        </div>
-        <h1 className="text-5xl font-black tracking-tight text-blue-900 mb-2">SHAIYE EXAMS</h1>
-        <p className="text-slate-500 uppercase tracking-[0.2em] text-xs font-bold">Federal Republic of Somalia</p>
-        <p className="text-blue-600 font-medium mt-1">Form IV National Examination Platform</p>
-      </div>
-      
-      <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full space-y-4">
-        <button 
-          onClick={() => setView(AppState.YEAR_SELECT)}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white px-10 py-5 rounded-xl font-bold text-lg shadow-lg transition-all active:scale-95"
-        >
-          Enter Portal
-        </button>
-        <div className="flex gap-2">
-           <button 
-             onClick={() => setView(AppState.DASHBOARD)}
-             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-all border border-slate-200"
-           >
-             📊 Dashboard
-           </button>
-           <button 
-             onClick={() => setView(AppState.HISTORY)}
-             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-all border border-slate-200"
-           >
-             📜 History
-           </button>
-        </div>
-        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-2">Authorized Access Only</p>
-      </div>
-    </div>
-  );
-
-  const renderDashboard = () => (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-       <button onClick={() => setView(AppState.HOME)} className="mb-6 text-slate-400 hover:text-blue-600 font-bold text-sm uppercase tracking-widest flex items-center gap-2"><span>←</span> Back Home</button>
-       <h2 className="text-3xl font-black text-slate-900 mb-8 flex items-center gap-3">
-         <span className="text-blue-600">📊</span> Performance Analytics
-       </h2>
-       
-       {dashboardStats.length === 0 ? (
-          <div className="col-span-full text-center py-16 bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
-            <div className="text-4xl mb-4">📉</div>
-            <p className="font-medium">No exam data available yet.</p>
-            <p className="text-sm mt-2">Complete an exam to see your analytics dashboard.</p>
-            <button 
-              onClick={() => setView(AppState.YEAR_SELECT)}
-              className="mt-6 bg-blue-100 text-blue-700 px-6 py-2 rounded-lg font-bold hover:bg-blue-200 transition-colors"
-            >
-              Take an Exam
-            </button>
-          </div>
-       ) : (
-         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Visual Bar Graph */}
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-              <h3 className="text-lg font-bold text-slate-700 mb-8 flex justify-between items-center">
-                <span>Subject Performance Overview</span>
-                <span className="text-xs bg-slate-100 px-3 py-1 rounded-full text-slate-500 uppercase tracking-widest">Average Score %</span>
-              </h3>
-              <div className="flex items-end justify-between h-64 gap-2 sm:gap-4 pb-2">
-                 {dashboardStats.map((stat) => (
-                   <div key={stat.subject} className="flex flex-col items-center flex-1 h-full justify-end group cursor-default">
-                     <div className="relative w-full max-w-[50px] flex flex-col justify-end h-full">
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-12 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs py-2 px-3 rounded-lg font-bold transition-all shadow-xl whitespace-nowrap z-10 pointer-events-none mb-2">
-                          {stat.average}% 
-                          <span className="block text-[9px] font-normal opacity-80">{stat.attempts} exams taken</span>
-                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
-                        </div>
-                        <div 
-                          className={`w-full rounded-t-lg transition-all duration-1000 relative hover:brightness-110 ${stat.average >= 80 ? 'bg-gradient-to-t from-green-600 to-green-400' : stat.average >= 60 ? 'bg-gradient-to-t from-blue-600 to-blue-400' : 'bg-gradient-to-t from-orange-600 to-orange-400'}`}
-                          style={{ height: `${Math.max(stat.average, 5)}%` }}
-                        >
-                        </div>
-                     </div>
-                     <p className="mt-4 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide text-center truncate w-full transform -rotate-45 sm:rotate-0 origin-top-left sm:origin-center translate-y-2 sm:translate-y-0">{stat.subject.substring(0, 3)}</p>
-                   </div>
-                 ))}
-              </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-slate-900 mb-6 mt-10">Detailed Breakdown</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              {dashboardStats.map((stat) => (
-                <div key={stat.subject} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-colors">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-slate-700">{stat.subject}</h3>
-                    <span className="text-xs font-black bg-slate-100 text-slate-600 px-3 py-1 rounded-full">{stat.attempts} Tests</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-3">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-1000 ${stat.average >= 80 ? 'bg-green-500' : stat.average >= 60 ? 'bg-blue-500' : 'bg-orange-500'}`}
-                      style={{ width: `${stat.average}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between items-end">
-                     <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Performance</span>
-                     <p className="text-right font-black text-3xl text-slate-900">{stat.average}<span className="text-sm align-top text-slate-400 ml-1">%</span></p>
-                  </div>
-                </div>
-              ))}
-            </div>
-         </div>
-       )}
-    </div>
-  );
-
-  const renderHistory = () => (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-       <button onClick={() => setView(AppState.HOME)} className="mb-6 text-slate-400 hover:text-blue-600 font-bold text-sm uppercase tracking-widest flex items-center gap-2"><span>←</span> Back Home</button>
-       <h2 className="text-3xl font-black text-slate-900 mb-8 flex items-center gap-3">
-         <span className="text-blue-600">📜</span> Exam History
-       </h2>
-       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-         {examHistory.length === 0 ? (
-           <div className="p-16 text-center text-slate-400">
-             <p className="text-lg">No past exams found.</p>
-             <button 
-                onClick={() => setView(AppState.YEAR_SELECT)}
-                className="mt-4 text-blue-600 font-bold hover:underline"
-              >
-                Start your first exam
-              </button>
-           </div>
-         ) : (
-           <div className="divide-y divide-slate-100">
-             {examHistory.map((exam, idx) => (
-               <div key={idx} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm ${exam.grade === 'A' ? 'bg-green-100 text-green-700' : exam.grade === 'B' ? 'bg-blue-100 text-blue-700' : exam.grade === 'C' ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-700'}`}>
-                      {exam.grade}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg">{exam.subject}</h3>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium uppercase tracking-wide">
-                        <span>{exam.year}</span>
-                        <span>•</span>
-                        <span>{exam.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-slate-900">{exam.score}<span className="text-sm text-slate-400 font-bold">/{exam.maxScore}</span></p>
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">View Details</span>
-                  </div>
-               </div>
-             ))}
-           </div>
-         )}
-       </div>
-    </div>
-  );
-
-  const renderYearSelect = () => (
-    <div className="max-w-2xl mx-auto py-12 px-4">
-      <button onClick={() => setView(AppState.HOME)} className="mb-8 flex items-center text-slate-400 hover:text-blue-700 transition-colors font-black text-xs uppercase tracking-widest group">
-        <span className="mr-2 text-lg transform group-hover:-translate-x-1 transition-transform">←</span> Back to Home
-      </button>
-      <h2 className="text-2xl font-bold text-slate-800 mb-8 flex items-center gap-3"><span className="w-2 h-8 bg-blue-700 rounded-full"></span>Select Examination Year</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {ACADEMIC_YEARS.map(year => (
-          <button 
-            key={year}
-            onClick={() => { setSelectedYear(year); setView(AppState.SUBJECT_SELECT); }}
-            className={`p-6 border-2 rounded-xl text-xl font-bold transition-all shadow-sm ${year === 2025 ? 'bg-blue-50 border-blue-600 text-blue-800' : 'bg-white border-slate-200 hover:border-blue-400'}`}
-          >
-            {year}
-            {year === 2025 && <span className="block text-[10px] font-bold text-blue-600 mt-2 bg-blue-100 px-2 py-0.5 rounded-full inline-block">LIVE SESSION</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderSubjectSelect = () => (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <button onClick={() => setView(AppState.YEAR_SELECT)} className="mb-8 flex items-center text-slate-400 hover:text-blue-700 transition-colors font-black text-xs uppercase tracking-widest group">
-        <span className="mr-2 text-lg transform group-hover:-translate-x-1 transition-transform">←</span> Back to Year Selection
-      </button>
-      <h2 className="text-2xl font-bold text-slate-800 mb-8 flex items-center gap-3"><span className="w-2 h-8 bg-blue-700 rounded-full"></span>Available Subjects ({selectedYear})</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {SUBJECTS.map(subject => (
-          <button 
-            key={subject}
-            onClick={() => { setSelectedSubject(subject); setView(AppState.EXAM_OVERVIEW); }}
-            className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 text-left font-bold transition-all flex justify-between items-center"
-          >
-            <span>{subject}</span>
-            <span className="text-blue-200 text-2xl">→</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderExamOverview = () => {
-    if (!baseExam) {
-      return (
-        <div className="max-w-2xl mx-auto py-12 px-4">
-          <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="mb-8 flex items-center text-slate-400 hover:text-blue-700 transition-colors font-black text-xs uppercase tracking-widest group">
-            <span className="mr-2 text-lg transform group-hover:-translate-x-1 transition-transform">←</span> Back to Subjects
-          </button>
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-            <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">🚫</div>
-            <h2 className="text-xl font-black text-slate-900 mb-2">Paper Not Accessible</h2>
-            <p className="text-slate-500 font-medium text-sm mb-8">The {selectedYear} {selectedSubject} examination paper is currently locked.</p>
-            <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-black transition-colors">Select Another Subject</button>
-          </div>
-        </div>
-      );
-    }
-
-    const totalMarks = baseExam.questions.reduce((sum, q) => sum + q.marks, 0);
-
+  if (view === AppState.HOME) {
     return (
-      <div className="max-w-2xl mx-auto py-12 px-4">
-        <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="mb-8 flex items-center text-slate-400 hover:text-blue-700 transition-colors font-black text-xs uppercase tracking-widest group">
-          <span className="mr-2 text-lg transform group-hover:-translate-x-1 transition-transform">←</span> Back to Subjects
-        </button>
-        <div className="bg-white border border-slate-300 rounded-2xl p-8 shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-2 bg-blue-700"></div>
-          <h2 className="text-3xl font-black text-slate-900 mb-2">{selectedSubject}</h2>
-          <p className="text-slate-500 font-bold text-sm mb-8 tracking-widest uppercase">Academic Year {selectedYear}</p>
-          <div className="space-y-4 mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100">
-            <div className="flex justify-between items-center"><span className="text-slate-500 font-medium">Allocated Time</span><span className="font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border">{baseExam.durationMinutes} Minutes</span></div>
-            <div className="flex justify-between items-center"><span className="text-slate-500 font-medium">Total Paper Marks</span><span className="font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border">{totalMarks} Marks</span></div>
-            <div className="flex justify-between items-center"><span className="text-slate-500 font-medium">Language Direction</span><span className="font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border uppercase">{baseExam.direction === 'rtl' ? 'Right-to-Left (Arabic)' : 'Left-to-Right'}</span></div>
-          </div>
-          <button onClick={startExam} className="w-full bg-blue-900 hover:bg-black text-white py-5 rounded-xl font-black uppercase tracking-widest shadow-xl transition-all">Enter Exam Hall</button>
+      <div className="p-8 max-w-4xl mx-auto font-sans">
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Somali Federal Government Exams</h1>
+        <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Select Academic Year</h2>
+            <div className="flex flex-wrap gap-4 justify-center">
+                {ACADEMIC_YEARS.map(year => (
+                    <button 
+                        key={year}
+                        onClick={() => setSelectedYear(year)}
+                        className={`px-6 py-2 rounded-full border ${selectedYear === year ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                    >
+                        {year}
+                    </button>
+                ))}
+            </div>
         </div>
-      </div>
-    );
-  };
-
-  const renderActiveExam = () => {
-    if (!activeExam) return null;
-    const q = activeExam.questions[currentQuestionIndex];
-    const isLastQuestion = currentQuestionIndex === activeExam.questions.length - 1;
-    const isRtl = activeExam.direction === 'rtl';
-    
-    // Check if the current question has an answer
-    const currentAnswerEntry = answers.find(a => a.questionId === q.id);
-    const hasAnswered = currentAnswerEntry && currentAnswerEntry.answer.trim().length > 0;
-
-    // Check for Reading Passage
-    const passage = activeExam.sectionPassages?.[q.section];
-
-    return (
-      <div className="flex flex-col min-h-screen bg-slate-100" dir={isRtl ? 'rtl' : 'ltr'}>
-        {/* Submit Modal Overlay */}
-        {showSubmitModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-in fade-in zoom-in duration-200">
-                    <h3 className="text-2xl font-black text-slate-900 mb-4">Submit Examination?</h3>
-                    <p className="text-slate-600 mb-8 font-medium">Are you sure you want to submit your examination? You will not be able to change your answers after submission.</p>
-                    <div className="flex gap-4">
-                        <button 
-                            onClick={() => setShowSubmitModal(false)}
-                            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-xl font-bold transition-colors"
+        
+        {selectedYear && (
+            <div>
+                <h2 className="text-xl font-semibold mb-4">Select Subject</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {SUBJECTS.map(subject => (
+                        <button
+                            key={subject}
+                            onClick={() => handleSubjectSelect(subject)}
+                            className="p-4 border rounded-lg hover:shadow-md transition bg-white text-left"
                         >
-                            Continue Exam
+                            {subject}
                         </button>
-                        <button 
-                            onClick={handleSubmit}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow-lg transition-colors"
-                        >
-                            Submit Now
-                        </button>
-                    </div>
+                    ))}
                 </div>
             </div>
         )}
 
-        <div className="sticky top-0 bg-blue-900 text-white p-4 shadow-xl z-20 flex items-center justify-between border-b border-blue-800">
-          <div className="flex items-center gap-4">
-            <button 
-                onClick={() => { if(confirm("Are you sure you want to exit the exam? Your progress will be lost.")) setView(AppState.HOME); }}
-                className="bg-blue-800 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-1"
-            >
-                ← Home
-            </button>
-            <div className="bg-white text-blue-900 font-black px-2 py-1 rounded text-sm">F4</div>
-            <div className={isRtl ? 'text-right' : 'text-left'}>
-              <h3 className="font-black text-xs tracking-widest uppercase">{selectedSubject}</h3>
-              <p className="text-[10px] text-blue-300 font-bold">CANDIDATE: SH-82710</p>
+        {examHistory.length > 0 && (
+            <div className="mt-12">
+                <h2 className="text-xl font-semibold mb-4">Recent History</h2>
+                <div className="space-y-2">
+                    {examHistory.slice(0, 3).map((h, i) => (
+                        <div key={i} className="flex justify-between p-3 bg-gray-50 rounded border">
+                            <span>{h.subject} ({h.year})</span>
+                            <span className={`font-bold ${h.score/h.maxScore >= 0.5 ? 'text-green-600' : 'text-red-600'}`}>
+                                {h.grade} ({Math.round(h.score)}/{h.maxScore})
+                            </span>
+                        </div>
+                    ))}
+                </div>
             </div>
-          </div>
-          <div className={`px-5 py-2 rounded-lg font-mono text-2xl font-bold border-2 ${timeLeft < 600 ? 'bg-red-600 animate-pulse border-red-400 text-white' : 'bg-blue-800 border-blue-700 text-blue-100'}`}>
-            {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto w-full p-4 flex-1 flex flex-col justify-center">
-          <div className="exam-paper p-8 md:p-12 rounded-2xl border-2 border-slate-200 shadow-xl bg-white min-h-[60vh] flex flex-col relative overflow-hidden">
-            {/* Left Border Accent */}
-            <div className={`absolute top-0 bottom-0 w-2 ${hasAnswered ? 'bg-green-500' : 'bg-red-500'} left-0 transition-colors duration-500`}></div>
-
-            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-4">
-                  <h4 className="text-blue-900 font-black text-lg">Question {currentQuestionIndex + 1}</h4>
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">[{q.marks} mark]</span>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${hasAnswered ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                  {hasAnswered ? 'Answered' : 'Unanswered'}
-              </span>
-            </div>
-
-            <div className="flex-1 pl-4">
-               {/* Reading Passage Display */}
-               {passage && (
-                 <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl overflow-y-auto max-h-80 shadow-inner">
-                   <h3 className={`text-sm font-black text-slate-500 mb-2 uppercase tracking-widest ${isRtl ? 'text-right' : 'text-left'}`}>Reading Passage</h3>
-                   <div className={`leading-relaxed text-slate-800 whitespace-pre-wrap ${isRtl ? 'font-serif text-xl' : 'text-base'}`}>
-                     {passage}
-                   </div>
-                 </div>
-               )}
-
-               <h3 className={`text-xl md:text-2xl font-bold text-slate-900 leading-relaxed mb-8 whitespace-pre-wrap ${isRtl ? 'font-serif text-2xl' : ''}`}>
-                 {q.text}
-               </h3>
-               
-               {q.diagramUrl && (
-                  <div className="mb-8 p-10 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-center">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">[ DIAGRAM: {q.diagramUrl} ]</p>
-                  </div>
-               )}
-
-               {q.type === 'mcq' ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {q.options?.map((opt, i) => {
-                      const isSelected = answers.find(a => a.questionId === q.id)?.answer === opt;
-                      return (
-                        <button 
-                          key={opt}
-                          onClick={() => handleAnswer(q.id, opt)}
-                          className={`text-left p-5 border rounded-lg flex items-center gap-4 transition-all group ${isSelected ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
-                        >
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
-                              {isSelected && <div className="w-2 h-2 bg-white rounded-full"></div>}
-                          </div>
-                          <span className={`font-medium text-lg ${isSelected ? 'text-blue-900' : 'text-slate-700'} ${isRtl ? 'font-serif text-xl' : ''}`}>{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-               ) : (
-                  <textarea 
-                    className={`w-full p-6 border-2 border-slate-200 rounded-xl focus:border-blue-600 focus:bg-blue-50 outline-none min-h-[200px] text-lg transition-all resize-none ${isRtl ? 'font-serif text-2xl' : ''}`}
-                    placeholder={isRtl ? "اكتب إجابتك هنا..." : "Type your answer here..."}
-                    value={answers.find(a => a.questionId === q.id)?.answer || ""}
-                    onChange={(e) => handleAnswer(q.id, e.target.value)}
-                    dir={isRtl ? 'rtl' : 'ltr'}
-                  />
-               )}
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center pl-4">
-               <button 
-                 onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-                 disabled={currentQuestionIndex === 0}
-                 className="px-6 py-3 rounded-lg font-bold text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-               >
-                 {isRtl ? '→ السابق (Back)' : '← Back'}
-               </button>
-               
-               {isLastQuestion ? (
-                 <button 
-                   onClick={handleTrySubmit}
-                   disabled={!hasAnswered}
-                   className="bg-red-600 hover:bg-red-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold shadow-lg transition-all"
-                 >
-                   {isRtl ? 'إنهاء (Finish)' : 'Finish Exam'}
-                 </button>
-               ) : (
-                 <button 
-                   onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                   disabled={!hasAnswered}
-                   className="bg-blue-900 hover:bg-black disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold shadow-lg transition-all"
-                 >
-                   {isRtl ? 'التالي (Next) ←' : 'Next →'}
-                 </button>
-               )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     );
-  };
+  }
 
-  const renderResults = () => {
-    if (isGrading) {
+  if (view === AppState.LANGUAGE_SELECT) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[85vh] px-4">
-          <div className="w-20 h-20 border-8 border-slate-200 border-t-blue-700 rounded-full animate-spin mb-8 shadow-xl"></div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Evaluating Script</h2>
-          <p className="text-slate-500 mt-4 font-bold uppercase tracking-widest text-xs">National Marking Protocol Active</p>
-          {/* Progress Indicator */}
-          <div className="w-64 h-2 bg-slate-200 rounded-full mt-6 overflow-hidden">
-             <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${gradingProgress}%` }}></div>
+          <div className="p-8 max-w-md mx-auto text-center mt-20">
+              <h2 className="text-2xl font-bold mb-6">Select Language</h2>
+              <div className="flex flex-col gap-4">
+                  <button onClick={() => { setSelectedLanguage('somali'); setView(AppState.EXAM_OVERVIEW); }} className="p-4 bg-blue-600 text-white rounded text-lg">Somali (Af-Soomaali)</button>
+                  <button onClick={() => { setSelectedLanguage('english'); setView(AppState.EXAM_OVERVIEW); }} className="p-4 bg-gray-200 text-gray-800 rounded text-lg">English</button>
+              </div>
+              <button onClick={() => setView(AppState.HOME)} className="mt-8 text-blue-600 underline">Back</button>
           </div>
-          <p className="mt-2 text-sm text-slate-400 font-mono">{gradingProgress}%</p>
-        </div>
       );
-    }
+  }
 
-    if (!results) return null;
+  if (view === AppState.EXAM_OVERVIEW) {
+      const exam = getExam(selectedYear, selectedSubject, selectedLanguage);
+      if (!exam) return <div className="p-8 text-center">Exam not found. <button onClick={() => setView(AppState.HOME)} className="text-blue-500 underline">Back</button></div>;
 
-    const percentage = (results.score / results.maxScore) * 100;
-    let grade = 'F';
-    let color = 'text-red-600';
-    if (percentage >= 80) { grade = 'A'; color = 'text-green-600'; }
-    else if (percentage >= 70) { grade = 'B'; color = 'text-blue-600'; }
-    else if (percentage >= 60) { grade = 'C'; color = 'text-green-600'; } 
-    else if (percentage >= 50) { grade = 'D'; color = 'text-orange-600'; }
-
-    // Use summary data matching the screenshot structure
-    const sectionA = results.sectionScores[SectionType.MCQ] || {score: 0, total: 0};
-    const sectionB = results.sectionScores[SectionType.SHORT_ANSWER] || {score: 0, total: 0};
-    const sectionC = results.sectionScores[SectionType.CALCULATION] || {score: 0, total: 0};
-
-    return (
-      <div className="max-w-5xl mx-auto py-12 px-4">
-        
-        <h1 className="text-4xl font-serif text-slate-900 text-center font-bold mb-8">Examination Results</h1>
-        
-        <div className="text-center mb-12">
-            <h2 className={`text-8xl font-black ${color} tracking-tighter mb-2`}>{results.score}<span className="text-4xl text-slate-300">/{results.maxScore}</span></h2>
-            <h3 className="text-2xl font-bold text-slate-600">Grade: {grade}</h3>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl text-center">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Section A (MCQs)</p>
-                <p className="text-2xl font-black text-slate-800">{sectionA.score}/{sectionA.total}</p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl text-center">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Section B (Short)</p>
-                <p className="text-2xl font-black text-slate-800">{sectionB.score}/{sectionB.total}</p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl text-center">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Section C (Calc)</p>
-                <p className="text-2xl font-black text-slate-800">{sectionC.score}/{sectionC.total}</p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl text-center">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Time Taken</p>
-                <p className="text-2xl font-black text-slate-800">{formatTime(timeTaken)}</p>
-            </div>
-        </div>
-
-        <h2 className="text-2xl font-bold text-slate-900 mb-8 font-serif border-b pb-4">Detailed Feedback</h2>
-
-        <div className="space-y-6">
-          {results.feedback.map((f, i) => (
-            <div 
-                key={f.id} 
-                className={`border rounded-xl p-6 ${f.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
-                dir={activeExam?.direction === 'rtl' ? 'rtl' : 'ltr'}
-            >
-              <h4 className={`font-bold text-slate-900 mb-4 text-lg ${activeExam?.direction === 'rtl' ? 'font-serif text-2xl' : ''}`}>Question {i + 1}: {f.text}</h4>
+      return (
+          <div className="p-8 max-w-2xl mx-auto text-center mt-10">
+              <h1 className="text-3xl font-bold mb-2">{exam.subject} ({exam.year})</h1>
+              <p className="text-gray-600 mb-8">{exam.questions.length} Questions • {exam.durationMinutes} Minutes</p>
               
-              <div className="space-y-2 mb-4">
-                  <p className="text-sm"><span className="font-bold text-slate-600">Your Answer:</span> <span className={`font-medium ${activeExam?.direction === 'rtl' ? 'font-serif text-lg' : ''}`}>{f.studentAnswer}</span></p>
-                  <p className="text-sm"><span className="font-bold text-slate-600">Correct Answer:</span> <span className={`font-medium ${activeExam?.direction === 'rtl' ? 'font-serif text-lg' : ''}`}>{f.correctAnswer}</span></p>
+              <div className="bg-yellow-50 p-6 rounded-lg text-left mb-8 border border-yellow-200">
+                  <h3 className="font-bold mb-2">Instructions:</h3>
+                  <ul className="list-disc pl-5 space-y-2 text-sm">
+                      <li>Read all questions carefully.</li>
+                      <li>For multiple choice, select the best answer.</li>
+                      <li>For written questions, type your answer in the box provided.</li>
+                      <li>The exam will auto-submit when the timer reaches zero.</li>
+                  </ul>
               </div>
 
-              <div className={`bg-white/60 p-4 rounded-lg leading-relaxed font-medium ${activeExam?.direction === 'rtl' ? 'text-lg font-serif text-slate-800' : 'text-sm text-slate-700'}`}>
-                  {/* Properly render the markdown returned by the AI */}
-                  <div className="whitespace-pre-wrap">{f.feedback}</div>
+              <button onClick={startExam} className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700">
+                  Start Exam
+              </button>
+              <br/>
+              <button onClick={() => setView(AppState.HOME)} className="mt-4 text-gray-500 underline">Cancel</button>
+          </div>
+      );
+  }
+
+  if (view === AppState.RESULTS && results) {
+      return (
+          <div className="p-6 max-w-4xl mx-auto">
+              <div className="bg-white p-8 rounded-xl shadow-lg border text-center mb-8">
+                  <h2 className="text-2xl font-bold mb-2">Exam Results</h2>
+                  <div className="text-6xl font-black text-blue-900 mb-2">{results.grade}</div>
+                  <p className="text-xl text-gray-600">{Math.round(results.score)} / {results.maxScore} Marks</p>
               </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="mt-16 flex flex-col md:flex-row gap-4 mb-20">
-          <button onClick={() => startExam()} className="flex-1 bg-white border-2 border-blue-700 text-blue-700 hover:bg-blue-50 py-4 rounded-lg font-bold text-lg transition-all">Retake Examination</button>
-          <button onClick={() => setView(AppState.HOME)} className="flex-1 bg-blue-800 hover:bg-blue-900 text-white py-4 rounded-lg font-bold text-lg transition-all shadow-lg">Back to Home</button>
-        </div>
-      </div>
-    );
-  };
+              <div className="space-y-6">
+                  {results.feedback.map((item, idx) => (
+                      <div key={idx} className={`p-4 rounded-lg border ${item.score > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                          <div className="flex justify-between mb-2">
+                              <span className="font-bold text-gray-700">Question {idx + 1}</span>
+                              <span className="font-mono text-sm">{item.score}/{item.question.marks}</span>
+                          </div>
+                          <p className={`mb-2 font-medium whitespace-pre-wrap ${activeExam?.direction === 'rtl' ? 'text-2xl font-serif' : ''}`}>{item.question.text}</p>
+                          <p className="mb-2 text-sm text-gray-600"><span className="font-bold">Your Answer:</span> {item.userAnswer || <i>(No Answer)</i>}</p>
+                          <div className={`text-sm bg-white p-3 rounded border ${activeExam?.direction === 'rtl' ? 'text-xl text-right font-serif' : ''}`}>
+                             {renderFormattedFeedback(item.feedback)}
+                          </div>
+                      </div>
+                  ))}
+              </div>
 
-  return (
-    <div className="min-h-screen pb-20 selection:bg-blue-100 selection:text-blue-900">
-      {view !== AppState.RESULTS && (
-          <nav className="bg-white border-b-2 border-slate-200 px-6 py-5 flex justify-between items-center sticky top-0 z-40">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">S</div>
-              <span className="font-black text-xl tracking-tighter text-slate-900">SHAIYE EXAMS</span>
-            </div>
-            {view !== AppState.HOME && view !== AppState.EXAM_ACTIVE && (
-              <button onClick={() => setView(AppState.HOME)} className="text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">Close Session</button>
-            )}
-          </nav>
-      )}
+              <div className="mt-8 text-center">
+                  <button onClick={() => setView(AppState.HOME)} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Back to Home</button>
+              </div>
+          </div>
+      );
+  }
 
-      <main>
-        {view === AppState.HOME && renderHome()}
-        {view === AppState.DASHBOARD && renderDashboard()}
-        {view === AppState.HISTORY && renderHistory()}
-        {view === AppState.YEAR_SELECT && renderYearSelect()}
-        {view === AppState.SUBJECT_SELECT && renderSubjectSelect()}
-        {view === AppState.EXAM_OVERVIEW && renderExamOverview()}
-        {view === AppState.EXAM_ACTIVE && renderActiveExam()}
-        {view === AppState.RESULTS && renderResults()}
-      </main>
-    </div>
-  );
+  if (view === AppState.EXAM_ACTIVE && activeExam) {
+      const question = activeExam.questions[currentQuestionIndex];
+      const userAnswer = answers.find(a => a.questionId === question.id)?.answer || '';
+      const hasAnswered = userAnswer.trim().length > 0;
+      const isRtl = activeExam.direction === 'rtl';
+
+      if (isGrading) {
+          return (
+              <div className="flex flex-col items-center justify-center h-screen">
+                  <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <h2 className="text-xl font-bold">Grading Exam...</h2>
+                  <p className="text-gray-500">AI is analyzing your answers ({gradingProgress}%)</p>
+              </div>
+          );
+      }
+
+      return (
+          <div className="flex flex-col h-screen bg-gray-50">
+              {/* Header */}
+              <div className="bg-white shadow p-4 flex justify-between items-center z-10">
+                  <div className="font-bold text-lg">{activeExam.subject}</div>
+                  <div className={`font-mono text-xl font-bold ${timeLeft < 300 ? 'text-red-600' : 'text-blue-800'}`}>
+                      {formatTime(timeLeft)}
+                  </div>
+                  <button 
+                      onClick={() => {
+                        if(confirm("Are you sure you want to quit? Your progress will be lost.")) {
+                           // Reset all selections to go back to the main home screen (Year Selection)
+                           setSelectedYear(null);
+                           setSelectedSubject(null);
+                           setActiveExam(null);
+                           setAnswers([]);
+                           setView(AppState.HOME);
+                        }
+                      }} 
+                      className="px-4 py-1 bg-gray-100 text-gray-700 rounded border border-gray-200 hover:bg-gray-200 font-bold text-sm"
+                  >
+                      Exit
+                  </button>
+              </div>
+
+              {/* Main Content */}
+              <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                  <div className="max-w-3xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-sm min-h-[500px] flex flex-col" dir={activeExam.direction}>
+                      
+                      {/* Section Header */}
+                      <div className="mb-6 pb-4 border-b">
+                          <span className="text-sm font-bold uppercase tracking-wider text-gray-500">{question.section}</span>
+                          <div className="flex justify-between items-end mt-1">
+                              <span className="text-xs text-gray-400">Question {currentQuestionIndex + 1} of {activeExam.questions.length}</span>
+                              <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{question.marks} Marks</span>
+                          </div>
+                      </div>
+
+                      {/* Passage if any */}
+                      {activeExam.sectionPassages && activeExam.sectionPassages[question.section] && (
+                          <div className={`mb-6 p-4 bg-gray-50 border rounded leading-relaxed whitespace-pre-line text-gray-700 ${isRtl ? 'text-2xl font-serif leading-loose text-right' : 'text-sm'}`}>
+                              {activeExam.sectionPassages[question.section]}
+                          </div>
+                      )}
+
+                      {/* Question */}
+                      <h2 className={`font-medium mb-4 whitespace-pre-wrap ${isRtl ? 'text-3xl leading-loose font-serif' : 'text-lg md:text-xl leading-relaxed'}`}>{question.text}</h2>
+                      {question.diagramUrl && (
+                          <img src={question.diagramUrl} alt="Diagram" className="max-w-full h-auto mb-6 rounded border" />
+                      )}
+
+                      {/* Inputs */}
+                      <div className="mt-4 flex-1">
+                          {question.type === 'mcq' && question.options ? (
+                              <div className="space-y-3">
+                                  {question.options.map((opt, i) => (
+                                      <label key={i} className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${userAnswer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}`}>
+                                          <input 
+                                              type="radio" 
+                                              name={`q-${question.id}`} 
+                                              value={opt} 
+                                              checked={userAnswer === opt}
+                                              onChange={() => handleAnswer(opt)}
+                                              className="w-5 h-5 text-blue-600"
+                                          />
+                                          <span className={`mx-3 ${isRtl ? 'text-3xl font-serif' : 'text-base'}`}>{opt}</span>
+                                      </label>
+                                  ))}
+                              </div>
+                          ) : (
+                              <textarea 
+                                  className={`w-full h-40 p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${isRtl ? 'text-2xl font-serif' : 'text-base'}`}
+                                  placeholder={isRtl ? "اكتب إجابتك هنا..." : "Type your answer here..."}
+                                  value={userAnswer}
+                                  onChange={(e) => handleAnswer(e.target.value)}
+                              />
+                          )}
+                      </div>
+                  </div>
+              </div>
+
+              {/* Footer Nav */}
+              <div className="bg-white border-t p-4">
+                  <div className="max-w-3xl mx-auto flex justify-between">
+                      <button 
+                          onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                          disabled={currentQuestionIndex === 0}
+                          className="px-6 py-2 rounded bg-gray-100 text-gray-700 disabled:opacity-50 hover:bg-gray-200"
+                      >
+                          Previous
+                      </button>
+                      
+                      <div className="flex gap-2">
+                          {currentQuestionIndex === activeExam.questions.length - 1 ? (
+                              <button 
+                                  onClick={() => setShowSubmitModal(true)} 
+                                  disabled={!hasAnswered}
+                                  className={`px-6 py-2 rounded font-bold ${!hasAnswered ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                              >
+                                  Submit All
+                              </button>
+                          ) : (
+                              <button 
+                                  onClick={() => setCurrentQuestionIndex(prev => Math.min(activeExam.questions.length - 1, prev + 1))}
+                                  disabled={!hasAnswered}
+                                  className={`px-6 py-2 rounded font-bold ${!hasAnswered ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                              >
+                                  Next
+                              </button>
+                          )}
+                      </div>
+                  </div>
+              </div>
+
+              {/* Submit Modal */}
+              {showSubmitModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white p-6 rounded-xl max-w-sm w-full mx-4">
+                          <h3 className="text-xl font-bold mb-2">Submit Exam?</h3>
+                          <p className="text-gray-600 mb-6">You have answered {answers.length} out of {activeExam.questions.length} questions. Once submitted, you cannot change your answers.</p>
+                          <div className="flex gap-3 justify-end">
+                              <button onClick={() => setShowSubmitModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                              <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold">Confirm Submit</button>
+                          </div>
+                      </div>
+                  </div>
+              )}
+          </div>
+      );
+  }
+
+  return <div>Loading...</div>;
 };
+
+function calculateGrade(score: number, max: number): string {
+  const percentage = (score / max) * 100;
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 85) return 'A';
+  if (percentage >= 80) return 'B+';
+  if (percentage >= 75) return 'B';
+  if (percentage >= 70) return 'B-';
+  if (percentage >= 65) return 'C+';
+  if (percentage >= 60) return 'C';
+  if (percentage >= 50) return 'D';
+  return 'F';
+}
 
 export default App;

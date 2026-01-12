@@ -23,6 +23,7 @@ export interface Exam {
   id: string;
   year: number;
   subject: string;
+  language?: 'english' | 'somali';
   durationMinutes: number;
   questions: Question[];
   direction?: 'ltr' | 'rtl'; // Support for Arabic
@@ -50,6 +51,7 @@ export enum AppState {
   HISTORY = 'HISTORY',
   YEAR_SELECT = 'YEAR_SELECT',
   SUBJECT_SELECT = 'SUBJECT_SELECT',
+  LANGUAGE_SELECT = 'LANGUAGE_SELECT',
   EXAM_OVERVIEW = 'EXAM_OVERVIEW',
   EXAM_ACTIVE = 'EXAM_ACTIVE',
   RESULTS = 'RESULTS'
