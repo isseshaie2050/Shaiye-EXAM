@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, UserAnswer, SectionType, Question, Exam, ExamResult } from './types';
 import { ACADEMIC_YEARS, SUBJECTS, getExam } from './constants';
@@ -21,8 +22,8 @@ const formatTime = (seconds: number) => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-// Helper to render text with bold formatting by parsing **text**
-const renderFormattedFeedback = (text: string) => {
+// Component to render text with bold formatting by parsing **text**
+const FormattedText: React.FC<{ text: string }> = ({ text }) => {
   if (!text) return null;
   // Split by **text** pattern
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -31,7 +32,7 @@ const renderFormattedFeedback = (text: string) => {
       {parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
            // Remove asterisks and render bold
-           return <strong key={i} className="font-black text-slate-800">{part.slice(2, -2)}</strong>;
+           return <strong key={i} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
         }
         return <span key={i}>{part}</span>;
       })}
@@ -64,6 +65,23 @@ const App: React.FC = () => {
     setExamHistory(getExamHistory());
     setDashboardStats(getSubjectStats());
   }, [view]);
+
+  // Preload images when exam starts
+  useEffect(() => {
+    if (activeExam) {
+      // Preload all images in the exam to ensure instant loading during navigation
+      // This runs in the background
+      activeExam.questions.forEach((q) => {
+        if (q.diagramUrl) {
+          const urls = Array.isArray(q.diagramUrl) ? q.diagramUrl : [q.diagramUrl];
+          urls.forEach((url) => {
+            const img = new Image();
+            img.src = url;
+          });
+        }
+      });
+    }
+  }, [activeExam]);
 
   const handleSubmit = useCallback(async () => {
     if (!activeExam) return;
@@ -150,10 +168,11 @@ const App: React.FC = () => {
   const handleSubjectSelect = (subject: string) => {
     setSelectedSubject(subject);
     if (subject === 'History') {
-        setView(AppState.LANGUAGE_SELECT);
+        setSelectedLanguage('somali');
     } else {
-        setView(AppState.EXAM_OVERVIEW);
+        setSelectedLanguage('english');
     }
+    setView(AppState.EXAM_OVERVIEW);
   };
 
   const startExam = () => {
@@ -215,7 +234,7 @@ const App: React.FC = () => {
                         <button
                             key={subject}
                             onClick={() => handleSubjectSelect(subject)}
-                            className="p-4 border rounded-lg hover:shadow-md transition bg-white text-left"
+                            className="p-5 border rounded-lg hover:shadow-md transition bg-white text-left text-lg font-medium text-slate-800"
                         >
                             {subject}
                         </button>
@@ -243,18 +262,7 @@ const App: React.FC = () => {
     );
   }
 
-  if (view === AppState.LANGUAGE_SELECT) {
-      return (
-          <div className="p-8 max-w-md mx-auto text-center mt-20">
-              <h2 className="text-2xl font-bold mb-6">Select Language</h2>
-              <div className="flex flex-col gap-4">
-                  <button onClick={() => { setSelectedLanguage('somali'); setView(AppState.EXAM_OVERVIEW); }} className="p-4 bg-blue-600 text-white rounded text-lg">Somali (Af-Soomaali)</button>
-                  <button onClick={() => { setSelectedLanguage('english'); setView(AppState.EXAM_OVERVIEW); }} className="p-4 bg-gray-200 text-gray-800 rounded text-lg">English</button>
-              </div>
-              <button onClick={() => setView(AppState.HOME)} className="mt-8 text-blue-600 underline">Back</button>
-          </div>
-      );
-  }
+  // Language select view removed as it is skipped
 
   if (view === AppState.EXAM_OVERVIEW) {
       const exam = getExam(selectedYear, selectedSubject, selectedLanguage);
@@ -300,10 +308,12 @@ const App: React.FC = () => {
                               <span className="font-bold text-gray-700">Question {idx + 1}</span>
                               <span className="font-mono text-sm">{item.score}/{item.question.marks}</span>
                           </div>
-                          <p className={`mb-2 font-medium whitespace-pre-wrap ${activeExam?.direction === 'rtl' ? 'text-2xl font-serif' : ''}`}>{item.question.text}</p>
+                          <div className={`mb-2 font-medium whitespace-pre-wrap ${activeExam?.direction === 'rtl' ? 'text-2xl font-serif' : ''}`}>
+                            <FormattedText text={item.question.text} />
+                          </div>
                           <p className="mb-2 text-sm text-gray-600"><span className="font-bold">Your Answer:</span> {item.userAnswer || <i>(No Answer)</i>}</p>
                           <div className={`text-sm bg-white p-3 rounded border ${activeExam?.direction === 'rtl' ? 'text-xl text-right font-serif' : ''}`}>
-                             {renderFormattedFeedback(item.feedback)}
+                             <FormattedText text={item.feedback} />
                           </div>
                       </div>
                   ))}
@@ -378,9 +388,32 @@ const App: React.FC = () => {
                       )}
 
                       {/* Question */}
-                      <h2 className={`font-medium mb-4 whitespace-pre-wrap ${isRtl ? 'text-3xl leading-loose font-serif' : 'text-lg md:text-xl leading-relaxed'}`}>{question.text}</h2>
+                      <h2 className={`font-medium mb-4 whitespace-pre-wrap ${isRtl ? 'text-3xl leading-loose font-serif' : 'text-lg md:text-xl leading-relaxed'}`}>
+                        <FormattedText text={question.text} />
+                      </h2>
+                      
+                      {/* Diagram(s) */}
                       {question.diagramUrl && (
-                          <img src={question.diagramUrl} alt="Diagram" className="max-w-full h-auto mb-6 rounded border" />
+                          <div className="mb-6">
+                              {Array.isArray(question.diagramUrl) ? (
+                                  question.diagramUrl.map((url, index) => (
+                                      <img 
+                                        key={index} 
+                                        src={url} 
+                                        alt={`Diagram ${index + 1}`} 
+                                        className="max-w-full h-auto mb-4 rounded border block bg-gray-100 min-h-[200px]" 
+                                        loading="eager"
+                                      />
+                                  ))
+                              ) : (
+                                  <img 
+                                    src={question.diagramUrl} 
+                                    alt="Diagram" 
+                                    className="max-w-full h-auto mb-6 rounded border bg-gray-100 min-h-[200px]" 
+                                    loading="eager"
+                                  />
+                              )}
+                          </div>
                       )}
 
                       {/* Inputs */}

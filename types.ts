@@ -15,7 +15,7 @@ export interface Question {
   correctAnswer: string;
   marks: number;
   explanation: string;
-  diagramUrl?: string;
+  diagramUrl?: string | string[];
   topic: string;
 }
 

@@ -1,170 +1,141 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import { Question } from "../types";
 
-// Initialize AI client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// We are switching to Pollinations.ai which is a free, limitless AI proxy.
+// No API Key is required for this service.
 
 export async function gradeOpenEndedResponse(question: Question, userAnswer: string, language?: 'english' | 'somali'): Promise<{ score: number, feedback: string }> {
   const isSomali = language === 'somali';
+  const modelAnswerLabel = isSomali ? "**Jawaabta Saxda ah:**" : "**Model Answer:**";
+  const explanationLabel = isSomali ? "**Faahfaahin:**" : "**Full Explanation / Calculation:**";
 
-  // Simple heuristic for MCQs
+  // 1. Handle MCQs locally (Instant, no API needed)
   if (question.type === 'mcq') {
     const isCorrect = userAnswer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
     
-    if (isSomali) {
-         return {
-          score: isCorrect ? question.marks : 0,
-          feedback: isCorrect 
-            ? "✅ **Sax**" 
-            : `❌ **Qalad**\n\nJawaabta saxda ah waa: **${question.correctAnswer}**\n\n${question.explanation}`
-        };
-    }
+    const status = isCorrect 
+      ? (isSomali ? "✅ **Sax**" : "✅ **Correct**")
+      : (isSomali ? "❌ **Qalad**" : "❌ **Incorrect**");
 
+    // Display Explanation (Calculation) first, then Model Answer
     return {
       score: isCorrect ? question.marks : 0,
-      feedback: isCorrect 
-        ? "✅ **Correct**" 
-        : `❌ **Incorrect**\n\nThe correct answer is: **${question.correctAnswer}**\n\n${question.explanation}`
+      feedback: `${status}\n\n${explanationLabel}\n${question.explanation}\n\n${modelAnswerLabel}\n${question.correctAnswer}`
     };
   }
 
-  // Use Gemini for short answers and calculations
+  // 2. Use Pollinations.ai (Free API) for Short Answers / Essays
   try {
-    // Detect language direction/type for better prompting
-    // If explicitly Somali, use Somali prompt. Else check for Arabic.
-    const isArabic = !isSomali && /[\u0600-\u06FF]/.test(question.text);
+    // We only ask the AI for the score. We do NOT ask for feedback/analysis.
+    // We will construct the feedback string locally to ensure it matches the user's strict requirement.
+    
+    const systemInstruction = `You are a strict teacher. 
+    Compare the Student Answer to the Model Answer.
+    Return valid JSON only: {"score": number}.
+    Max marks: ${question.marks}.
+    If the answer conveys the correct meaning or key points, award marks accordingly.`;
 
-    let systemInstruction = "";
+    const prompt = `
+      Question: "${question.text}"
+      Model Answer: "${question.correctAnswer}"
+      Student Answer: "${userAnswer}"
+      
+      Return JSON with the score.
+    `;
 
-    if (isSomali) {
-        systemInstruction = `Adigu waxaad tahay macalin Soomaaliyeed oo caddaalad ah. Ujeedadaadu waa inaad qiimeyso fahanka ardayga ee ma ahan xafiditaan.
-         
-         Qawaaniinta sixitaanka:
-         1. **Fududeyn:** Haddii jawaabta ardaygu ay xambaarsan tahay macnaha saxda ah, sii dhibcaha oo dhan (Full Mark).
-         2. **Jawaabaha Gaaban:** Aqbal jawaabaha gaaban haddii ay sax yihiin.
-         3. **Luqadda:** Jawaab-celintu (feedback) waa inay noqotaa Af-Soomaali cad oo dhiirigelin leh.
-         4. **Qaabka:** Ha isticmaalin hashtags (#). Isticmaal (**) cinwaanada.
-
-         Qaabka Jawaab-celinta:
-         **Falanqeyn:**
-         (Qodobbada muhiimka ah)
-         
-         **Qiimeyn:**
-         (Sababta dhibcaha)
-         
-         Dhibcaha ugu badan: ${question.marks}.`;
-    } else if (isArabic) {
-       systemInstruction = `أنت مصحح مرن وعادل جداً. هدفك هو تقييم الفهم العام وليس الحفظ الحرفي للنص.
-         
-         قواعد التصحيح الصارمة:
-         1. **التساهل في الدرجات:** إذا كانت إجابة الطالب تحمل نفس المعنى الصحيح للإجابة النموذجية، امنحه الدرجة الكاملة (Full Mark) فوراً، حتى لو كانت الكلمات مختلفة.
-         2. **أسئلة الإعراب:** اقبل الإجابات المختصرة. مثال: "فاعل مرفوع" تكفي وتعتبر صحيحة تماماً بدلاً من "فاعل مرفوع وعلامة رفعه الضمة الظاهرة". لا تخصم درجات على الاختصار.
-         3. **التعبير (Essay):** قيم بناءً على: (1) المنطق وتسلسل الأفكار، (2) وضوح اللغة، (3) أن يكون الموضوع في حدود 10 أسطر. إذا كان المعنى واضحاً، كن كريماً في الدرجات.
-         4. **التنسيق:** لا تستخدم علامات الهاشتاج (#) أبداً. استخدم الخط العريض (**) للعناوين.
-
-         نسق ردك كالتالي:
-         **التحليل:**
-         (نقاط القوة أو الخطأ باختصار شديد)
-         
-         **التقييم:**
-         (سبب الدرجة)
-         
-         الدرجة القصوى: ${question.marks}. كن في صف الطالب.`;
-    } else {
-        systemInstruction = `You are a fair and lenient examiner. Grade based on semantic understanding, not exact phrasing.
-
-         Rules:
-         1. **Lenient Grading:** If the student's answer conveys the correct meaning, award FULL MARKS. Do not penalize for minor spelling or phrasing differences.
-         2. **Short Answers:** Accept standard short forms (e.g., "Voltmeter" is enough, no need for a full sentence).
-         3. **Essay:** Grade based on Logic, Clarity, and Length (~10 lines). If it is readable and logical, give a high score.
-         4. **Formatting:** Do NOT use hashtags (#). Use Bold (**) for headers.
-
-         Format:
-         **Analysis:**
-         (Brief points)
-         
-         **Evaluation:**
-         (Reasoning)
-         
-         Max Marks: ${question.marks}. Be generous if the answer is right.`;
-    }
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", 
-      contents: `
-        Question: ${question.text}
-        Model Answer: ${question.correctAnswer}
-        Student Answer: ${userAnswer}
-        Max Marks: ${question.marks}
-        
-        Grade this response. Return a JSON object with a numerical 'score' (integer or .5) and a string 'feedback'.
-      `,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            score: { type: Type.NUMBER },
-            feedback: { type: Type.STRING }
-          },
-          required: ["score", "feedback"]
-        }
-      }
+    // Fetch from Pollinations.ai (Free, No Key)
+    const response = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        model: 'openai', 
+        jsonMode: true,
+        seed: Math.floor(Math.random() * 1000) 
+      })
     });
 
-    const text = response.text;
-    if (!text) {
-      throw new Error("Empty response from AI model");
+    if (!response.ok) {
+      throw new Error(`Pollinations API Error: ${response.status}`);
     }
 
-    // Robust parsing
+    const text = await response.text();
+    
+    // Clean and Parse JSON
     const cleanText = text.replace(/```json\n?|```/g, '').trim();
-    const result = JSON.parse(cleanText);
+    let result;
+    try {
+        result = JSON.parse(cleanText);
+    } catch (e) {
+        // Fallback if AI returns plain text, try to extract a number
+        const match = cleanText.match(/\d+/);
+        result = { score: match ? parseInt(match[0]) : 0 };
+    }
     
-    // Append the standard Model Answer to the feedback
-    let finalFeedback = result.feedback;
-    const modelAnswerLabel = isSomali ? "**Jawaabta Saxda ah:**" : (isArabic ? "**الإجابة النموذجية:**" : "**Model Answer:**");
-    finalFeedback += `\n\n${modelAnswerLabel}\n${question.correctAnswer}`;
+    const score = Math.min(Math.max(0, result.score || 0), question.marks);
+    
+    // Determine Status Label
+    let status = "";
+    if (score === question.marks) {
+        status = isSomali ? "✅ **Sax**" : "✅ **Correct**";
+    } else if (score === 0) {
+        status = isSomali ? "❌ **Qalad**" : "❌ **Incorrect**";
+    } else {
+        status = isSomali ? `⚠️ **Qeyb ahaan waa sax** (${score}/${question.marks})` : `⚠️ **Partially Correct** (${score}/${question.marks})`;
+    }
 
+    // STRICT FORMAT: Status + Explanation + Model Answer
     return {
-      score: Math.min(Math.max(0, result.score), question.marks),
-      feedback: finalFeedback
+      score: score,
+      feedback: `${status}\n\n${explanationLabel}\n${question.explanation}\n\n${modelAnswerLabel}\n${question.correctAnswer}`
     };
+
   } catch (error: any) {
-    console.error("Grading error:", error);
+    console.warn("Grading API failed, using fallback:", error);
     
-    // Heuristic fallback logic
+    // --- LOCAL FALLBACK (Offline/Network Error) ---
+    
     const normUser = userAnswer.toLowerCase().trim();
     const normCorrect = question.correctAnswer.toLowerCase().trim();
     
-    // Very basic overlap check
-    const correctWords = normCorrect.split(' ').filter(w => w.length > 3);
-    const userWords = normUser.split(' ');
-    const matchCount = correctWords.filter(w => userWords.some(uw => uw.includes(w))).length;
-    
+    // Logic to estimate score
     let estimatedScore = 0;
-    if (matchCount >= correctWords.length * 0.8) estimatedScore = question.marks;
-    else if (matchCount >= correctWords.length * 0.5) estimatedScore = Math.ceil(question.marks / 2);
-    else if (normUser.length > 10 && normCorrect.length > 10) estimatedScore = 1; // Pity point for effort if not empty
     
-    const isQuota = error.status === 429 || (error.message && error.message.includes('429')) || (error.toString().includes('429'));
-    
-    let message = "";
-    if (isSomali) {
-        message = isQuota 
-        ? "⚠️ **Culeys Jira**: Nidaamka sixitaanka ayaa mashquul ah. Dhibcaha waxaa lagu qiyaasay ereyada muhiimka ah."
-        : "⚠️ **Cilad Jirta**: Lama xiriiri karo nidaamka sixitaanka. Dhibcaha waa qiyaas.";
+    // 1. Exact Match
+    if (normUser === normCorrect || normUser.includes(normCorrect) || normCorrect.includes(normUser)) {
+        estimatedScore = question.marks;
     } else {
-        message = isQuota 
-        ? "⚠️ **System Overload**: The AI examiner is currently experiencing high traffic. Score estimated based on keywords." 
-        : "⚠️ **Grading Unavailable**: Could not connect to the AI examiner. Score estimated based on keywords.";
+        // 2. Keyword Overlap
+        const correctWords = normCorrect.split(' ').filter(w => w.length > 3);
+        const userWords = normUser.split(/[ .,!?]+/);
+        const matchCount = correctWords.filter(w => userWords.some(uw => uw.includes(w))).length;
+        
+        if (correctWords.length > 0 && matchCount >= correctWords.length * 0.7) {
+            estimatedScore = question.marks;
+        } else if (correctWords.length > 0 && matchCount >= correctWords.length * 0.4) {
+            estimatedScore = Math.ceil(question.marks / 2);
+        } else if (normUser.length > 10) {
+             // Participation point if length is reasonable but no keyword match (offline fallback is crude)
+             estimatedScore = 1;
+        }
+    }
+
+    let status = "";
+    if (estimatedScore === question.marks) {
+        status = isSomali ? "✅ **Sax**" : "✅ **Correct**";
+    } else if (estimatedScore === 0) {
+        status = isSomali ? "❌ **Qalad**" : "❌ **Incorrect**";
+    } else {
+        status = isSomali ? `⚠️ **Qeyb ahaan waa sax** (${estimatedScore}/${question.marks})` : `⚠️ **Partially Correct** (${estimatedScore}/${question.marks})`;
     }
 
     return {
       score: estimatedScore,
-      feedback: `${message}\n\n**Model Answer**\n${question.correctAnswer}\n\n**Note**\nAutomated grading fallback active.`
+      feedback: `${status}\n\n${explanationLabel}\n${question.explanation}\n\n${modelAnswerLabel}\n${question.correctAnswer}`
     };
   }
 }
