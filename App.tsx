@@ -40,6 +40,28 @@ const FormattedText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
+// Component to handle image loading and errors
+const ExamImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (hasError) return null;
+
+  return (
+    <img 
+      src={src} 
+      alt={alt} 
+      // Removed bg-gray-50, min-h-[50px], and border to prevent ugly placeholder box
+      className="max-w-full h-auto mb-4 rounded" 
+      onError={() => setHasError(true)}
+      loading="eager"
+    />
+  );
+};
+
 const App: React.FC = () => {
   const [view, setView] = useState<AppState>(AppState.HOME);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -376,7 +398,7 @@ const App: React.FC = () => {
                           <span className="text-sm font-bold uppercase tracking-wider text-gray-500">{question.section}</span>
                           <div className="flex justify-between items-end mt-1">
                               <span className="text-xs text-gray-400">Question {currentQuestionIndex + 1} of {activeExam.questions.length}</span>
-                              <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{question.marks} Marks</span>
+                              <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{question.marks} {question.marks === 1 ? 'Mark' : 'Marks'}</span>
                           </div>
                       </div>
 
@@ -397,20 +419,16 @@ const App: React.FC = () => {
                           <div className="mb-6">
                               {Array.isArray(question.diagramUrl) ? (
                                   question.diagramUrl.map((url, index) => (
-                                      <img 
+                                      <ExamImage 
                                         key={index} 
                                         src={url} 
                                         alt={`Diagram ${index + 1}`} 
-                                        className="max-w-full h-auto mb-4 rounded border block bg-gray-100 min-h-[200px]" 
-                                        loading="eager"
                                       />
                                   ))
                               ) : (
-                                  <img 
+                                  <ExamImage 
                                     src={question.diagramUrl} 
                                     alt="Diagram" 
-                                    className="max-w-full h-auto mb-6 rounded border bg-gray-100 min-h-[200px]" 
-                                    loading="eager"
                                   />
                               )}
                           </div>
