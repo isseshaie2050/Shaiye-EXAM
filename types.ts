@@ -35,6 +35,7 @@ export interface Exam {
   questions: Question[];
   direction?: 'ltr' | 'rtl'; // Support for Arabic/Islamic Studies
   sectionPassages?: Record<string, string>; // Reading passages keyed by SectionType
+  sectionImages?: Record<string, string>; // Images associated with a section (e.g. Reading Comprehension image)
 }
 
 export interface UserAnswer {

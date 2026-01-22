@@ -504,6 +504,16 @@ const App: React.FC = () => {
                           </div>
                       </div>
 
+                      {/* Section Image - New Feature */}
+                      {activeExam.sectionImages && activeExam.sectionImages[question.section] && (
+                          <div className="mb-6">
+                              <ExamImage 
+                                src={activeExam.sectionImages[question.section]} 
+                                alt="Section Reference Image" 
+                              />
+                          </div>
+                      )}
+
                       {/* Passage if any */}
                       {activeExam.sectionPassages && activeExam.sectionPassages[question.section] && (
                           <div className={`mb-6 p-4 bg-gray-50 border rounded leading-relaxed whitespace-pre-line text-gray-700 ${isRtl ? 'text-2xl font-serif leading-loose text-right' : 'text-sm'}`}>
