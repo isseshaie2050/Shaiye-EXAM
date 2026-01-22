@@ -1,4 +1,3 @@
-
 import { Question } from "../types";
 import { GoogleGenAI } from "@google/genai";
 
@@ -7,7 +6,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Using the recommended model for basic text tasks
-const MODEL = "gemini-2.0-flash"; 
+const MODEL = "gemini-3-flash-preview"; 
 
 const INTER_BATCH_DELAY_MS = 1000; 
 
