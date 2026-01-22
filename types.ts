@@ -3,7 +3,14 @@ export enum SectionType {
   MCQ = 'Section A: Multiple Choice',
   SHORT_ANSWER = 'Section B: Short Answers',
   CALCULATION = 'Section C: Calculations',
-  ESSAY = 'Section D: Essay/Composition'
+  ESSAY = 'Section D: Essay/Composition',
+  // English Exam Specific Sections
+  READING = 'Part 1: Reading Comprehension',
+  GRAMMAR = 'Part 2: Grammar',
+  LITERATURE = 'Part 3: Literature',
+  VOCABULARY = 'Part 4: Vocabulary',
+  STRUCTURED = 'Section Two: Structured Questions',
+  WRITING = 'Writing Skills'
 }
 
 export interface Question {
@@ -23,10 +30,10 @@ export interface Exam {
   id: string;
   year: number;
   subject: string;
-  language?: 'english' | 'somali';
+  language?: 'english' | 'somali' | 'arabic';
   durationMinutes: number;
   questions: Question[];
-  direction?: 'ltr' | 'rtl'; // Support for Arabic
+  direction?: 'ltr' | 'rtl'; // Support for Arabic/Islamic Studies
   sectionPassages?: Record<string, string>; // Reading passages keyed by SectionType
 }
 

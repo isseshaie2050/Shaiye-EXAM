@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, UserAnswer, SectionType, Question, Exam, ExamResult } from './types';
 import { ACADEMIC_YEARS, SUBJECTS, getExam } from './constants';
-import { gradeOpenEndedResponse } from './services/geminiService';
+import { gradeBatch, formatFeedback } from './services/geminiService';
 import { saveExamResult, getExamHistory, getSubjectStats } from './services/storageService';
 
 // Utility to shuffle array (Fisher-Yates)
@@ -25,13 +25,11 @@ const formatTime = (seconds: number) => {
 // Component to render text with bold formatting by parsing **text**
 const FormattedText: React.FC<{ text: string }> = ({ text }) => {
   if (!text) return null;
-  // Split by **text** pattern
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return (
     <span>
       {parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-           // Remove asterisks and render bold
            return <strong key={i} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
         }
         return <span key={i}>{part}</span>;
@@ -54,8 +52,7 @@ const ExamImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
     <img 
       src={src} 
       alt={alt} 
-      // Removed bg-gray-50, min-h-[50px], and border to prevent ugly placeholder box
-      className="max-w-full h-auto mb-4 rounded" 
+      className="max-w-full h-auto mb-4 rounded border border-gray-200" 
       onError={() => setHasError(true)}
       loading="eager"
     />
@@ -91,8 +88,6 @@ const App: React.FC = () => {
   // Preload images when exam starts
   useEffect(() => {
     if (activeExam) {
-      // Preload all images in the exam to ensure instant loading during navigation
-      // This runs in the background
       activeExam.questions.forEach((q) => {
         if (q.diagramUrl) {
           const urls = Array.isArray(q.diagramUrl) ? q.diagramUrl : [q.diagramUrl];
@@ -109,6 +104,7 @@ const App: React.FC = () => {
     if (!activeExam) return;
 
     setIsGrading(true);
+    setGradingProgress(0); // Reset progress
     setIsPaused(true);
     setTimeTaken((activeExam.durationMinutes * 60) - timeLeft);
 
@@ -125,31 +121,98 @@ const App: React.FC = () => {
     });
 
     try {
-      let processedCount = 0;
-      const totalQuestions = activeExam.questions.length;
-
-      const resultsPromises = activeExam.questions.map(async (q) => {
+      const mcqQuestions = activeExam.questions.filter(q => q.type === 'mcq');
+      const textQuestions = activeExam.questions.filter(q => q.type !== 'mcq');
+      const totalQuestionsCount = activeExam.questions.length;
+      
+      // 2. Grade MCQs locally (Instant)
+      mcqQuestions.forEach(q => {
         const userAnswer = answers.find(a => a.questionId === q.id)?.answer || '';
-        const grading = await gradeOpenEndedResponse(q, userAnswer, activeExam.language);
+        const isCorrect = userAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
+        const score = isCorrect ? q.marks : 0;
         
-        processedCount++;
-        setGradingProgress(Math.round((processedCount / totalQuestions) * 100));
+        const status = isCorrect ? (activeExam.language === 'somali' ? "✅ **Sax**" : "✅ **Correct**") : (activeExam.language === 'somali' ? "❌ **Qalad**" : "❌ **Incorrect**");
+        // No longer appending answer/explanation here, handled in UI
+        const fbText = `${status}`;
 
-        return {
+        feedbackList.push({
           questionId: q.id,
-          score: grading.score,
-          feedback: grading.feedback,
+          score,
+          feedback: fbText,
           userAnswer,
           question: q
-        };
+        });
+        totalScore += score;
+        sectionScores[q.section].score += score;
       });
 
-      const gradedQuestions = await Promise.all(resultsPromises);
+      // Update progress after MCQs
+      let processedCount = mcqQuestions.length;
+      setGradingProgress(Math.round((processedCount / totalQuestionsCount) * 100));
 
-      gradedQuestions.forEach(g => {
-        totalScore += g.score;
-        sectionScores[g.question.section].score += g.score;
-        feedbackList.push(g);
+      // 3. Prepare Text Questions for Batch Grading
+      const textItemsToGrade = textQuestions
+        .map(q => ({
+          question: q,
+          userAnswer: answers.find(a => a.questionId === q.id)?.answer || ''
+        }))
+        .filter(item => item.userAnswer.trim().length > 0);
+
+      // Handle empty text answers immediately
+      textQuestions.forEach(q => {
+        const userAnswer = answers.find(a => a.questionId === q.id)?.answer || '';
+        if (userAnswer.trim().length === 0) {
+           const fbText = formatFeedback(q, 0, "No answer provided.", activeExam.language);
+           feedbackList.push({
+             questionId: q.id,
+             score: 0,
+             feedback: fbText,
+             userAnswer: '',
+             question: q
+           });
+           processedCount++;
+        }
+      });
+      
+      setGradingProgress(Math.round((processedCount / totalQuestionsCount) * 100));
+
+      // 4. Call Batch API
+      if (textItemsToGrade.length > 0) {
+        const batchResults = await gradeBatch(
+          textItemsToGrade, 
+          activeExam.language,
+          (completedBatchItems, totalBatchItems) => {
+             // Calculate overall progress including MCQs and already processed items
+             const currentTotal = processedCount + completedBatchItems;
+             setGradingProgress(Math.round((currentTotal / totalQuestionsCount) * 100));
+          }
+        );
+        
+        textItemsToGrade.forEach(item => {
+          const result = batchResults[item.question.id] || { score: 0, feedback: "Grading unavailable." };
+          const fbText = formatFeedback(item.question, result.score, result.feedback, activeExam.language);
+          
+          feedbackList.push({
+            questionId: item.question.id,
+            score: result.score,
+            feedback: fbText,
+            userAnswer: item.userAnswer,
+            question: item.question
+          });
+          
+          totalScore += result.score;
+          sectionScores[item.question.section].score += result.score;
+        });
+      }
+
+      // Final progress update
+      setGradingProgress(100);
+
+      // Sort feedback
+      feedbackList.sort((a, b) => {
+        const idxA = activeExam.questions.findIndex(q => q.id === a.questionId);
+        const idxB = activeExam.questions.findIndex(q => q.id === b.questionId);
+        return idxA - idxB;
       });
 
       const finalResult: ExamResult = {
@@ -284,8 +347,6 @@ const App: React.FC = () => {
     );
   }
 
-  // Language select view removed as it is skipped
-
   if (view === AppState.EXAM_OVERVIEW) {
       const exam = getExam(selectedYear, selectedSubject, selectedLanguage);
       if (!exam) return <div className="p-8 text-center">Exam not found. <button onClick={() => setView(AppState.HOME)} className="text-blue-500 underline">Back</button></div>;
@@ -330,13 +391,44 @@ const App: React.FC = () => {
                               <span className="font-bold text-gray-700">Question {idx + 1}</span>
                               <span className="font-mono text-sm">{item.score}/{item.question.marks}</span>
                           </div>
-                          <div className={`mb-2 font-medium whitespace-pre-wrap ${activeExam?.direction === 'rtl' ? 'text-2xl font-serif' : ''}`}>
+                          
+                          {/* Question Text */}
+                          <div className={`mb-3 font-medium whitespace-pre-wrap ${activeExam?.direction === 'rtl' ? 'text-2xl font-serif text-right' : ''}`}>
                             <FormattedText text={item.question.text} />
                           </div>
-                          <p className="mb-2 text-sm text-gray-600"><span className="font-bold">Your Answer:</span> {item.userAnswer || <i>(No Answer)</i>}</p>
-                          <div className={`text-sm bg-white p-3 rounded border ${activeExam?.direction === 'rtl' ? 'text-xl text-right font-serif' : ''}`}>
+
+                          {/* User Answer */}
+                          <p className={`mb-3 text-sm text-gray-600 ${activeExam?.direction === 'rtl' ? 'text-right' : ''}`}>
+                            <span className="font-bold">Your Answer:</span> {item.userAnswer || <i>(No Answer)</i>}
+                          </p>
+
+                          {/* Grading Feedback Section */}
+                          <div className={`text-sm bg-white p-3 rounded border mb-3 ${activeExam?.direction === 'rtl' ? 'text-xl text-right font-serif' : ''}`}>
+                             <p className="font-bold text-gray-500 text-xs mb-1 uppercase">Feedback</p>
                              <FormattedText text={item.feedback} />
                           </div>
+
+                          {/* Separated Model Answer Section */}
+                          <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded text-blue-900">
+                             <p className="font-bold text-blue-800 text-xs mb-1 uppercase">
+                                 {activeExam?.language === 'somali' ? 'Jawaabta Saxda ah' : activeExam?.language === 'arabic' ? 'الإجابة النموذجية' : 'Model Answer'}
+                             </p>
+                             <div className={`${activeExam?.direction === 'rtl' ? 'text-xl font-serif text-right' : ''}`}>
+                                <FormattedText text={item.question.correctAnswer} />
+                             </div>
+                          </div>
+
+                          {/* Separated Explanation Section */}
+                          {item.question.explanation && (
+                              <div className="p-3 bg-gray-50 border border-gray-100 rounded text-gray-700">
+                                  <p className="font-bold text-gray-500 text-xs mb-1 uppercase">
+                                      {activeExam?.language === 'somali' ? 'Faahfaahin' : activeExam?.language === 'arabic' ? 'التفسير' : 'Explanation'}
+                                  </p>
+                                  <div className={`${activeExam?.direction === 'rtl' ? 'text-xl font-serif text-right' : ''}`}>
+                                      <FormattedText text={item.question.explanation} />
+                                  </div>
+                              </div>
+                          )}
                       </div>
                   ))}
               </div>
@@ -356,10 +448,21 @@ const App: React.FC = () => {
 
       if (isGrading) {
           return (
-              <div className="flex flex-col items-center justify-center h-screen">
-                  <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <h2 className="text-xl font-bold">Grading Exam...</h2>
-                  <p className="text-gray-500">AI is analyzing your answers ({gradingProgress}%)</p>
+              <div className="flex flex-col items-center justify-center h-screen bg-gray-50 p-8 text-center">
+                  <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                  <h2 className="text-2xl font-bold mb-4">Grading Exam...</h2>
+                  
+                  {/* Progress Bar Container */}
+                  <div className="w-full max-w-md bg-gray-200 rounded-full h-4 mb-2 overflow-hidden shadow-inner">
+                    <div 
+                        className="bg-blue-600 h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end" 
+                        style={{ width: `${gradingProgress}%` }}
+                    >
+                    </div>
+                  </div>
+                  
+                  <div className="text-xl font-bold text-blue-800 mb-2">{gradingProgress}%</div>
+                  <p className="text-gray-500 text-sm">Processing results securely using free educational API.</p>
               </div>
           );
       }
@@ -375,7 +478,6 @@ const App: React.FC = () => {
                   <button 
                       onClick={() => {
                         if(confirm("Are you sure you want to quit? Your progress will be lost.")) {
-                           // Reset all selections to go back to the main home screen (Year Selection)
                            setSelectedYear(null);
                            setSelectedSubject(null);
                            setActiveExam(null);
