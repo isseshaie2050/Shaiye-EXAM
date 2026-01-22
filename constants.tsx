@@ -344,7 +344,8 @@ export const ICT_2025_EXAM: Exam = {
     { id: 'ict-31', section: SectionType.MCQ, text: '31. The figure below Indicates the symbol of?', type: 'mcq', options: ['A) Java', 'B) PYTHON', 'C) GOLAND', 'D) C#'], correctAnswer: 'B) PYTHON', marks: 1, topic: 'Programming', explanation: 'Python Logo.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_30_40-AM.png' },
     { id: 'ict-32', section: SectionType.MCQ, text: '32. The figure below indicates what? Source Code → ______ → Machine Code → Output', type: 'mcq', options: ['A) Interpreter', 'B) Converter', 'C) Compiler', 'D) Decoder'], correctAnswer: 'C) Compiler', marks: 1, topic: 'Programming', explanation: 'Compilation process.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/Captured.png' },
     { id: 'ict-41', section: SectionType.SHORT_ANSWER, text: 'Draw simple Mesh Topology that consists of five computers.', type: 'text', correctAnswer: '(Drawing)', marks: 4, topic: 'Networking', explanation: 'Full connectivity.' },
-    { id: 'ict-42', section: SectionType.SHORT_ANSWER, text: 'Demonstrate the difference between the terms Hub and Switch.', type: 'text', correctAnswer: 'Hub broadcasts to all, Switch directs to specific MAC.', marks: 4, topic: 'Networking', explanation: 'Network devices.' }
+    { id: 'ict-42', section: SectionType.SHORT_ANSWER, text: 'Demonstrate the difference between the terms Hub and Switch.', type: 'text', correctAnswer: 'Hub broadcasts to all, Switch directs to specific MAC.', marks: 4, topic: 'Networking', explanation: 'Network devices.' },
+    { id: 'ict-55', section: SectionType.SHORT_ANSWER, text: '15. Write a shortcut used to open the Database Tools Tab.', type: 'text', correctAnswer: 'Alt+X or similar', marks: 4, topic: 'Database', explanation: 'Access shortcuts.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/direct-15.png' }
   ]
 };
 
