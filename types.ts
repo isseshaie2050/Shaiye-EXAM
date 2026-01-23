@@ -29,7 +29,8 @@ export interface Question {
 export interface Exam {
   id: string;
   year: number;
-  subject: string;
+  subject: string; // This is the Display Label
+  subjectKey: string; // This is the Database Key (e.g., 'islamic_studies')
   language?: 'english' | 'somali' | 'arabic';
   durationMinutes: number;
   questions: Question[];
@@ -51,6 +52,12 @@ export interface ExamResult {
   maxScore: number;
   grade: string;
   date: string;
+}
+
+export interface SubjectConfig {
+  key: string;      // Stable DB key: 'islamic_studies'
+  label: string;    // Display: 'Islamic Studies'
+  language: 'english' | 'somali' | 'arabic';
 }
 
 export enum AppState {

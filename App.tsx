@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, UserAnswer, SectionType, Question, Exam, ExamResult } from './types';
-import { ACADEMIC_YEARS, SUBJECTS, getExam } from './constants';
+import { ACADEMIC_YEARS, SUBJECT_CONFIG, getExam } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
 import { saveExamResult, getExamHistory, getSubjectStats } from './services/storageService';
 
@@ -62,8 +62,9 @@ const ExamImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
 const App: React.FC = () => {
   const [view, setView] = useState<AppState>(AppState.HOME);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<'english' | 'somali'>('english');
+  
+  // Stores the stable DB key (e.g., 'physics', 'islamic')
+  const [selectedSubjectKey, setSelectedSubjectKey] = useState<string | null>(null);
   
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
@@ -250,19 +251,22 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, [view, timeLeft, isPaused, handleSubmit]);
 
-  const handleSubjectSelect = (subject: string) => {
-    setSelectedSubject(subject);
-    if (subject === 'History') {
-        setSelectedLanguage('somali');
-    } else {
-        setSelectedLanguage('english');
-    }
+  const handleSubjectSelect = (subjectKey: string) => {
+    setSelectedSubjectKey(subjectKey);
+    // Since language is now bound to the SubjectConfig, we don't need manual setting here,
+    // but the App component currently doesn't read language from config. 
+    // The Exam object itself has the language property which is the source of truth.
     setView(AppState.EXAM_OVERVIEW);
   };
 
   const startExam = () => {
-    const examTemplate = getExam(selectedYear, selectedSubject, selectedLanguage);
-    if (!examTemplate) return;
+    // Pass the stable key to the getter
+    const examTemplate = getExam(selectedYear, selectedSubjectKey);
+    
+    if (!examTemplate) {
+        alert("Exam not found for the selected year and subject.");
+        return;
+    }
 
     const shuffledQuestions = examTemplate.questions.map(q => {
       if (q.type === 'mcq' && q.options) {
@@ -315,13 +319,16 @@ const App: React.FC = () => {
             <div>
                 <h2 className="text-xl font-semibold mb-4">Select Subject</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {SUBJECTS.map(subject => (
+                    {/* Iterate over SUBJECT_CONFIG values */}
+                    {Object.values(SUBJECT_CONFIG).map(config => (
                         <button
-                            key={subject}
-                            onClick={() => handleSubjectSelect(subject)}
-                            className="p-5 border rounded-lg hover:shadow-md transition bg-white text-left text-lg font-medium text-slate-800"
+                            key={config.key}
+                            onClick={() => handleSubjectSelect(config.key)}
+                            className="p-5 border rounded-lg hover:shadow-md transition bg-white text-left text-lg font-medium text-slate-800 flex justify-between items-center"
                         >
-                            {subject}
+                            <span>{config.label}</span>
+                            {/* Optional: Add language badge */}
+                            <span className="text-xs text-gray-400 uppercase border px-1 rounded">{config.language.slice(0, 3)}</span>
                         </button>
                     ))}
                 </div>
@@ -348,8 +355,10 @@ const App: React.FC = () => {
   }
 
   if (view === AppState.EXAM_OVERVIEW) {
-      const exam = getExam(selectedYear, selectedSubject, selectedLanguage);
-      if (!exam) return <div className="p-8 text-center">Exam not found. <button onClick={() => setView(AppState.HOME)} className="text-blue-500 underline">Back</button></div>;
+      // Fetch using key
+      const exam = getExam(selectedYear, selectedSubjectKey);
+      
+      if (!exam) return <div className="p-8 text-center text-red-600">Exam not found in database. <button onClick={() => setView(AppState.HOME)} className="text-blue-500 underline ml-2">Back</button></div>;
 
       return (
           <div className="p-8 max-w-2xl mx-auto text-center mt-10">
@@ -479,7 +488,7 @@ const App: React.FC = () => {
                       onClick={() => {
                         if(confirm("Are you sure you want to quit? Your progress will be lost.")) {
                            setSelectedYear(null);
-                           setSelectedSubject(null);
+                           setSelectedSubjectKey(null);
                            setActiveExam(null);
                            setAnswers([]);
                            setView(AppState.HOME);
