@@ -1,10 +1,9 @@
 
-import { Question, SectionType, Exam, SubjectConfig } from './types';
+import { Question, SectionType, Exam, SubjectConfig, ExamAuthority, EducationLevel } from './types';
 
 export const ACADEMIC_YEARS = [2021, 2022, 2023, 2024, 2025];
 
 // --- 1. SUBJECT REGISTRY (Source of Truth) ---
-// This separates UI Labels from Database Keys
 export const SUBJECT_CONFIG: Record<string, SubjectConfig> = {
   physics: { key: 'physics', label: 'Physics', language: 'english' },
   math: { key: 'math', label: 'Mathematics', language: 'english' },
@@ -17,7 +16,23 @@ export const SUBJECT_CONFIG: Record<string, SubjectConfig> = {
   business: { key: 'business', label: 'Business', language: 'english' },
   arabic: { key: 'arabic', label: 'Arabic Language', language: 'arabic' },
   islamic: { key: 'islamic', label: 'Islamic Studies', language: 'arabic' },
-  ict: { key: 'ict', label: 'ICT', language: 'english' }
+  ict: { key: 'ict', label: 'ICT', language: 'english' },
+  science: { key: 'science', label: 'Science', language: 'english' }, // Std 8
+  social: { key: 'social', label: 'Social Studies', language: 'somali' }, // Std 8
+  agriculture: { key: 'agriculture', label: 'Agriculture', language: 'english' }, // Puntland specific
+  govt_politics: { key: 'govt_politics', label: 'Government & Politics', language: 'somali' } // Puntland specific
+};
+
+// --- DATA MAPPING: Authority + Level -> Subjects ---
+export const EXAM_HIERARCHY: Record<ExamAuthority, Record<EducationLevel, string[]>> = {
+  'SOMALI_GOV': {
+    'FORM_IV': ['physics', 'chemistry', 'biology', 'math', 'english', 'arabic', 'somali', 'ict', 'history', 'geography', 'business', 'islamic'],
+    'STD_8': ['math', 'english', 'arabic', 'somali', 'science', 'social', 'ict', 'islamic']
+  },
+  'PUNTLAND': {
+    'FORM_IV': ['physics', 'chemistry', 'biology', 'math', 'english', 'arabic', 'somali', 'ict', 'history', 'geography', 'business', 'islamic', 'agriculture', 'govt_politics'],
+    'STD_8': ['math', 'english', 'arabic', 'somali', 'science', 'social', 'ict', 'islamic']
+  }
 };
 
 // --- 2. EXAM DATA (Raw Data) ---

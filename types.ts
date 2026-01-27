@@ -60,13 +60,16 @@ export interface SubjectConfig {
   language: 'english' | 'somali' | 'arabic';
 }
 
+export type ExamAuthority = 'SOMALI_GOV' | 'PUNTLAND';
+export type EducationLevel = 'FORM_IV' | 'STD_8';
+
 export enum AppState {
-  HOME = 'HOME',
+  HOME = 'HOME', // Landing Page (Authority Selection)
+  LEVEL_SELECT = 'LEVEL_SELECT', // Std 8 vs Form IV
+  SUBJECT_SELECT = 'SUBJECT_SELECT', // Select Subject
+  YEAR_SELECT = 'YEAR_SELECT', // Select Year
   DASHBOARD = 'DASHBOARD',
   HISTORY = 'HISTORY',
-  YEAR_SELECT = 'YEAR_SELECT',
-  SUBJECT_SELECT = 'SUBJECT_SELECT',
-  LANGUAGE_SELECT = 'LANGUAGE_SELECT',
   EXAM_OVERVIEW = 'EXAM_OVERVIEW',
   EXAM_ACTIVE = 'EXAM_ACTIVE',
   RESULTS = 'RESULTS'
