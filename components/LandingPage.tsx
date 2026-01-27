@@ -11,7 +11,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900">
       {/* 1. Hero Section */}
-      <header className="bg-blue-900 text-white pt-24 md:pt-10 pb-16 px-6 relative overflow-hidden">
+      <header className="bg-blue-900 text-white pt-24 md:pt-10 pb-24 px-6 relative overflow-hidden">
         {/* Navigation Bar */}
         <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex flex-col md:flex-row justify-between items-center z-50 gap-4 md:gap-0 bg-blue-900/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none shadow-md md:shadow-none">
            {/* Branding: Always Visible Name */}
@@ -75,8 +75,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
       </header>
 
       {/* 2. Exam Authority Selection (The Core Flow) */}
-      <section id="authorities" className="py-12 px-6 max-w-5xl mx-auto -mt-10 relative z-20">
-        <h2 className="text-center text-xl font-bold text-white mb-6 drop-shadow-md">Select Exam Authority</h2>
+      <section id="authorities" className="py-12 px-6 max-w-5xl mx-auto -mt-16 relative z-20">
+        <h2 className="text-center text-2xl font-black text-blue-900 mb-6 drop-shadow-sm bg-white/80 inline-block px-6 py-2 rounded-full mx-auto backdrop-blur-sm border border-white/50 block w-fit">
+            Select Exam Authority
+        </h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div 
             onClick={() => onSelectAuthority('SOMALI_GOV')}
@@ -141,19 +143,84 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         </div>
       </section>
 
-      {/* 4. Trust Section */}
-      <section className="py-12 px-6 bg-white border-t border-slate-100">
+      {/* 4. Pricing Plans (NEW SECTION) */}
+      <section className="py-16 px-6 bg-white border-t border-slate-100">
+        <div className="max-w-6xl mx-auto">
+             <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-slate-900">Simple, Affordable Pricing</h2>
+                <p className="text-slate-500 mt-2">Invest in your education with our flexible plans.</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+                {/* FREE PLAN */}
+                <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col">
+                    <div className="text-slate-500 font-bold uppercase text-xs mb-2">Starter</div>
+                    <div className="text-4xl font-black text-slate-800 mb-6">Free</div>
+                    <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> Access Somali Gov & Puntland</li>
+                        <li className="flex items-start gap-3"><span className="text-orange-500 font-bold">!</span> <strong>Limit: 5 Questions</strong> per exam</li>
+                        <li className="flex items-start gap-3"><span className="text-orange-500 font-bold">!</span> Random questions only</li>
+                        <li className="flex items-start gap-3"><span className="text-red-400 font-bold">✕</span> No Detailed Analytics</li>
+                    </ul>
+                    <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-gray-100 text-slate-600 font-bold rounded-xl hover:bg-gray-200 transition">
+                        Start Free
+                    </button>
+                </div>
+
+                {/* BASIC PLAN */}
+                <div className="bg-white p-8 rounded-2xl border-2 border-blue-500 shadow-xl relative overflow-hidden flex flex-col transform md:-translate-y-2">
+                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
+                    <div className="text-blue-600 font-bold uppercase text-xs mb-2">Basic</div>
+                    <div className="flex items-baseline mb-6">
+                        <span className="text-5xl font-black text-slate-900">$2</span>
+                        <span className="text-slate-500 ml-1 font-medium">/month</span>
+                    </div>
+                    <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> <strong>Full Exams (40+ Qs)</strong></li>
+                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> All Subjects (Std 8 & Form 4)</li>
+                        <li className="flex items-start gap-3"><span className="text-blue-500 font-bold">ℹ</span> <strong>Select ONE Authority:</strong></li>
+                        <li className="pl-7 text-xs text-slate-400">Choose either Somali Gov OR Puntland access.</li>
+                    </ul>
+                    <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg">
+                        Get Basic
+                    </button>
+                </div>
+
+                {/* PREMIUM PLAN */}
+                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl flex flex-col text-white">
+                    <div className="text-purple-400 font-bold uppercase text-xs mb-2">Ultimate Access</div>
+                    <div className="flex items-baseline mb-6">
+                        <span className="text-5xl font-black">$3</span>
+                        <span className="text-slate-400 ml-1 font-medium">/month</span>
+                    </div>
+                    <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-300">
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Everything in Basic</strong></li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Access BOTH Authorities</strong></li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Somali Gov AND Puntland</li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Advanced Performance Analytics</li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Priority AI Grading</li>
+                    </ul>
+                    <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 transition shadow-lg">
+                        Get Premium
+                    </button>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* 5. Trust Section */}
+      <section className="py-12 px-6 bg-slate-50 border-t border-slate-200">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Trusted by Students & Teachers</h2>
           <div className="flex flex-wrap justify-center gap-6">
-            <span className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-slate-600 text-sm font-medium">✅ Accurate Curriculum</span>
-            <span className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-slate-600 text-sm font-medium">✅ Secure Platform</span>
-            <span className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-slate-600 text-sm font-medium">✅ Mobile Optimized</span>
+            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Accurate Curriculum</span>
+            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Secure Platform</span>
+            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Mobile Optimized</span>
           </div>
         </div>
       </section>
 
-      {/* 5. Footer */}
+      {/* 6. Footer */}
       <footer className="bg-blue-900 text-slate-400 py-10 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
