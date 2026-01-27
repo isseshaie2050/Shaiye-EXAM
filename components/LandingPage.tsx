@@ -11,27 +11,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900">
       {/* 1. Hero Section */}
-      <header className="bg-blue-900 text-white pt-10 pb-16 px-6 relative overflow-hidden">
+      <header className="bg-blue-900 text-white pt-24 md:pt-10 pb-16 px-6 relative overflow-hidden">
         {/* Navigation Bar */}
-        <div className="absolute top-0 left-0 w-full p-6 flex justify-between z-50">
+        <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex flex-col md:flex-row justify-between items-center z-50 gap-4 md:gap-0 bg-blue-900/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none shadow-md md:shadow-none">
            {/* Branding: Always Visible Name */}
-           <div 
-             className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-90 transition"
-             onClick={() => window.location.href = '/'}
-           >
-             Naajix
+           <div className="w-full md:w-auto flex justify-between items-center">
+             <div 
+               className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-90 transition"
+               onClick={() => window.location.href = '/'}
+             >
+               Naajix
+             </div>
+             {/* Mobile-only menu toggles could go here, but for now we just show buttons below or inline */}
            </div>
-           <div className="flex gap-4">
+
+           <div className="flex gap-4 w-full md:w-auto justify-end">
               <button 
                 onClick={() => onNavigate(AppState.DASHBOARD)}
-                className="text-sm font-bold text-blue-200 hover:text-white transition flex items-center gap-2"
+                className="text-xs md:text-sm font-bold text-blue-200 hover:text-white transition flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                Student Dashboard
+                <span className="hidden xs:inline">Student Dashboard</span>
+                <span className="inline xs:hidden">Login</span>
               </button>
               <button 
                  onClick={() => onNavigate(AppState.ADMIN_LOGIN)}
-                 className="text-sm font-bold text-blue-200 hover:text-white transition"
+                 className="text-xs md:text-sm font-bold text-blue-200 hover:text-white transition"
               >
                 Admin
               </button>
@@ -44,9 +49,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
           </svg>
         </div>
         
-        <div className="max-w-4xl mx-auto text-center relative z-10 flex flex-col items-center">
-          {/* Logo with White Circle Background */}
-          <div className="w-40 h-40 bg-white rounded-full flex items-center justify-center mb-8 shadow-2xl p-4">
+        <div className="max-w-4xl mx-auto text-center relative z-10 flex flex-col items-center mt-4 md:mt-10">
+          {/* Logo with White Circle Background - Responsive Size */}
+          <div className="w-24 h-24 md:w-40 md:h-40 bg-white rounded-full flex items-center justify-center mb-6 md:mb-8 shadow-2xl p-2 md:p-4">
              <img 
                 src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview.png" 
                 alt="Naajix Logo" 
@@ -54,19 +59,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
             />
           </div>
 
-          <div className="inline-block bg-blue-800 px-3 py-1 rounded-full text-xs font-semibold tracking-wider mb-4 uppercase text-blue-200">
+          <div className="inline-block bg-blue-800 px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold tracking-wider mb-4 uppercase text-blue-200">
             Somali National Exam Platform
           </div>
-          <p className="text-xl md:text-2xl font-medium text-blue-100 mb-2">
+          <p className="text-lg md:text-2xl font-medium text-blue-100 mb-2">
             "Ku Guuleyso Imtixaankaaga"
           </p>
-          <p className="text-blue-200 mb-8 max-w-lg mx-auto leading-relaxed">
+          <p className="text-blue-200 mb-8 max-w-lg mx-auto leading-relaxed text-sm md:text-base">
             The professional preparation platform for Form IV & Standard 8 national exams.
           </p>
           
           <button 
              onClick={() => document.getElementById('authorities')?.scrollIntoView({behavior: 'smooth'})}
-             className="px-8 py-3.5 bg-white text-blue-900 rounded-lg font-bold text-lg hover:bg-gray-100 transition shadow-lg flex items-center justify-center gap-2"
+             className="px-6 md:px-8 py-3 md:py-3.5 bg-white text-blue-900 rounded-lg font-bold text-base md:text-lg hover:bg-gray-100 transition shadow-lg flex items-center justify-center gap-2 w-full md:w-auto"
           >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
               Bilow Imtixaan
