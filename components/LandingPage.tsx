@@ -10,21 +10,33 @@ interface LandingPageProps {
 const HERO_SLIDES = [
   {
     id: 1,
-    // Somali/East African Female Student (Hijab), light brown skin
-    url: "https://images.unsplash.com/photo-1664575602276-acd073f104c1?q=80&w=2070&auto=format&fit=crop",
-    alt: "Somali student preparing for exams"
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page.webp",
+    alt: "Somali students achieving success"
   },
   {
     id: 2,
-    // East African Male Student, focused
-    url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=2070&auto=format&fit=crop",
-    alt: "Focused academic achievement"
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-1.png",
+    alt: "National examination setting"
   },
   {
     id: 3,
-    // Group of students, East African context
-    url: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?q=80&w=2070&auto=format&fit=crop",
-    alt: "Collaborative learning environment"
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-2.png",
+    alt: "Digital learning on Naajix"
+  },
+  {
+    id: 4,
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-3.png",
+    alt: "Student collaboration"
+  },
+  {
+    id: 5,
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-4.png",
+    alt: "Online examination interface"
+  },
+  {
+    id: 6,
+    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-5.png",
+    alt: "Somali education future"
   }
 ];
 
@@ -35,7 +47,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 6000); // Change every 6 seconds
+    }, 5000); // Change every 5 seconds for faster rotation with more images
     return () => clearInterval(timer);
   }, []);
 
@@ -65,13 +77,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         {HERO_SLIDES.map((slide, index) => (
           <div 
             key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
           >
              {/* Ken Burns Effect: Scale slightly when active */}
              <img 
                src={slide.url} 
                alt={slide.alt}
-               className={`w-full h-full object-cover transition-transform duration-[8000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
+               className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
              />
           </div>
         ))}
@@ -81,28 +93,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/50 to-gray-50 z-20"></div>
 
         {/* Hero Content */}
-        <div className="relative z-30 max-w-4xl mx-auto text-center px-6 flex flex-col items-center pt-10">
+        <div className="relative z-30 max-w-5xl mx-auto text-center px-6 flex flex-col items-center pt-10">
           
-          {/* Animated Logo Container */}
-          <div className="w-28 h-28 md:w-36 md:h-36 bg-white rounded-full flex items-center justify-center mb-8 shadow-2xl p-4 animate-fade-in-up">
+          {/* Animated Logo Container - Using Circled Logo (logo-2) */}
+          <div className="w-56 md:w-72 mb-10 animate-fade-in-up flex justify-center">
              <img 
-                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview.png" 
+                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-2.png" 
                 alt="Naajix Logo" 
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
             />
           </div>
 
-          <div className="space-y-4 mb-10">
-            <div className="inline-block bg-blue-500/20 backdrop-blur-sm border border-blue-300/30 px-4 py-1.5 rounded-full text-[11px] md:text-xs font-bold tracking-widest uppercase text-blue-100 mb-2">
+          <div className="space-y-6 mb-12">
+            {/* Bigger, clearer badge text */}
+            <div className="inline-block bg-white/10 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full text-sm md:text-base font-extrabold tracking-widest uppercase text-white shadow-lg mb-4">
               The #1 Exam Platform for Somalia
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
+            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg">
               Master Your Exams.<br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Build Your Future.</span>
             </h1>
             
-            <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed opacity-90 font-medium">
+            <p className="text-blue-50 text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-md">
               Professional preparation for <strong>Form IV</strong> & <strong>Standard 8</strong> national examinations. 
               Real past papers, AI grading, and instant results.
             </p>
@@ -110,11 +123,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
           
           <button 
              onClick={() => document.getElementById('authorities')?.scrollIntoView({behavior: 'smooth'})}
-             className="group relative px-8 py-4 bg-white text-blue-900 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+             className="group relative px-10 py-5 bg-white text-blue-900 rounded-2xl font-black text-xl hover:shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
           >
-              <span className="relative z-10 flex items-center gap-2">
+              <span className="relative z-10 flex items-center gap-3">
                 Start Practicing Now
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </span>
               <div className="absolute inset-0 bg-gray-50 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out"></div>
           </button>
