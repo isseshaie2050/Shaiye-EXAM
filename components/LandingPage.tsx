@@ -18,7 +18,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
            <div className="w-full md:w-auto flex justify-between items-center">
              <div 
                className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-90 transition"
-               onClick={() => window.location.href = '/'}
+               onClick={() => onNavigate(AppState.HOME)}
              >
                Naajix
              </div>
