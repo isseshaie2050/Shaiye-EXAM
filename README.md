@@ -1,7 +1,7 @@
 
-# Naajix
+# Shaiye Exams - Somali National Examination Platform
 
-A professional, simulated examination platform designed for Standard 8 and  Form IV (Grade 12) students in Somalia. This application provides a realistic exam environment with timed sessions, multiple subjects, and AI-powered grading for open-ended questions.
+A professional, simulated examination platform designed for Form IV (Grade 12) students in Somalia. This application provides a realistic exam environment with timed sessions, multiple subjects, and AI-powered grading for open-ended questions.
 
 ## 🌟 Features
 

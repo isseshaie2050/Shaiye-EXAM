@@ -8,6 +8,7 @@ import { getExam, getAvailableYears } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
 import AdminPanel from './components/AdminPanel';
+import { AboutPage, PrivacyPage, ContactPage } from './components/InfoPages';
 
 // Utility to shuffle array (Fisher-Yates)
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -328,6 +329,19 @@ const App: React.FC = () => {
   // --- 1. LANDING PAGE ---
   if (view === AppState.HOME) {
     return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={setView} />;
+  }
+  
+  // --- INFO PAGES ---
+  if (view === AppState.ABOUT) {
+    return <AboutPage onBack={() => setView(AppState.HOME)} />;
+  }
+  
+  if (view === AppState.PRIVACY) {
+    return <PrivacyPage onBack={() => setView(AppState.HOME)} />;
+  }
+  
+  if (view === AppState.CONTACT) {
+    return <ContactPage onBack={() => setView(AppState.HOME)} />;
   }
   
   // --- STUDENT DASHBOARD ---

@@ -155,9 +155,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
             <span className="text-sm">© 2026 All Rights Reserved.</span>
           </div>
           <div className="flex gap-6 text-sm text-blue-200">
-            <a href="#" className="hover:text-white transition">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition">Contact Us</a>
-            <a href="#" className="hover:text-white transition">About</a>
+            <button onClick={() => onNavigate(AppState.PRIVACY)} className="hover:text-white transition">Privacy Policy</button>
+            <button onClick={() => onNavigate(AppState.CONTACT)} className="hover:text-white transition">Contact Us</button>
+            <button onClick={() => onNavigate(AppState.ABOUT)} className="hover:text-white transition">About</button>
           </div>
         </div>
       </footer>
