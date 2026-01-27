@@ -12,6 +12,10 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   
+  // Registration Success State
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [confirmationRequired, setConfirmationRequired] = useState(false);
+
   // Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,15 +34,17 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       const res = await logUserIn(email, password);
       
       setLoading(false);
-      if (res.success) {
-          // If login success, we normally get the user object from session validation in App.tsx
-          // But to force instant UI update:
-          // We trigger a reload or callback. The App.tsx auth listener handles state.
-          // For now, passing a dummy object or waiting for App listener is fine.
-          // Let's rely on App.tsx listener, but we can call success to close modal.
-          onLoginSuccess(res.user || { id: 'temp', fullName: 'Loading...' } as Student);
+      if (res.success && res.user) {
+          onLoginSuccess(res.user);
       } else {
-          setError(res.error || 'Login failed');
+          // Improve error messaging for common cases
+          if (res.error?.includes('Invalid login credentials')) {
+               setError("Incorrect email or password.");
+          } else if (res.error?.includes('Email not confirmed')) {
+               setError("Please confirm your email address before logging in.");
+          } else {
+               setError(res.error || 'Login failed. Please check your credentials.');
+          }
       }
   };
 
@@ -48,6 +54,11 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
       if (!fullName || !school || !phone || !email || !password) {
           setError('Please fill all fields.');
+          return;
+      }
+      
+      if (password.length < 6) {
+          setError('Password must be at least 6 characters.');
           return;
       }
 
@@ -70,12 +81,49 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       
       setLoading(false);
       if (res.success) {
-          alert("Registration successful! You can now login.");
-          setIsRegistering(false);
+          setRegistrationSuccess(true);
+          if (res.requiresConfirmation) {
+              setConfirmationRequired(true);
+          } else {
+              // If no confirmation needed (rare), we can auto-login or just show success
+              // Usually safer to ask them to login
+          }
       } else {
           setError(res.error || "Registration failed");
       }
   };
+
+  if (registrationSuccess) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center border border-gray-100">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">Registration Successful!</h2>
+                {confirmationRequired ? (
+                    <div className="mb-6">
+                        <p className="text-slate-600 mb-4">We have sent a confirmation link to <strong>{email}</strong>.</p>
+                        <p className="text-sm text-blue-600 font-bold bg-blue-50 p-4 rounded-lg border border-blue-100">Please check your email and click the link to activate your account before logging in.</p>
+                    </div>
+                ) : (
+                    <p className="text-slate-600 mb-6">Your account has been created successfully.</p>
+                )}
+                
+                <button 
+                    onClick={() => {
+                        setRegistrationSuccess(false);
+                        setIsRegistering(false); // Switch to login view
+                        setPassword(''); // Clear pass
+                    }}
+                    className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg"
+                >
+                    Proceed to Login
+                </button>
+            </div>
+        </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
@@ -122,7 +170,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
                   <div className="text-center mt-4">
                       <span className="text-slate-500 text-sm">New student? </span>
-                      <button type="button" onClick={() => setIsRegistering(true)} className="text-blue-600 font-bold text-sm hover:underline">
+                      <button type="button" onClick={() => { setIsRegistering(true); setError(''); }} className="text-blue-600 font-bold text-sm hover:underline">
                           Register here
                       </button>
                   </div>
@@ -163,14 +211,14 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                   </div>
 
                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Create Password</label>
-                      <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 border rounded" />
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Create Password (Min 6 chars)</label>
+                      <input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 border rounded" />
                    </div>
 
-                  <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg mt-4">
+                  <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg mt-4 disabled:opacity-50">
                       {loading ? 'Creating Account...' : 'Sign Up'}
                   </button>
-                  <button type="button" onClick={() => setIsRegistering(false)} className="w-full py-2 text-slate-500 font-bold text-sm">Cancel</button>
+                  <button type="button" onClick={() => { setIsRegistering(false); setError(''); }} className="w-full py-2 text-slate-500 font-bold text-sm">Cancel</button>
               </form>
           )}
 
