@@ -1,43 +1,41 @@
+
 import React, { useState, useEffect } from 'react';
-import { getStudentExamHistory, getSubjectStats, logoutUser, upgradeStudentSubscription } from '../services/storageService';
-import { AppState, SubscriptionPlan, ExamAuthority, Student } from '../types';
+import { getStudentExamHistory, getSubjectStats, logoutUser, upgradeStudentSubscription, validateCurrentSession } from '../services/storageService';
+import { SubscriptionPlan, ExamAuthority, Student } from '../types';
 
 interface Props {
   onBack: () => void;
 }
 
 const StudentDashboard: React.FC<Props> = ({ onBack }) => {
-  // We assume the student is passed or retrieved via context in a larger app, 
-  // but here we grab it from auth state or pass it down. 
-  // For simplicity with the existing structure, we re-fetch context.
-  // Ideally App.tsx passes the `currentStudent` prop.
-  // We'll rely on the App wrapper refetching or simple validation.
   const [student, setStudent] = useState<Student | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-      // Async load
+      // Async load user data
       const loadData = async () => {
-          // In a real app, use Context. Here we check session again or use passed prop.
-          // Since we need to be async, we use the getter
-          const { validateCurrentSession } = await import('../services/storageService');
           const { user } = await validateCurrentSession();
           
           if (user) {
               setStudent(user);
+              // Fetch exam history linked to this user from Supabase
               const h = await getStudentExamHistory(user.id);
               setHistory(h);
+              // Calculate stats
               const s = await getSubjectStats(user.id);
               setStats(s);
           }
+          setLoading(false);
       };
       loadData();
   }, []);
 
-  if (!student) return <div className="p-8 text-center">Loading Dashboard...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-500">Loading your profile...</div>;
+  if (!student) return <div className="p-8 text-center text-red-500">Access Denied. Please log in.</div>;
 
   const overallAverage = stats.length > 0 
     ? Math.round(stats.reduce((acc, curr) => acc + curr.average, 0) / stats.length) 
@@ -46,6 +44,7 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
   const handleLogout = async () => {
       await logoutUser();
       onBack(); 
+      // Force reload to clear any residual state
       window.location.reload(); 
   };
 
@@ -53,25 +52,27 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
       if (!student.subscriptionEndDate) return 0;
       const now = new Date();
       const end = new Date(student.subscriptionEndDate);
-      const diffTime = Math.abs(end.getTime() - now.getTime());
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      const diffTime = end.getTime() - now.getTime();
+      return diffTime > 0 ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : 0; 
   };
 
   const daysRemaining = getDaysRemaining();
 
   const handleUpgrade = async (plan: SubscriptionPlan, authority?: ExamAuthority) => {
+      if (!confirm(`Are you sure you want to upgrade to ${plan}? This is a simulation.`)) return;
+      
       const updated = await upgradeStudentSubscription(student.id, plan, authority);
       if (updated) {
           setStudent(updated);
           setShowUpgradeModal(false);
           alert(`Successfully subscribed to ${plan} plan!`);
       } else {
-          alert("Upgrade failed. Please try again.");
+          alert("Upgrade failed. Please check your connection.");
       }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 font-sans">
       <div className="max-w-6xl mx-auto">
         {/* Header Bar */}
         <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
@@ -201,7 +202,7 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
                             {history.map((record, idx) => (
                                 <tr key={idx} className="hover:bg-blue-50 transition">
                                     <td className="px-6 py-4 whitespace-nowrap">{new Date(record.date).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 font-medium text-slate-900">{record.subject}</td>
+                                    <td className="px-6 py-4 font-medium text-slate-900">{record.subject} ({record.year})</td>
                                     <td className="px-6 py-4">
                                         <span className="font-mono">{Math.round(record.score)} / {record.maxScore}</span>
                                     </td>

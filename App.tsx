@@ -108,7 +108,6 @@ const App: React.FC = () => {
   }, []);
 
   // --- ROUTING ENGINE ---
-  // (Assuming standard buildUrl / navigateTo logic from previous version...)
   const buildUrl = (targetView: AppState, params?: { auth?: ExamAuthority, level?: EducationLevel, year?: number, subject?: string }) => {
       let url = '/';
       if (targetView === AppState.DASHBOARD) url = '/dashboard';
@@ -234,7 +233,6 @@ const App: React.FC = () => {
   // --- SECURITY: ADMIN GATE ---
   useEffect(() => {
       if (!loadingApp && view === AppState.ADMIN_PANEL) {
-          // Note: Admin login is handled via separate "admin-001" logic in this hybrid setup
           if (!currentStudent) {
               navigateTo(AppState.ADMIN_LOGIN);
           } else if (currentUserRole !== 'admin') {
@@ -250,14 +248,19 @@ const App: React.FC = () => {
     switch (view) {
       case AppState.HOME: title = "Naajix | Home"; break;
       case AppState.EXAM_ACTIVE: title = activeExam ? `Naajix | ${activeExam.subject}` : "Naajix | Exam"; break;
-      // ... others
+      case AppState.DASHBOARD: title = "Naajix | Dashboard"; break;
       default: title = "Naajix";
     }
     document.title = title;
   }, [view, activeExam]);
 
   const handleSubmit = useCallback(async () => {
-    if (!activeExam || !currentStudent) return;
+    if (!activeExam || !currentStudent) {
+      // Safety check: if session expired during exam
+      alert("Session expired. Please log in to save results.");
+      navigateTo(AppState.STUDENT_AUTH);
+      return;
+    }
 
     setIsGrading(true);
     setGradingProgress(0);
@@ -327,12 +330,19 @@ const App: React.FC = () => {
       });
 
       const finalResult: ExamResult = {
-        id: `res-${Date.now()}`, studentId: currentStudent.id, studentName: currentStudent.fullName,
-        examId: activeExam.id, subject: activeExam.subject, year: activeExam.year,
-        score: totalScore, maxScore, grade: calculateGrade(totalScore, maxScore), date: new Date().toISOString()
+        id: `res-${Date.now()}`, 
+        studentId: currentStudent.id, 
+        studentName: currentStudent.fullName,
+        examId: activeExam.id, 
+        subject: activeExam.subject, 
+        year: activeExam.year,
+        score: totalScore, 
+        maxScore, 
+        grade: calculateGrade(totalScore, maxScore), 
+        date: new Date().toISOString()
       };
 
-      await saveExamResult(finalResult); // Async save to Supabase
+      await saveExamResult(finalResult); 
       setResults({ score: totalScore, maxScore, feedback: feedbackList, sectionScores });
       navigateTo(AppState.RESULTS);
 
@@ -378,9 +388,17 @@ const App: React.FC = () => {
   
   // Navigation Handlers ...
   const handleAuthoritySelect = (auth: ExamAuthority) => { 
-      if(!currentStudent) { navigateTo(AppState.STUDENT_AUTH); return; }
+      // 1. STRICT LOGIN GATE
+      if(!currentStudent) { 
+          // Redirect to auth if not logged in
+          navigateTo(AppState.STUDENT_AUTH); 
+          return; 
+      }
+      
+      // 2. CHECK PLAN RESTRICTIONS
       if(currentStudent.subscriptionPlan === 'BASIC' && currentStudent.basicAuthority && currentStudent.basicAuthority !== auth) {
-         alert("Upgrade plan to access this authority."); return;
+         alert(`Your Basic Plan is locked to ${currentStudent.basicAuthority === 'SOMALI_GOV' ? 'Somali Government' : 'Puntland'} exams. Please upgrade to Premium to access both.`); 
+         return;
       }
       navigateTo(AppState.LEVEL_SELECT, { auth });
   };
@@ -389,7 +407,10 @@ const App: React.FC = () => {
   const handleSubjectSelect = (subjectKey: string) => navigateTo(AppState.EXAM_OVERVIEW, { auth: selectedAuthority!, level: selectedLevel!, year: selectedYear!, subject: subjectKey });
   
   const startExam = () => {
-    if (!currentStudent) { navigateTo(AppState.STUDENT_AUTH); return; }
+    if (!currentStudent) { 
+        navigateTo(AppState.STUDENT_AUTH); 
+        return; 
+    }
     const examTemplate = getExam(selectedYear, selectedSubjectKey);
     if (!examTemplate) { alert("Exam not found."); return; }
 
@@ -457,12 +478,6 @@ const App: React.FC = () => {
          <button onClick={()=>navigateTo(AppState.LEVEL_SELECT, {auth: selectedAuthority!})} className="mb-8">← Back</button>
          <h1 className="text-2xl font-bold mb-4">Select Year</h1>
          <div className="space-y-2 w-full max-w-md">
-             {getAvailableYears(selectedSubjectKey || 'math', selectedAuthority!, selectedLevel!).length === 0 && <div className="text-center text-gray-500">No exams available yet.</div>}
-             {/* Note: Logic flaw in getAvailableYears usage here: Subject not selected yet, so we usually show ALL years. 
-                 Or we changed flow? Original app flow: Level -> Year -> Subject. 
-                 getAvailableYears expects subjectKey. 
-                 Correct Fix: We usually show generic years (2021-2025) here or filter based on any exam existing for that year/level.
-                 Let's revert to constant list for Year Select to be safe, filtering only happens later or if we query everything. */}
              {ACADEMIC_YEARS.slice().reverse().map(y => (
                  <button key={y} onClick={()=>handleYearSelect(y)} className="w-full p-4 bg-white rounded shadow hover:bg-blue-50 text-left font-bold">{y} Exam</button>
              ))}
@@ -485,21 +500,25 @@ const App: React.FC = () => {
   );
 
   if (view === AppState.EXAM_OVERVIEW && activeExam === null) {
-      // Logic inside useEffect handles ensuring exam exists, but we can do a quick check here using cache logic from service
       const exam = getExam(selectedYear, selectedSubjectKey);
       if(!exam) return <div className="p-10 text-center">Exam Not Found</div>;
       
       return (
           <div className="p-8 max-w-2xl mx-auto text-center mt-10">
               <h1 className="text-3xl font-bold mb-2">{exam.subject} ({exam.year})</h1>
-              <button onClick={startExam} className="px-10 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg mt-8">Start Exam</button>
+              <p className="mb-8 text-gray-600">{exam.questions.length} Questions • {exam.durationMinutes} Minutes</p>
+              {currentStudent?.subscriptionPlan === 'FREE' && (
+                  <div className="bg-orange-50 p-4 mb-6 rounded border border-orange-200 text-orange-800 text-sm">
+                      ⚠️ Free Plan: You will receive 5 random questions. Upgrade for full access.
+                  </div>
+              )}
+              <button onClick={startExam} className="px-10 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg">Start Exam</button>
           </div>
       );
   }
 
   // ... (Exam Active & Results views logic identical to original, ensuring async saveResult is awaited in handleSubmit)
   if (view === AppState.RESULTS && results) {
-      // ... Render Results (Same as original)
        return (
           <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
               <div className="bg-white p-8 rounded-xl shadow-lg border text-center mb-8">
@@ -513,7 +532,6 @@ const App: React.FC = () => {
   }
   
   if (view === AppState.EXAM_ACTIVE && activeExam) {
-       // ... Render Active Exam (Same as original)
        const question = activeExam.questions[currentQuestionIndex];
        if(isGrading) return <div className="h-screen flex items-center justify-center">Grading... {gradingProgress}%</div>;
        return (
@@ -525,6 +543,7 @@ const App: React.FC = () => {
                <div className="flex-1 p-6 overflow-y-auto">
                    <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow" dir={activeExam.direction}>
                         <h2 className="text-xl mb-4 font-bold">{currentQuestionIndex+1}. <FormattedText text={question.text} /></h2>
+                        {question.diagramUrl && <ExamImage src={Array.isArray(question.diagramUrl) ? question.diagramUrl[0] : question.diagramUrl} alt="Diagram" />}
                         {question.type === 'mcq' ? (
                             <div className="space-y-2">
                                 {question.options?.map(opt => (
