@@ -106,7 +106,7 @@ const App: React.FC = () => {
       let url = '/';
       if (targetView === AppState.DASHBOARD) url = '/dashboard';
       else if (targetView === AppState.STUDENT_AUTH) url = '/login';
-      else if (targetView === AppState.ADMIN_LOGIN) url = '/admin/login';
+      else if (targetView === AppState.ADMIN_LOGIN) url = '/admin';
       else if (targetView === AppState.ADMIN_PANEL) url = '/admin/panel';
       else if (targetView === AppState.ABOUT) url = '/about';
       else if (targetView === AppState.PRIVACY) url = '/privacy';
@@ -160,11 +160,16 @@ const App: React.FC = () => {
     if (root === 'about') { setView(AppState.ABOUT); return; }
     if (root === 'privacy') { setView(AppState.PRIVACY); return; }
     if (root === 'contact') { setView(AppState.CONTACT); return; }
+    
+    // Explicit Admin Routing
     if (root === 'admin') {
+        // If /admin/panel -> Panel
         if (parts[1] === 'panel') setView(AppState.ADMIN_PANEL);
+        // If /admin or /admin/login -> Login
         else setView(AppState.ADMIN_LOGIN);
         return;
     }
+
     if (root === 'results') {
         setView(AppState.RESULTS);
         return;
@@ -225,8 +230,9 @@ const App: React.FC = () => {
     if (user && role) {
       setCurrentStudent(user);
       setCurrentUserRole(role);
-      // If admin, redirect to panel if not already there
-      if (role === 'admin' && window.location.pathname === '/admin/login') {
+      
+      // If admin and on a login page, redirect to panel
+      if (role === 'admin' && (window.location.pathname === '/admin' || window.location.pathname === '/admin/login')) {
          navigateTo(AppState.ADMIN_PANEL);
       }
     } else {
