@@ -1,0 +1,17 @@
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # If the requested file is index.html, serve it directly
+  RewriteRule ^index\.html$ - [L]
+  
+  # If the requested filename does NOT exist as a physical file
+  RewriteCond %{REQUEST_FILENAME} !-f
+  
+  # If the requested filename does NOT exist as a directory
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # ...then serve index.html (React handles the rest)
+  RewriteRule . /index.html [L]
+</IfModule>
