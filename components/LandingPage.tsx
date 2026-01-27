@@ -9,11 +9,6 @@ interface LandingPageProps {
 
 const HERO_SLIDES = [
   {
-    id: 1,
-    url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page.webp",
-    alt: "Somali students achieving success"
-  },
-  {
     id: 2,
     url: "https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-1.png",
     alt: "National examination setting"
@@ -55,7 +50,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900 overflow-x-hidden">
       
       {/* 1. Dynamic Hero Section */}
-      <header className="relative min-h-[650px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
+      <header className="relative min-h-[650px] md:min-h-[750px] flex items-center justify-center overflow-hidden">
         
         {/* Navigation Overlay */}
         <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
@@ -95,18 +90,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         {/* Hero Content */}
         <div className="relative z-30 max-w-5xl mx-auto text-center px-6 flex flex-col items-center pt-10">
           
-          {/* Animated Logo Container - Using Circled Logo (logo-2) */}
-          <div className="w-56 md:w-72 mb-10 animate-fade-in-up flex justify-center">
+          {/* Animated Logo Container - Using New Circled Logo */}
+          <div className="w-64 md:w-80 mb-10 animate-fade-in-up flex justify-center">
              <img 
-                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-2.png" 
+                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview-1.png" 
                 alt="Naajix Logo" 
                 className="max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
             />
           </div>
 
-          <div className="space-y-6 mb-12">
-            {/* Bigger, clearer badge text */}
-            <div className="inline-block bg-white/10 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full text-sm md:text-base font-extrabold tracking-widest uppercase text-white shadow-lg mb-4">
+          <div className="space-y-8 mb-14">
+            {/* Bigger, clearer badge text as requested */}
+            <div className="inline-block bg-white/10 backdrop-blur-md border border-white/30 px-8 py-3 rounded-full text-lg md:text-2xl font-black tracking-widest uppercase text-white shadow-xl mb-4">
               The #1 Exam Platform for Somalia
             </div>
             
