@@ -144,10 +144,11 @@ const App: React.FC = () => {
   }, []);
 
   const syncStateFromUrl = useCallback(() => {
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(p => p !== '');
+    const path = window.location.pathname.toLowerCase();
+    // Normalize path: remove leading slash, remove trailing slash, split
+    const parts = path.replace(/^\/|\/$/g, '').split('/');
 
-    if (parts.length === 0) {
+    if (parts.length === 0 || parts[0] === '') {
         setView(AppState.HOME);
         return;
     }
@@ -162,10 +163,12 @@ const App: React.FC = () => {
     
     // Explicit Admin Routing
     if (root === 'adminpanel') {
-        // If /adminpanel/login -> Login
-        if (parts[1] === 'login') setView(AppState.ADMIN_LOGIN);
-        // If /adminpanel -> Panel
-        else setView(AppState.ADMIN_PANEL);
+        // Handle /adminpanel and /adminpanel/login
+        if (parts.length > 1 && parts[1] === 'login') {
+             setView(AppState.ADMIN_LOGIN);
+        } else {
+             setView(AppState.ADMIN_PANEL);
+        }
         return;
     }
 
@@ -231,7 +234,8 @@ const App: React.FC = () => {
       setCurrentUserRole(role);
       
       // If admin and on a login page, redirect to panel
-      if (role === 'admin' && (window.location.pathname.startsWith('/adminpanel/login') || window.location.pathname === '/adminpanel')) {
+      const path = window.location.pathname.toLowerCase();
+      if (role === 'admin' && (path.includes('/adminpanel/login') || path === '/adminpanel')) {
          navigateTo(AppState.ADMIN_PANEL);
       }
     } else {
