@@ -48,6 +48,8 @@ export interface UserAnswer {
   answer: string;
 }
 
+export type SubscriptionPlan = 'FREE' | 'BASIC' | 'PREMIUM';
+
 export interface Student {
   id: string;
   fullName: string;
@@ -55,6 +57,13 @@ export interface Student {
   school: string;
   level: EducationLevel;
   registeredAt: string;
+  
+  // Subscription Fields
+  subscriptionPlan: SubscriptionPlan;
+  subscriptionStatus: 'active' | 'expired';
+  subscriptionStartDate?: string; // ISO Date
+  subscriptionEndDate?: string;   // ISO Date
+  basicAuthority?: ExamAuthority; // Only relevant if plan is BASIC
 }
 
 export interface ExamResult {

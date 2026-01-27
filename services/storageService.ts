@@ -1,5 +1,5 @@
 
-import { ExamResult, Student } from '../types';
+import { ExamResult, Student, SubscriptionPlan, ExamAuthority } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'naajix_students',
@@ -8,31 +8,96 @@ const STORAGE_KEYS = {
   DYNAMIC_EXAMS: 'naajix_dynamic_exams'
 };
 
+// --- SUBSCRIPTION HELPERS ---
+
+const checkSubscriptionStatus = (student: Student): Student => {
+  if (student.subscriptionPlan === 'FREE') return student;
+
+  const now = new Date();
+  const endDate = student.subscriptionEndDate ? new Date(student.subscriptionEndDate) : null;
+
+  if (endDate && now > endDate) {
+    // Expired: Downgrade to Free
+    const updated: Student = {
+      ...student,
+      subscriptionPlan: 'FREE',
+      subscriptionStatus: 'expired',
+      basicAuthority: undefined, // Clear preference
+    };
+    updateStudentRecord(updated);
+    return updated;
+  }
+  return student;
+};
+
+const updateStudentRecord = (updatedStudent: Student) => {
+  const students = getAllStudentsRaw();
+  const index = students.findIndex(s => s.id === updatedStudent.id);
+  if (index !== -1) {
+    students[index] = updatedStudent;
+    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+    
+    // If this is the current session, update it too
+    const current = getCurrentStudentRaw();
+    if (current && current.id === updatedStudent.id) {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(updatedStudent));
+    }
+  }
+};
+
 // --- STUDENT MANAGEMENT ---
 
+const getAllStudentsRaw = (): Student[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const getCurrentStudentRaw = (): Student | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_STUDENT);
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 export const registerStudent = (student: Student): void => {
-  const students = getAllStudents();
+  const students = getAllStudentsRaw();
   // Check if phone exists
   const existingIndex = students.findIndex(s => s.phone === student.phone);
   
+  // Default to FREE plan
+  const newStudent: Student = {
+      ...student,
+      subscriptionPlan: 'FREE',
+      subscriptionStatus: 'active',
+      subscriptionStartDate: new Date().toISOString()
+  };
+  
   if (existingIndex >= 0) {
     // Update existing
-    students[existingIndex] = { ...students[existingIndex], ...student };
+    students[existingIndex] = { ...students[existingIndex], ...student }; // Keep existing plan if re-registering? Usually better to fail, but for now update info
   } else {
     // Add new
-    students.push(student);
+    students.push(newStudent);
   }
   
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-  localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(student));
+  localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(newStudent));
 };
 
 export const loginStudent = (phone: string): Student | null => {
-  const students = getAllStudents();
+  const students = getAllStudentsRaw();
   const student = students.find(s => s.phone === phone);
   if (student) {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(student));
-    return student;
+    // Check expiry on login
+    const checkedStudent = checkSubscriptionStatus(student);
+    localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(checkedStudent));
+    return checkedStudent;
   }
   return null;
 };
@@ -42,21 +107,41 @@ export const logoutStudent = (): void => {
 };
 
 export const getCurrentStudent = (): Student | null => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_STUDENT);
-    return stored ? JSON.parse(stored) : null;
-  } catch (e) {
-    return null;
+  const student = getCurrentStudentRaw();
+  if (student) {
+      // Check expiry whenever we retrieve the current student state
+      return checkSubscriptionStatus(student);
   }
+  return null;
 };
 
 export const getAllStudents = (): Student[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    return stored ? JSON.parse(stored) : [];
-  } catch (e) {
-    return [];
-  }
+  const students = getAllStudentsRaw();
+  // Return updated statuses
+  return students.map(s => checkSubscriptionStatus(s));
+};
+
+export const upgradeStudentSubscription = (studentId: string, plan: SubscriptionPlan, authority?: ExamAuthority) => {
+    const students = getAllStudentsRaw();
+    const student = students.find(s => s.id === studentId);
+    
+    if (student) {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + 30); // 30 Days
+
+        const updated: Student = {
+            ...student,
+            subscriptionPlan: plan,
+            subscriptionStatus: 'active',
+            subscriptionStartDate: startDate.toISOString(),
+            subscriptionEndDate: endDate.toISOString(),
+            basicAuthority: plan === 'BASIC' ? authority : undefined
+        };
+        updateStudentRecord(updated);
+        return updated;
+    }
+    return null;
 };
 
 // --- EXAM RESULTS MANAGEMENT ---
@@ -119,7 +204,7 @@ export const exportDataToCSV = (type: 'students' | 'results') => {
 
   if (type === 'students') {
     data = getAllStudents();
-    headers = ['ID', 'Full Name', 'Phone', 'School', 'Level', 'Registered Date'];
+    headers = ['ID', 'Full Name', 'Phone', 'School', 'Level', 'Plan', 'Status', 'Expires'];
     filename = 'naajix_students.csv';
   } else {
     data = getAllExamResults();
@@ -133,7 +218,8 @@ export const exportDataToCSV = (type: 'students' | 'results') => {
     headers.join(','),
     ...data.map(row => {
       if (type === 'students') {
-         return `${row.id},"${row.fullName}",${row.phone},"${row.school}",${row.level},${row.registeredAt}`;
+         const expiry = row.subscriptionEndDate ? new Date(row.subscriptionEndDate).toLocaleDateString() : 'N/A';
+         return `${row.id},"${row.fullName}",${row.phone},"${row.school}",${row.level},${row.subscriptionPlan},${row.subscriptionStatus},${expiry}`;
       } else {
          return `${row.id},"${row.studentName}",${row.subject},${row.year},${row.score},${row.maxScore},${row.grade},${row.date}`;
       }

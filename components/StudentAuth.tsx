@@ -44,7 +44,10 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       phone,
       school,
       level,
-      registeredAt: new Date().toISOString()
+      registeredAt: new Date().toISOString(),
+      subscriptionPlan: 'FREE',
+      subscriptionStatus: 'active',
+      subscriptionStartDate: new Date().toISOString()
     };
 
     registerStudent(newStudent);

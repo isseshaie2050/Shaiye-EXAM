@@ -332,6 +332,22 @@ const App: React.FC = () => {
          setView(AppState.STUDENT_AUTH);
          return;
       }
+      
+      // CHECK SUBSCRIPTION ACCESS
+      if (currentStudent.subscriptionPlan === 'BASIC') {
+          // If basic user tries to access an authority they didn't select
+          if (currentStudent.basicAuthority && currentStudent.basicAuthority !== authority) {
+              alert(`Your Basic Plan only includes access to ${currentStudent.basicAuthority === 'SOMALI_GOV' ? 'Somali Gov' : 'Puntland'} exams. Please upgrade to Premium for full access.`);
+              // We do not allow them to proceed, BUT since Free plan gives 5 questions for ANY authority, 
+              // we might decide to downgrade this session to "Free Mode". 
+              // However, prompt implies "Restrictions: Cannot access the other exam authority".
+              // So blocking is safer for the "Basic" logic. 
+              // BUT, user also has "Free" rights (5 questions).
+              // Let's implement the prompt logic strictly: "Block other authority".
+              return; 
+          }
+      }
+      
       setSelectedAuthority(authority);
       setView(AppState.LEVEL_SELECT);
   };
@@ -364,19 +380,35 @@ const App: React.FC = () => {
         return;
     }
 
-    const shuffledQuestions = examTemplate.questions.map(q => {
-      if (q.type === 'mcq' && q.options) {
-        return { ...q, options: shuffleArray([...q.options]) };
-      }
-      return q;
+    // --- SUBSCRIPTION LOGIC: LIMIT QUESTIONS ---
+    let questionsToUse = examTemplate.questions;
+    
+    // Always shuffle first
+    questionsToUse = shuffleArray([...questionsToUse]).map(q => {
+        if (q.type === 'mcq' && q.options) {
+            return { ...q, options: shuffleArray([...q.options]) };
+        }
+        return q;
     });
 
-    const newExamInstance = { ...examTemplate, questions: shuffledQuestions };
+    if (currentStudent.subscriptionPlan === 'FREE') {
+        // FREE: Limit to 5 random questions
+        questionsToUse = questionsToUse.slice(0, 5);
+    }
+
+    // Basic & Premium get full exams (already verified access in handleAuthoritySelect for Basic)
+
+    const newExamInstance = { ...examTemplate, questions: questionsToUse };
     
     setActiveExam(newExamInstance);
     setAnswers([]);
     setCurrentQuestionIndex(0);
-    setTimeLeft(examTemplate.durationMinutes * 60);
+    
+    // Adjust time if truncated
+    const timePerQ = examTemplate.durationMinutes / examTemplate.questions.length;
+    const adjustedTime = Math.ceil(timePerQ * questionsToUse.length);
+    setTimeLeft(adjustedTime * 60);
+
     setShowSubmitModal(false);
     setIsPaused(false);
     setView(AppState.EXAM_ACTIVE);
@@ -521,6 +553,11 @@ const App: React.FC = () => {
                 </button>
                 <div className="mb-6 text-center">
                     <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">Logged in as: {currentStudent?.fullName}</span>
+                    <div className="mt-2">
+                       <span className={`text-xs font-bold px-2 py-1 rounded uppercase text-white ${currentStudent?.subscriptionPlan === 'PREMIUM' ? 'bg-purple-600' : currentStudent?.subscriptionPlan === 'BASIC' ? 'bg-blue-600' : 'bg-slate-400'}`}>
+                           {currentStudent?.subscriptionPlan} Plan
+                       </span>
+                    </div>
                 </div>
                 <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">Dooro Heerka Waxbarashada</h1>
                 <p className="text-center text-slate-500 mb-10">Select Education Level for {selectedAuthority === 'SOMALI_GOV' ? 'Somali Federal Govt' : 'Puntland State'}</p>
@@ -637,13 +674,25 @@ const App: React.FC = () => {
             </div>
         </div>
       );
+      
+      // Calculate Question Count based on Plan
+      const questionCount = currentStudent?.subscriptionPlan === 'FREE' ? 5 : exam.questions.length;
+      const duration = currentStudent?.subscriptionPlan === 'FREE' 
+         ? Math.ceil((exam.durationMinutes / exam.questions.length) * 5)
+         : exam.durationMinutes;
 
       return (
           <div className="p-8 max-w-2xl mx-auto text-center mt-10">
               <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">📝</div>
               <h1 className="text-3xl font-bold mb-2 text-slate-900">{exam.subject} ({exam.year})</h1>
-              <p className="text-gray-600 mb-8 font-medium bg-gray-100 inline-block px-4 py-1 rounded-full">{exam.questions.length} Questions • {exam.durationMinutes} Minutes</p>
+              <p className="text-gray-600 mb-8 font-medium bg-gray-100 inline-block px-4 py-1 rounded-full">{questionCount} Questions • {duration} Minutes</p>
               
+              {currentStudent?.subscriptionPlan === 'FREE' && (
+                  <div className="bg-orange-50 p-4 mb-4 rounded border border-orange-200 text-sm text-orange-800 font-bold">
+                      ⚠️ Free Plan: You will receive 5 random questions. Upgrade for full exam.
+                  </div>
+              )}
+
               <div className="bg-yellow-50 p-6 rounded-xl text-left mb-8 border border-yellow-100 shadow-sm">
                   <h3 className="font-bold mb-3 text-yellow-800 flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

@@ -54,6 +54,12 @@ export const getExam = (year: number | null, subjectKey: string | null): Exam | 
   return STATIC_DATABASE[key];
 };
 
+export const checkExamExists = (year: number, subjectKey: string): boolean => {
+  const key = `${year}_${subjectKey}`;
+  const dynamic = getDynamicExams();
+  return !!dynamic[key] || !!STATIC_DATABASE[key];
+};
+
 export const getAvailableYears = (subjectKey: string, authority: ExamAuthority, level: EducationLevel): number[] => {
     const all = getAllExams();
     // Filter exams that match subject. 
