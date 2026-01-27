@@ -10,18 +10,21 @@ interface LandingPageProps {
 const HERO_SLIDES = [
   {
     id: 1,
-    url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop",
-    alt: "Students discussing in a group"
+    // Somali/East African Female Student (Hijab), light brown skin
+    url: "https://images.unsplash.com/photo-1664575602276-acd073f104c1?q=80&w=2070&auto=format&fit=crop",
+    alt: "Somali student preparing for exams"
   },
   {
     id: 2,
-    url: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2070&auto=format&fit=crop",
-    alt: "Focused student studying"
+    // East African Male Student, focused
+    url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=2070&auto=format&fit=crop",
+    alt: "Focused academic achievement"
   },
   {
     id: 3,
-    url: "https://images.unsplash.com/photo-1427504743055-b71431e4c1b4?q=80&w=2070&auto=format&fit=crop",
-    alt: "Academic environment"
+    // Group of students, East African context
+    url: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?q=80&w=2070&auto=format&fit=crop",
+    alt: "Collaborative learning environment"
   }
 ];
 
