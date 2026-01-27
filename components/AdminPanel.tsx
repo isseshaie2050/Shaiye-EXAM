@@ -3,16 +3,19 @@ import React, { useState } from 'react';
 import { AppState, Exam, Question, SectionType, SubjectConfig, ExamAuthority, EducationLevel } from '../types';
 import { SUBJECT_CONFIG, EXAM_HIERARCHY } from '../constants';
 import { saveDynamicExam, getAllExams } from '../services/examService';
+import { getAllStudents, getAllExamResults, exportDataToCSV } from '../services/storageService';
 
 interface Props {
   onLogout: () => void;
 }
 
 const AdminPanel: React.FC<Props> = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'create'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'create' | 'data'>('dashboard');
   
   // Dashboard Data
   const allExams = getAllExams();
+  const allStudents = getAllStudents();
+  const allResults = getAllExamResults();
   const totalQuestions = allExams.reduce((acc, curr) => acc + curr.questions.length, 0);
 
   return (
@@ -29,6 +32,12 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
             className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}
           >
             Dashboard
+          </button>
+          <button 
+            onClick={() => setActiveTab('data')}
+            className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'data' ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}
+          >
+            Student Data
           </button>
           <button 
             onClick={() => setActiveTab('create')}
@@ -48,18 +57,22 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
             <div className="space-y-6">
                 <h2 className="text-3xl font-bold text-slate-800">Platform Overview</h2>
                 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-4 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div className="text-slate-500 font-bold uppercase text-xs">Total Students</div>
+                        <div className="text-4xl font-black text-slate-800 mt-2">{allStudents.length}</div>
+                    </div>
+                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <div className="text-slate-500 font-bold uppercase text-xs">Exams Taken</div>
+                        <div className="text-4xl font-black text-purple-600 mt-2">{allResults.length}</div>
+                    </div>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                         <div className="text-slate-500 font-bold uppercase text-xs">Total Exams</div>
-                        <div className="text-4xl font-black text-slate-800 mt-2">{allExams.length}</div>
+                        <div className="text-4xl font-black text-blue-600 mt-2">{allExams.length}</div>
                     </div>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                         <div className="text-slate-500 font-bold uppercase text-xs">Total Questions</div>
-                        <div className="text-4xl font-black text-blue-600 mt-2">{totalQuestions}</div>
-                    </div>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                        <div className="text-slate-500 font-bold uppercase text-xs">Authorities Active</div>
-                        <div className="text-4xl font-black text-green-600 mt-2">2</div>
+                        <div className="text-4xl font-black text-green-600 mt-2">{totalQuestions}</div>
                     </div>
                 </div>
 
@@ -97,6 +110,94 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
                     </div>
                 </div>
             </div>
+        )}
+
+        {activeTab === 'data' && (
+             <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-3xl font-bold text-slate-800">Data Management</h2>
+                </div>
+
+                {/* Students Table */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 className="font-bold text-lg text-slate-800">Registered Students</h3>
+                        <button onClick={() => exportDataToCSV('students')} className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded hover:bg-green-700 transition">
+                            Download CSV
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                        <table className="w-full text-left text-sm">
+                             <thead className="bg-slate-50 text-slate-600 uppercase font-bold text-xs sticky top-0">
+                                <tr>
+                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">Phone</th>
+                                    <th className="px-4 py-3">School</th>
+                                    <th className="px-4 py-3">Level</th>
+                                    <th className="px-4 py-3">Registered</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {allStudents.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-4 text-center text-gray-400">No students found.</td></tr>
+                                ) : (
+                                    allStudents.map((s, i) => (
+                                        <tr key={i} className="hover:bg-slate-50">
+                                            <td className="px-4 py-2 font-bold">{s.fullName}</td>
+                                            <td className="px-4 py-2 font-mono">{s.phone}</td>
+                                            <td className="px-4 py-2">{s.school}</td>
+                                            <td className="px-4 py-2">{s.level}</td>
+                                            <td className="px-4 py-2 text-gray-500 text-xs">{new Date(s.registeredAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Exam Results Table */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 className="font-bold text-lg text-slate-800">Exam Results Log</h3>
+                        <button onClick={() => exportDataToCSV('results')} className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-700 transition">
+                            Download CSV
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                        <table className="w-full text-left text-sm">
+                             <thead className="bg-slate-50 text-slate-600 uppercase font-bold text-xs sticky top-0">
+                                <tr>
+                                    <th className="px-4 py-3">Student</th>
+                                    <th className="px-4 py-3">Subject</th>
+                                    <th className="px-4 py-3">Score</th>
+                                    <th className="px-4 py-3">Grade</th>
+                                    <th className="px-4 py-3">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {allResults.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-4 text-center text-gray-400">No results found.</td></tr>
+                                ) : (
+                                    allResults.map((r, i) => (
+                                        <tr key={i} className="hover:bg-slate-50">
+                                            <td className="px-4 py-2 font-bold">{r.studentName}</td>
+                                            <td className="px-4 py-2">{r.subject} ({r.year})</td>
+                                            <td className="px-4 py-2 font-mono">{Math.round(r.score)}/{r.maxScore}</td>
+                                            <td className="px-4 py-2">
+                                                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${['A+','A','B+','B'].includes(r.grade) ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>
+                                                    {r.grade}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-gray-500 text-xs">{new Date(r.date).toLocaleString()}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
         )}
 
         {activeTab === 'create' && <CreateExamForm />}

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getExamHistory, getSubjectStats } from '../services/storageService';
+import { getStudentExamHistory, getSubjectStats, getCurrentStudent, logoutStudent } from '../services/storageService';
 import { AppState } from '../types';
 
 interface Props {
@@ -8,12 +8,22 @@ interface Props {
 }
 
 const StudentDashboard: React.FC<Props> = ({ onBack }) => {
-  const history = getExamHistory();
-  const stats = getSubjectStats();
+  const student = getCurrentStudent();
+  // If no student logged in (should be guarded by App.tsx, but safe check here)
+  if (!student) return null;
+
+  const history = getStudentExamHistory(student.id);
+  const stats = getSubjectStats(student.id);
 
   const overallAverage = stats.length > 0 
     ? Math.round(stats.reduce((acc, curr) => acc + curr.average, 0) / stats.length) 
     : 0;
+  
+  const handleLogout = () => {
+      logoutStudent();
+      onBack(); // Effectively reloads app state via parent callback logic usually, or just goes home
+      window.location.reload(); // Force reload to clear state cleanly
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -26,8 +36,14 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
                 ← Home
              </button>
           </div>
-          <div className="text-right">
-             <h1 className="text-xl font-bold text-slate-900">Student Dashboard</h1>
+          <div className="text-right flex items-center gap-4">
+             <div>
+                <h1 className="text-xl font-bold text-slate-900">Student Dashboard</h1>
+                <p className="text-xs text-slate-500 font-bold">Welcome, {student.fullName}</p>
+             </div>
+             <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold rounded hover:bg-red-100 transition">
+                 Logout
+             </button>
           </div>
         </div>
 

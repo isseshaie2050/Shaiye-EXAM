@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel } from './types';
+import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, getExamHistory } from './services/storageService';
+import { saveExamResult, getStudentExamHistory, getCurrentStudent, logoutStudent } from './services/storageService';
 import { getExam, getAvailableYears } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
 import AdminPanel from './components/AdminPanel';
+import StudentAuth from './components/StudentAuth';
 import { AboutPage, PrivacyPage, ContactPage } from './components/InfoPages';
 
 // Utility to shuffle array (Fisher-Yates)
@@ -67,6 +68,9 @@ const ExamImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
 const App: React.FC = () => {
   const [view, setView] = useState<AppState>(AppState.HOME);
   
+  // User Session State
+  const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+
   // Navigation State
   const [selectedAuthority, setSelectedAuthority] = useState<ExamAuthority | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<EducationLevel | null>(null);
@@ -88,8 +92,16 @@ const App: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   // Admin Login State
-  const [adminEmail, setAdminEmail] = useState('');
+  const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
+
+  // Initial Load: Check for student session
+  useEffect(() => {
+    const student = getCurrentStudent();
+    if (student) {
+      setCurrentStudent(student);
+    }
+  }, []);
 
   // --- BRANDING: DYNAMIC BROWSER TITLES ---
   useEffect(() => {
@@ -128,6 +140,9 @@ const App: React.FC = () => {
       case AppState.CONTACT:
         title = "Naajix | Contact Us";
         break;
+      case AppState.STUDENT_AUTH:
+        title = "Naajix | Student Login";
+        break;
       default:
         title = "Naajix";
     }
@@ -135,8 +150,12 @@ const App: React.FC = () => {
   }, [view, selectedAuthority, selectedLevel, activeExam]);
 
   useEffect(() => {
-    setExamHistory(getExamHistory());
-  }, [view]);
+    if (currentStudent) {
+       setExamHistory(getStudentExamHistory(currentStudent.id));
+    } else {
+       setExamHistory([]);
+    }
+  }, [view, currentStudent]);
 
   // Preload images when exam starts
   useEffect(() => {
@@ -154,7 +173,7 @@ const App: React.FC = () => {
   }, [activeExam]);
 
   const handleSubmit = useCallback(async () => {
-    if (!activeExam) return;
+    if (!activeExam || !currentStudent) return;
 
     setIsGrading(true);
     setGradingProgress(0); // Reset progress
@@ -268,6 +287,9 @@ const App: React.FC = () => {
       });
 
       const finalResult: ExamResult = {
+        id: `res-${Date.now()}`,
+        studentId: currentStudent.id,
+        studentName: currentStudent.fullName,
         examId: activeExam.id,
         subject: activeExam.subject,
         year: activeExam.year,
@@ -288,7 +310,7 @@ const App: React.FC = () => {
       setIsGrading(false);
       setShowSubmitModal(false);
     }
-  }, [activeExam, answers, timeLeft]);
+  }, [activeExam, answers, timeLeft, currentStudent]);
 
   useEffect(() => {
     let timer: any;
@@ -305,6 +327,11 @@ const App: React.FC = () => {
 
   // --- NAVIGATION HANDLERS ---
   const handleAuthoritySelect = (authority: ExamAuthority) => {
+      // Check Auth
+      if (!currentStudent) {
+         setView(AppState.STUDENT_AUTH);
+         return;
+      }
       setSelectedAuthority(authority);
       setView(AppState.LEVEL_SELECT);
   };
@@ -325,6 +352,11 @@ const App: React.FC = () => {
   };
 
   const startExam = () => {
+    if (!currentStudent) {
+        setView(AppState.STUDENT_AUTH);
+        return;
+    }
+
     const examTemplate = getExam(selectedYear, selectedSubjectKey);
     
     if (!examTemplate) {
@@ -361,17 +393,51 @@ const App: React.FC = () => {
   };
   
   const handleAdminLogin = () => {
-      if (adminEmail === 'admin@naajix.com' && adminPass === 'admin123') {
+      if (adminUser === 'naajixapp' && adminPass === 'SHaaciyeyare@!123') {
           setView(AppState.ADMIN_PANEL);
+          setAdminUser('');
           setAdminPass('');
       } else {
           alert('Invalid Admin Credentials');
       }
   };
+  
+  const handleNavigateToDashboard = () => {
+      if (currentStudent) {
+          setView(AppState.DASHBOARD);
+      } else {
+          setView(AppState.STUDENT_AUTH);
+      }
+  };
+  
+  const handleLogout = () => {
+      logoutStudent();
+      setCurrentStudent(null);
+      setView(AppState.HOME);
+  };
 
   // --- 1. LANDING PAGE ---
   if (view === AppState.HOME) {
-    return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={setView} />;
+    return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={(target) => {
+        if(target === AppState.DASHBOARD) {
+            handleNavigateToDashboard();
+        } else {
+            setView(target);
+        }
+    }} />;
+  }
+  
+  // --- AUTH ---
+  if (view === AppState.STUDENT_AUTH) {
+      return (
+        <StudentAuth 
+            onLoginSuccess={(student) => {
+                setCurrentStudent(student);
+                setView(AppState.HOME);
+            }} 
+            onCancel={() => setView(AppState.HOME)}
+        />
+      );
   }
   
   // --- INFO PAGES ---
@@ -403,13 +469,13 @@ const App: React.FC = () => {
                   </div>
                   <div className="space-y-4">
                       <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-1">Email</label>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Username</label>
                           <input 
-                            type="email" 
-                            value={adminEmail}
-                            onChange={(e) => setAdminEmail(e.target.value)}
+                            type="text" 
+                            value={adminUser}
+                            onChange={(e) => setAdminUser(e.target.value)}
                             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                            placeholder="admin@naajix.com"
+                            placeholder="username"
                         />
                       </div>
                       <div>
@@ -453,6 +519,9 @@ const App: React.FC = () => {
                 <button onClick={() => setView(AppState.HOME)} className="mb-8 text-blue-600 hover:underline flex items-center gap-1">
                     ← Back to Authority
                 </button>
+                <div className="mb-6 text-center">
+                    <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold">Logged in as: {currentStudent?.fullName}</span>
+                </div>
                 <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">Dooro Heerka Waxbarashada</h1>
                 <p className="text-center text-slate-500 mb-10">Select Education Level for {selectedAuthority === 'SOMALI_GOV' ? 'Somali Federal Govt' : 'Puntland State'}</p>
                 

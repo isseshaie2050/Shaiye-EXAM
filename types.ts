@@ -48,7 +48,19 @@ export interface UserAnswer {
   answer: string;
 }
 
+export interface Student {
+  id: string;
+  fullName: string;
+  phone: string;
+  school: string;
+  level: EducationLevel;
+  registeredAt: string;
+}
+
 export interface ExamResult {
+  id: string; // Unique ID for the result record
+  studentId: string; // Link to Student
+  studentName: string; // Snapshot of name
   examId: string;
   subject: string;
   year: number;
@@ -69,6 +81,7 @@ export type EducationLevel = 'FORM_IV' | 'STD_8';
 
 export enum AppState {
   HOME = 'HOME', // Landing Page (Authority Selection)
+  STUDENT_AUTH = 'STUDENT_AUTH', // Login/Register
   LEVEL_SELECT = 'LEVEL_SELECT', // Std 8 vs Form IV
   SUBJECT_SELECT = 'SUBJECT_SELECT', // Select Subject
   YEAR_SELECT = 'YEAR_SELECT', // Select Year
