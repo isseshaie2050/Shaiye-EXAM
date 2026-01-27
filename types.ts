@@ -54,9 +54,12 @@ export interface Student {
   id: string;
   fullName: string;
   phone: string;
+  email?: string; // New Auth Field
+  password?: string; // New Auth Field (Simulated Hash)
   school: string;
   level: EducationLevel;
   registeredAt: string;
+  authProvider: 'email' | 'google';
   
   // Subscription Fields
   subscriptionPlan: SubscriptionPlan;
@@ -64,6 +67,14 @@ export interface Student {
   subscriptionStartDate?: string; // ISO Date
   subscriptionEndDate?: string;   // ISO Date
   basicAuthority?: ExamAuthority; // Only relevant if plan is BASIC
+}
+
+export interface ActiveSession {
+  userId: string;
+  deviceSessionId: string;
+  deviceName: string;
+  ipAddress: string;
+  lastActiveAt: string;
 }
 
 export interface ExamResult {

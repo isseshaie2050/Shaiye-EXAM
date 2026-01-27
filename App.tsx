@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, getStudentExamHistory, getCurrentStudent, logoutStudent } from './services/storageService';
+import { saveExamResult, getStudentExamHistory, getCurrentStudent, logoutStudent, validateCurrentSession } from './services/storageService';
 import { getExam, getAvailableYears } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
@@ -97,11 +97,35 @@ const App: React.FC = () => {
 
   // Initial Load: Check for student session
   useEffect(() => {
-    const student = getCurrentStudent();
+    // We use validateCurrentSession to check expiry AND device conflict on load
+    const student = validateCurrentSession();
     if (student) {
       setCurrentStudent(student);
+    } else {
+      // If validation fails (e.g. token exists but invalid), clear state
+      logoutStudent();
+      setCurrentStudent(null);
     }
   }, []);
+
+  // --- SESSION WATCHDOG ---
+  useEffect(() => {
+    // Periodically check if the session is still valid (Single Device Enforcement)
+    if (!currentStudent) return;
+
+    const interval = setInterval(() => {
+       const validStudent = validateCurrentSession();
+       if (!validStudent) {
+           // Session killed remotely or expired
+           alert("Your session has expired or you have logged in from another device.");
+           handleLogout();
+           clearInterval(interval);
+       }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [currentStudent]);
+
 
   // --- BRANDING: DYNAMIC BROWSER TITLES ---
   useEffect(() => {
@@ -338,12 +362,6 @@ const App: React.FC = () => {
           // If basic user tries to access an authority they didn't select
           if (currentStudent.basicAuthority && currentStudent.basicAuthority !== authority) {
               alert(`Your Basic Plan only includes access to ${currentStudent.basicAuthority === 'SOMALI_GOV' ? 'Somali Gov' : 'Puntland'} exams. Please upgrade to Premium for full access.`);
-              // We do not allow them to proceed, BUT since Free plan gives 5 questions for ANY authority, 
-              // we might decide to downgrade this session to "Free Mode". 
-              // However, prompt implies "Restrictions: Cannot access the other exam authority".
-              // So blocking is safer for the "Basic" logic. 
-              // BUT, user also has "Free" rights (5 questions).
-              // Let's implement the prompt logic strictly: "Block other authority".
               return; 
           }
       }
@@ -395,8 +413,6 @@ const App: React.FC = () => {
         // FREE: Limit to 5 random questions
         questionsToUse = questionsToUse.slice(0, 5);
     }
-
-    // Basic & Premium get full exams (already verified access in handleAuthoritySelect for Basic)
 
     const newExamInstance = { ...examTemplate, questions: questionsToUse };
     

@@ -1,11 +1,145 @@
 
-import { ExamResult, Student, SubscriptionPlan, ExamAuthority } from '../types';
+import { ExamResult, Student, SubscriptionPlan, ExamAuthority, ActiveSession } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'naajix_students',
-  CURRENT_STUDENT: 'naajix_current_student_session',
-  EXAM_HISTORY: 'naajix_exam_history_v2', // v2 to avoid conflicts with old format
-  DYNAMIC_EXAMS: 'naajix_dynamic_exams'
+  CURRENT_SESSION: 'naajix_client_session_token', // Stores { userId, sessionId }
+  ACTIVE_SESSIONS_DB: 'naajix_server_active_sessions', // Simulates Server DB of active sessions
+  EXAM_HISTORY: 'naajix_exam_history_v2', 
+  DYNAMIC_EXAMS: 'naajix_dynamic_exams',
+  OTP_CACHE: 'naajix_otp_cache' // Temp storage for OTPs
+};
+
+// --- SESSION MANAGEMENT (SINGLE DEVICE ENFORCEMENT) ---
+
+const getActiveSessionsDB = (): Record<string, ActiveSession> => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSIONS_DB);
+    return stored ? JSON.parse(stored) : {};
+  } catch (e) { return {}; }
+};
+
+const saveActiveSessionsDB = (db: Record<string, ActiveSession>) => {
+  localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSIONS_DB, JSON.stringify(db));
+};
+
+export const checkDeviceConflict = (userId: string): ActiveSession | null => {
+  const db = getActiveSessionsDB();
+  // Check if there is an active session for this user
+  if (db[userId]) {
+    return db[userId];
+  }
+  return null;
+};
+
+export const createNewSession = (student: Student): void => {
+  const db = getActiveSessionsDB();
+  const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // 1. Create Server-Side Session Record
+  const newSession: ActiveSession = {
+    userId: student.id,
+    deviceSessionId: newSessionId,
+    deviceName: getDeviceName(),
+    ipAddress: '192.168.x.x', // Simulated
+    lastActiveAt: new Date().toISOString()
+  };
+  
+  db[student.id] = newSession;
+  saveActiveSessionsDB(db);
+
+  // 2. Set Client-Side Cookie/Token
+  const clientToken = {
+    userId: student.id,
+    sessionId: newSessionId,
+    studentData: student // Cache student data for easy access
+  };
+  localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, JSON.stringify(clientToken));
+};
+
+export const validateCurrentSession = (): Student | null => {
+  try {
+    // 1. Get Client Token
+    const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
+    if (!clientTokenStr) return null;
+    
+    const clientToken = JSON.parse(clientTokenStr);
+    const { userId, sessionId, studentData } = clientToken;
+
+    // 2. Check "Server" DB
+    const db = getActiveSessionsDB();
+    const serverSession = db[userId];
+
+    if (!serverSession) {
+      // Session expired on server
+      logoutStudent();
+      return null;
+    }
+
+    if (serverSession.deviceSessionId !== sessionId) {
+      // CONFLICT: Server has a different session ID -> Another device logged in
+      logoutStudent();
+      return null; 
+    }
+
+    // 3. Update Last Active
+    serverSession.lastActiveAt = new Date().toISOString();
+    saveActiveSessionsDB(db);
+
+    // 4. Return cached student data (refreshed from DB for plan accuracy)
+    const freshStudent = getAllStudentsRaw().find(s => s.id === userId);
+    if (freshStudent) {
+        // Update client cache if plan changed
+        if (JSON.stringify(freshStudent) !== JSON.stringify(studentData)) {
+            clientToken.studentData = freshStudent;
+            localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, JSON.stringify(clientToken));
+        }
+        return checkSubscriptionStatus(freshStudent);
+    }
+
+    return null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const getDeviceName = () => {
+  const ua = navigator.userAgent;
+  if (/mobile/i.test(ua)) return 'Mobile Device';
+  if (/iPad|Android/i.test(ua)) return 'Tablet';
+  return 'Desktop Computer';
+};
+
+// --- AUTHENTICATION & OTP ---
+
+export const findStudentByEmail = (email: string): Student | undefined => {
+  const students = getAllStudentsRaw();
+  return students.find(s => s.email?.toLowerCase() === email.toLowerCase());
+};
+
+export const generateOTP = (email: string): string => {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const cache = { code: otp, email, expires: Date.now() + 5 * 60 * 1000 }; // 5 mins
+  localStorage.setItem(STORAGE_KEYS.OTP_CACHE, JSON.stringify(cache));
+  
+  // SIMULATE EMAIL SENDING
+  console.log(`[Naajix Mailer] Sending OTP to ${email}: ${otp}`);
+  setTimeout(() => {
+    alert(`📧 Koodh xaqiijin (Verification Code) ayaa laguu soo diray email-kaaga:\n\n${otp}`);
+  }, 500);
+
+  return otp;
+};
+
+export const verifyOTP = (inputCode: string): boolean => {
+  try {
+    const cached = localStorage.getItem(STORAGE_KEYS.OTP_CACHE);
+    if (!cached) return false;
+    const { code, expires } = JSON.parse(cached);
+    
+    if (Date.now() > expires) return false;
+    return code === inputCode;
+  } catch (e) { return false; }
 };
 
 // --- SUBSCRIPTION HELPERS ---
@@ -17,12 +151,11 @@ const checkSubscriptionStatus = (student: Student): Student => {
   const endDate = student.subscriptionEndDate ? new Date(student.subscriptionEndDate) : null;
 
   if (endDate && now > endDate) {
-    // Expired: Downgrade to Free
     const updated: Student = {
       ...student,
       subscriptionPlan: 'FREE',
       subscriptionStatus: 'expired',
-      basicAuthority: undefined, // Clear preference
+      basicAuthority: undefined,
     };
     updateStudentRecord(updated);
     return updated;
@@ -36,40 +169,25 @@ const updateStudentRecord = (updatedStudent: Student) => {
   if (index !== -1) {
     students[index] = updatedStudent;
     localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-    
-    // If this is the current session, update it too
-    const current = getCurrentStudentRaw();
-    if (current && current.id === updatedStudent.id) {
-        localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(updatedStudent));
-    }
   }
 };
 
-// --- STUDENT MANAGEMENT ---
+// --- STUDENT CRUD ---
 
 const getAllStudentsRaw = (): Student[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.STUDENTS);
     return stored ? JSON.parse(stored) : [];
-  } catch (e) {
-    return [];
-  }
-};
-
-const getCurrentStudentRaw = (): Student | null => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_STUDENT);
-    return stored ? JSON.parse(stored) : null;
-  } catch (e) {
-    return null;
-  }
+  } catch (e) { return []; }
 };
 
 export const registerStudent = (student: Student): void => {
   const students = getAllStudentsRaw();
-  // Check if phone exists
-  const existingIndex = students.findIndex(s => s.phone === student.phone);
-  
+  // Double check email uniqueness
+  if (students.some(s => s.email === student.email)) {
+      throw new Error("Email already registered");
+  }
+
   // Default to FREE plan
   const newStudent: Student = {
       ...student,
@@ -78,46 +196,29 @@ export const registerStudent = (student: Student): void => {
       subscriptionStartDate: new Date().toISOString()
   };
   
-  if (existingIndex >= 0) {
-    // Update existing
-    students[existingIndex] = { ...students[existingIndex], ...student }; // Keep existing plan if re-registering? Usually better to fail, but for now update info
-  } else {
-    // Add new
-    students.push(newStudent);
-  }
-  
+  students.push(newStudent);
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-  localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(newStudent));
-};
-
-export const loginStudent = (phone: string): Student | null => {
-  const students = getAllStudentsRaw();
-  const student = students.find(s => s.phone === phone);
-  if (student) {
-    // Check expiry on login
-    const checkedStudent = checkSubscriptionStatus(student);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_STUDENT, JSON.stringify(checkedStudent));
-    return checkedStudent;
-  }
-  return null;
 };
 
 export const logoutStudent = (): void => {
-  localStorage.removeItem(STORAGE_KEYS.CURRENT_STUDENT);
+  const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
+  if (clientTokenStr) {
+      const { userId } = JSON.parse(clientTokenStr);
+      // Remove from server active sessions
+      const db = getActiveSessionsDB();
+      delete db[userId];
+      saveActiveSessionsDB(db);
+  }
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_SESSION);
 };
 
 export const getCurrentStudent = (): Student | null => {
-  const student = getCurrentStudentRaw();
-  if (student) {
-      // Check expiry whenever we retrieve the current student state
-      return checkSubscriptionStatus(student);
-  }
-  return null;
+  // Now proxies to validateCurrentSession for security
+  return validateCurrentSession();
 };
 
 export const getAllStudents = (): Student[] => {
   const students = getAllStudentsRaw();
-  // Return updated statuses
   return students.map(s => checkSubscriptionStatus(s));
 };
 
@@ -149,24 +250,18 @@ export const upgradeStudentSubscription = (studentId: string, plan: Subscription
 export const saveExamResult = (result: ExamResult): void => {
   try {
     const history = getAllExamResults();
-    history.unshift(result); // Add new result to the top
+    history.unshift(result);
     localStorage.setItem(STORAGE_KEYS.EXAM_HISTORY, JSON.stringify(history));
-  } catch (error) {
-    console.error("Failed to save exam history", error);
-  }
+  } catch (error) { console.error(error); }
 };
 
 export const getAllExamResults = (): ExamResult[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.EXAM_HISTORY);
     return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Failed to load exam history", error);
-    return [];
-  }
+  } catch (error) { return []; }
 };
 
-// Get history only for the specific student
 export const getStudentExamHistory = (studentId: string): ExamResult[] => {
   const allResults = getAllExamResults();
   return allResults.filter(r => r.studentId === studentId);
@@ -195,8 +290,6 @@ export const getSubjectStats = (studentId: string) => {
   });
 };
 
-// --- EXPORT UTILS FOR ADMIN ---
-
 export const exportDataToCSV = (type: 'students' | 'results') => {
   let data: any[] = [];
   let headers: string[] = [];
@@ -204,7 +297,7 @@ export const exportDataToCSV = (type: 'students' | 'results') => {
 
   if (type === 'students') {
     data = getAllStudents();
-    headers = ['ID', 'Full Name', 'Phone', 'School', 'Level', 'Plan', 'Status', 'Expires'];
+    headers = ['ID', 'Full Name', 'Email', 'Phone', 'School', 'Level', 'Plan', 'Status'];
     filename = 'naajix_students.csv';
   } else {
     data = getAllExamResults();
@@ -218,8 +311,7 @@ export const exportDataToCSV = (type: 'students' | 'results') => {
     headers.join(','),
     ...data.map(row => {
       if (type === 'students') {
-         const expiry = row.subscriptionEndDate ? new Date(row.subscriptionEndDate).toLocaleDateString() : 'N/A';
-         return `${row.id},"${row.fullName}",${row.phone},"${row.school}",${row.level},${row.subscriptionPlan},${row.subscriptionStatus},${expiry}`;
+         return `${row.id},"${row.fullName}","${row.email}","${row.phone}","${row.school}",${row.level},${row.subscriptionPlan},${row.subscriptionStatus}`;
       } else {
          return `${row.id},"${row.studentName}",${row.subject},${row.year},${row.score},${row.maxScore},${row.grade},${row.date}`;
       }
