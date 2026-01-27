@@ -21,8 +21,7 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       .single();
 
     if (error || !profile) {
-      // If auth exists but no profile, maybe it's a raw user or admin check
-      // For now, return null to force re-login or handle gracefully
+      // If profile missing, it might be an admin or raw user. Return null to force cleaner state.
       return { user: null, role: null };
     }
 
@@ -37,7 +36,7 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
         authProvider: 'email',
         subscriptionPlan: profile.subscription_plan,
         subscriptionStatus: profile.subscription_status,
-        subscriptionStartDate: profile.subscription_end_date, // Using end date field loosely for mapping
+        subscriptionStartDate: profile.subscription_end_date,
         subscriptionEndDate: profile.subscription_end_date,
         basicAuthority: profile.basic_authority
     };
@@ -56,6 +55,18 @@ export const logoutUser = async () => {
 
 // --- AUTHENTICATION ---
 
+export const loginWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin // Redirects back to your app
+        }
+    });
+    
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+};
+
 export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student }> => {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -69,7 +80,7 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
          const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
          
          if (profileError || !profile) {
-             return { success: false, error: "Login successful, but profile not found. Please contact support." };
+             return { success: false, error: "Login successful, but profile data is missing. Please contact support." };
          }
 
          const student: Student = {
@@ -94,7 +105,8 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
 
 export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, requiresConfirmation?: boolean }> => {
     // 1. Sign Up
-    // We pass metadata options so data is available in Supabase Auth user object immediately
+    // IMPORTANT: We pass user data in 'options.data'. The SQL Trigger 'handle_new_user' will read this 
+    // and automatically create the profile row. We do NOT insert manually here to avoid RLS errors.
     const { data, error } = await supabase.auth.signUp({
         email: student.email!,
         password: password,
@@ -111,35 +123,10 @@ export const registerStudent = async (student: Student, password: string): Promi
     if (error) return { success: false, error: error.message };
 
     if (data.user) {
-        // 2. Create Profile
-        // Note: If email confirmation is ON, data.session might be null, but we can still write to public.profiles 
-        // if your RLS policy allows it (e.g., allow insert for authenticated users OR anon users).
-        // Since we are using the anon key, we depend on the RLS Policy set in Supabase SQL editor.
-        // If the policy is strict (only authenticated), this insert might fail if session is null.
-        // Assuming the SQL provided earlier: `create policy "Public profiles access" on public.profiles for all using (true);` handles this.
-        
-        const { error: profileError } = await supabase.from('profiles').insert({
-            id: data.user.id,
-            full_name: student.fullName,
-            phone: student.phone,
-            school: student.school,
-            education_level: student.level,
-            subscription_plan: 'FREE',
-            role: 'student'
-        });
-
-        if (profileError) {
-            // Ignore duplicate key error (if user double clicked)
-            if (profileError.code !== '23505') {
-                 return { success: false, error: "Account created but profile setup failed: " + profileError.message };
-            }
-        }
-        
-        // If session is null, it means email confirmation is required
+        // If session is null, it means email confirmation is required by Supabase settings
         if (!data.session) {
             return { success: true, requiresConfirmation: true };
         }
-
         return { success: true };
     }
 
@@ -147,8 +134,6 @@ export const registerStudent = async (student: Student, password: string): Promi
 };
 
 export const verifyAdminCredentials = (u: string, p: string): boolean => {
-    // Keep admin strictly hardcoded/local for now as requested to ensure safety
-    // Or you can migrate admin to Supabase profiles with role='admin'
     return u === 'naajixapp' && p === 'SHaaciyeyare@!123';
 };
 
@@ -171,11 +156,9 @@ export const upgradeStudentSubscription = async (studentId: string, plan: Subscr
         return null;
     }
 
-    // Map back to Student type
     return {
         id: data.id,
         fullName: data.full_name,
-        // ... other fields mapped partially for UI update
         subscriptionPlan: data.subscription_plan,
         basicAuthority: data.basic_authority,
         subscriptionEndDate: data.subscription_end_date
@@ -193,7 +176,6 @@ export const getStudentExamHistory = async (studentId: string): Promise<ExamResu
 
   if (error) return [];
   
-  // Map snake_case DB to camelCase Type
   return data.map((d: any) => ({
       id: d.id,
       studentId: d.student_id,
@@ -219,7 +201,7 @@ export const saveExamResult = async (result: ExamResult): Promise<void> => {
       max_score: result.maxScore,
       grade: result.grade,
       date: result.date,
-      feedback: {} // Storing feedback details if needed, simplifed for now
+      feedback: {} 
   });
 
   if (error) console.error("Failed to save result", error);
@@ -256,7 +238,7 @@ export const getAllStudents = async (): Promise<Student[]> => {
     return data.map((p: any) => ({
         id: p.id,
         fullName: p.full_name,
-        email: 'Hidden', // Email is in auth.users, hard to fetch via simple client query without admin rights
+        email: 'Hidden',
         phone: p.phone,
         school: p.school,
         level: p.education_level,
@@ -284,8 +266,7 @@ export const getAllExamResults = async (): Promise<ExamResult[]> => {
   }));
 };
 
-// --- LEGACY/PLACEHOLDER (For type compatibility where simple sync was used) ---
-export const getActiveSessions = () => []; // Supabase manages this internally
-export const getLoginHistory = () => [];   // Supabase Auth Logs available in dashboard
-export const forceLogoutUser = async (uid: string) => { console.log("Admin force logout requires Supabase Admin API"); };
-export const exportDataToCSV = (type: 'students' | 'results') => { alert("Exporting feature requires backend logic update."); };
+export const getActiveSessions = () => []; 
+export const getLoginHistory = () => [];   
+export const forceLogoutUser = async (uid: string) => {};
+export const exportDataToCSV = (type: 'students' | 'results') => {};

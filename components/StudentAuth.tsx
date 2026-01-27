@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { EducationLevel, Student } from '../types';
-import { logUserIn, registerStudent } from '../services/storageService';
+import { logUserIn, registerStudent, loginWithGoogle } from '../services/storageService';
 
 interface StudentAuthProps {
   onLoginSuccess: (student: Student) => void;
@@ -26,6 +26,17 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   
   const [error, setError] = useState('');
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    const res = await loginWithGoogle();
+    if (!res.success) {
+        setLoading(false);
+        setError(res.error || "Google login failed.");
+    }
+    // If success, Supabase will redirect the page automatically.
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
       e.preventDefault();
       setError('');
@@ -37,7 +48,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       if (res.success && res.user) {
           onLoginSuccess(res.user);
       } else {
-          // Improve error messaging for common cases
           if (res.error?.includes('Invalid login credentials')) {
                setError("Incorrect email or password.");
           } else if (res.error?.includes('Email not confirmed')) {
@@ -84,12 +94,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
           setRegistrationSuccess(true);
           if (res.requiresConfirmation) {
               setConfirmationRequired(true);
-          } else {
-              // If no confirmation needed (rare), we can auto-login or just show success
-              // Usually safer to ask them to login
           }
       } else {
-          setError(res.error || "Registration failed");
+          setError(res.error || "Registration failed. Please try again.");
       }
   };
 
@@ -113,8 +120,8 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                 <button 
                     onClick={() => {
                         setRegistrationSuccess(false);
-                        setIsRegistering(false); // Switch to login view
-                        setPassword(''); // Clear pass
+                        setIsRegistering(false); 
+                        setPassword(''); 
                     }}
                     className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg"
                 >
@@ -137,49 +144,67 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
         <div className="p-8">
           {error && (
-            <div className="mb-6 p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-sm text-center font-bold">
+            <div className="mb-6 p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-sm text-center font-bold animate-pulse">
               {error}
             </div>
           )}
 
+          {/* GLOBAL GOOGLE SIGN IN (Available on both Login & Register) */}
+          <div className="mb-6">
+              <button 
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full py-3 bg-white text-slate-700 border border-slate-300 font-bold rounded-lg hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-3"
+              >
+                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                 {isRegistering ? 'Sign up with Google' : 'Continue with Google'}
+              </button>
+              
+              <div className="flex items-center gap-4 my-6">
+                 <div className="h-px bg-slate-200 flex-1"></div>
+                 <span className="text-xs text-slate-400 font-bold uppercase">Or use Email</span>
+                 <div className="h-px bg-slate-200 flex-1"></div>
+              </div>
+          </div>
+
           {!isRegistering ? (
               // LOGIN FORM
               <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
-                      <input 
-                         type="email" required 
-                         value={email} onChange={e => setEmail(e.target.value)}
-                         className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                         placeholder="student@example.com"
-                      />
-                  </div>
-                  <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
-                      <input 
-                         type="password" required 
-                         value={password} onChange={e => setPassword(e.target.value)}
-                         className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                         placeholder="••••••••"
-                      />
-                  </div>
+                <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Email Address</label>
+                    <input 
+                      type="email" required 
+                      value={email} onChange={e => setEmail(e.target.value)}
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="student@example.com"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
+                    <input 
+                      type="password" required 
+                      value={password} onChange={e => setPassword(e.target.value)}
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="••••••••"
+                    />
+                </div>
 
-                  <button type="submit" disabled={loading} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg disabled:opacity-50">
-                      {loading ? 'Logging in...' : 'Login'}
-                  </button>
+                <button type="submit" disabled={loading} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg disabled:opacity-50">
+                    {loading ? 'Logging in...' : 'Login'}
+                </button>
 
-                  <div className="text-center mt-4">
+                <div className="text-center mt-4">
                       <span className="text-slate-500 text-sm">New student? </span>
                       <button type="button" onClick={() => { setIsRegistering(true); setError(''); }} className="text-blue-600 font-bold text-sm hover:underline">
-                          Register here
+                          Create an Account
                       </button>
-                  </div>
+                </div>
               </form>
           ) : (
               // REGISTER FORM
               <form onSubmit={handleRegister} className="space-y-4">
                   <div className="text-center mb-4">
-                      <h3 className="font-bold text-slate-800 text-lg">Create Account</h3>
+                      <h3 className="font-bold text-slate-800 text-lg">Create Email Account</h3>
                   </div>
                   
                   <div>
@@ -218,7 +243,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                   <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg mt-4 disabled:opacity-50">
                       {loading ? 'Creating Account...' : 'Sign Up'}
                   </button>
-                  <button type="button" onClick={() => { setIsRegistering(false); setError(''); }} className="w-full py-2 text-slate-500 font-bold text-sm">Cancel</button>
+                  <button type="button" onClick={() => { setIsRegistering(false); setError(''); }} className="w-full py-2 text-slate-500 font-bold text-sm">
+                      Back to Login
+                  </button>
               </form>
           )}
 
