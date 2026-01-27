@@ -1,29 +1,50 @@
-
-import React, { useState } from 'react';
-import { getStudentExamHistory, getSubjectStats, getCurrentStudent, logoutStudent, upgradeStudentSubscription } from '../services/storageService';
-import { AppState, SubscriptionPlan, ExamAuthority } from '../types';
+import React, { useState, useEffect } from 'react';
+import { getStudentExamHistory, getSubjectStats, logoutUser, upgradeStudentSubscription } from '../services/storageService';
+import { AppState, SubscriptionPlan, ExamAuthority, Student } from '../types';
 
 interface Props {
   onBack: () => void;
 }
 
 const StudentDashboard: React.FC<Props> = ({ onBack }) => {
-  const [student, setStudent] = useState(getCurrentStudent());
+  // We assume the student is passed or retrieved via context in a larger app, 
+  // but here we grab it from auth state or pass it down. 
+  // For simplicity with the existing structure, we re-fetch context.
+  // Ideally App.tsx passes the `currentStudent` prop.
+  // We'll rely on the App wrapper refetching or simple validation.
+  const [student, setStudent] = useState<Student | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState<any[]>([]);
+  
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
-  // If no student logged in
-  if (!student) return null;
+  useEffect(() => {
+      // Async load
+      const loadData = async () => {
+          // In a real app, use Context. Here we check session again or use passed prop.
+          // Since we need to be async, we use the getter
+          const { validateCurrentSession } = await import('../services/storageService');
+          const { user } = await validateCurrentSession();
+          
+          if (user) {
+              setStudent(user);
+              const h = await getStudentExamHistory(user.id);
+              setHistory(h);
+              const s = await getSubjectStats(user.id);
+              setStats(s);
+          }
+      };
+      loadData();
+  }, []);
 
-  const history = getStudentExamHistory(student.id);
-  const stats = getSubjectStats(student.id);
+  if (!student) return <div className="p-8 text-center">Loading Dashboard...</div>;
 
   const overallAverage = stats.length > 0 
     ? Math.round(stats.reduce((acc, curr) => acc + curr.average, 0) / stats.length) 
     : 0;
   
-  const handleLogout = () => {
-      logoutStudent();
+  const handleLogout = async () => {
+      await logoutUser();
       onBack(); 
       window.location.reload(); 
   };
@@ -38,12 +59,14 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
 
   const daysRemaining = getDaysRemaining();
 
-  const handleUpgrade = (plan: SubscriptionPlan, authority?: ExamAuthority) => {
-      const updated = upgradeStudentSubscription(student.id, plan, authority);
+  const handleUpgrade = async (plan: SubscriptionPlan, authority?: ExamAuthority) => {
+      const updated = await upgradeStudentSubscription(student.id, plan, authority);
       if (updated) {
           setStudent(updated);
           setShowUpgradeModal(false);
           alert(`Successfully subscribed to ${plan} plan!`);
+      } else {
+          alert("Upgrade failed. Please try again.");
       }
   };
 
