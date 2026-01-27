@@ -75,11 +75,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
       </header>
 
       {/* 2. Exam Authority Selection (The Core Flow) */}
-      <section id="authorities" className="py-12 px-6 max-w-5xl mx-auto -mt-16 relative z-20">
-        <h2 className="text-center text-2xl font-black text-blue-900 mb-6 drop-shadow-sm bg-white/80 inline-block px-6 py-2 rounded-full mx-auto backdrop-blur-sm border border-white/50 block w-fit">
-            Select Exam Authority
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+      <section id="authorities" className="py-12 px-6 max-w-5xl mx-auto -mt-16 relative z-20 flex flex-col items-center">
+        <div className="mb-8 drop-shadow-md bg-white border border-gray-100 px-8 py-3 rounded-full shadow-lg transform -translate-y-2">
+            <h2 className="text-xl md:text-2xl font-black text-blue-900 text-center uppercase tracking-wide">
+                Select Exam Authority
+            </h2>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6 w-full">
           <div 
             onClick={() => onSelectAuthority('SOMALI_GOV')}
             className="bg-white p-8 rounded-xl shadow-lg border-2 border-transparent cursor-pointer hover:shadow-2xl hover:border-blue-500 transition group flex flex-col items-center text-center h-full"
