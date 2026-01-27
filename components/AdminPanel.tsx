@@ -19,9 +19,9 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
     <div className="min-h-screen bg-slate-100 flex font-sans">
       {/* Sidebar */}
       <div className="w-64 bg-slate-900 text-slate-300 flex flex-col fixed h-full z-10">
-        <div className="p-6 text-white font-bold text-2xl tracking-tighter border-b border-slate-800 flex items-center gap-2">
+        <div className="p-6 text-white font-bold text-lg tracking-tight border-b border-slate-800 flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            Naajix Admin
+            Naajix – Admin Panel
         </div>
         <nav className="flex-1 p-4 space-y-2">
           <button 

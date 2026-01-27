@@ -91,6 +91,46 @@ const App: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPass, setAdminPass] = useState('');
 
+  // Branding: Dynamic Title
+  useEffect(() => {
+    let title = "Naajix";
+    switch (view) {
+      case AppState.HOME:
+        title = "Naajix | Home";
+        break;
+      case AppState.LEVEL_SELECT:
+        title = `Naajix | ${selectedAuthority === 'SOMALI_GOV' ? 'Somali Government Exams' : 'Puntland State Exams'}`;
+        break;
+      case AppState.YEAR_SELECT:
+      case AppState.SUBJECT_SELECT:
+        title = `Naajix | ${selectedLevel === 'FORM_IV' ? 'Form IV' : 'Standard 8'}`;
+        break;
+      case AppState.ADMIN_LOGIN:
+      case AppState.ADMIN_PANEL:
+        title = "Naajix | Admin Panel";
+        break;
+      case AppState.DASHBOARD:
+        title = "Naajix | Student Dashboard";
+        break;
+      case AppState.ABOUT:
+        title = "Naajix | About Us";
+        break;
+      case AppState.PRIVACY:
+        title = "Naajix | Privacy Policy";
+        break;
+      case AppState.CONTACT:
+        title = "Naajix | Contact Us";
+        break;
+      case AppState.EXAM_ACTIVE:
+      case AppState.EXAM_OVERVIEW:
+        title = activeExam ? `Naajix | ${activeExam.subject}` : "Naajix | Exam";
+        break;
+      default:
+        title = "Naajix";
+    }
+    document.title = title;
+  }, [view, selectedAuthority, selectedLevel, activeExam]);
+
   useEffect(() => {
     setExamHistory(getExamHistory());
   }, [view]);

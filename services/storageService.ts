@@ -1,6 +1,7 @@
+
 import { ExamResult } from '../types';
 
-const STORAGE_KEY = 'shaiye_exam_history';
+const STORAGE_KEY = 'naajix_exam_history';
 
 export const saveExamResult = (result: ExamResult): void => {
   try {
