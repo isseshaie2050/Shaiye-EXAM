@@ -105,8 +105,6 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
 
 export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, requiresConfirmation?: boolean }> => {
     // 1. Sign Up
-    // IMPORTANT: We pass user data in 'options.data'. The SQL Trigger 'handle_new_user' will read this 
-    // and automatically create the profile row. We do NOT insert manually here to avoid RLS errors.
     const { data, error } = await supabase.auth.signUp({
         email: student.email!,
         password: password,
@@ -123,7 +121,6 @@ export const registerStudent = async (student: Student, password: string): Promi
     if (error) return { success: false, error: error.message };
 
     if (data.user) {
-        // If session is null, it means email confirmation is required by Supabase settings
         if (!data.session) {
             return { success: true, requiresConfirmation: true };
         }
@@ -131,6 +128,15 @@ export const registerStudent = async (student: Student, password: string): Promi
     }
 
     return { success: false, error: "Unknown registration error" };
+};
+
+export const sendPasswordResetEmail = async (email: string): Promise<{ success: boolean, error?: string }> => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin, // Redirects back to app
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
 };
 
 export const verifyAdminCredentials = (u: string, p: string): boolean => {
