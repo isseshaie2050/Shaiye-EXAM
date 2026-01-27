@@ -5,7 +5,7 @@ import {
     findStudentByEmail, 
     registerStudent, 
     checkDeviceConflict, 
-    createNewSession, 
+    logUserIn, 
     generateOTP, 
     verifyOTP 
 } from '../services/storageService';
@@ -148,8 +148,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
           registerStudent(pendingStudent);
       }
 
-      // Create Session (this overwrites any old session in the DB, effectively kicking them)
-      createNewSession(pendingStudent);
+      // Record Login Session (This handles history and device conflict logic)
+      logUserIn(pendingStudent, 'student', authProvider);
+      alert("Si guul leh ayaad u gashay Naajix");
       onLoginSuccess(pendingStudent);
   };
 

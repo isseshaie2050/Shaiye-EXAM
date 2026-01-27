@@ -50,6 +50,8 @@ export interface UserAnswer {
 
 export type SubscriptionPlan = 'FREE' | 'BASIC' | 'PREMIUM';
 
+export type UserRole = 'student' | 'admin';
+
 export interface Student {
   id: string;
   fullName: string;
@@ -71,10 +73,28 @@ export interface Student {
 
 export interface ActiveSession {
   userId: string;
+  role: UserRole;
   deviceSessionId: string;
+  loginSessionId: string; // Link to history
   deviceName: string;
   ipAddress: string;
   lastActiveAt: string;
+  expiresAt: string;
+}
+
+export interface LoginSession {
+  id: string; // unique session history id
+  userId: string;
+  userName: string;
+  role: UserRole;
+  deviceSessionId: string; 
+  loginMethod: 'email' | 'google' | 'password';
+  ipAddress: string;
+  deviceInfo: string;
+  loginTime: string;
+  logoutTime?: string;
+  isActive: boolean;
+  terminationReason?: 'user_logout' | 'device_conflict' | 'timeout' | 'admin_force' | 'active';
 }
 
 export interface ExamResult {

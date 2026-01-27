@@ -1,16 +1,17 @@
 
-import { ExamResult, Student, SubscriptionPlan, ExamAuthority, ActiveSession } from '../types';
+import { ExamResult, Student, SubscriptionPlan, ExamAuthority, ActiveSession, LoginSession, UserRole } from '../types';
 
 const STORAGE_KEYS = {
   STUDENTS: 'naajix_students',
   CURRENT_SESSION: 'naajix_client_session_token', // Stores { userId, sessionId }
   ACTIVE_SESSIONS_DB: 'naajix_server_active_sessions', // Simulates Server DB of active sessions
+  LOGIN_HISTORY_DB: 'naajix_login_history', // Permanent Audit Log
   EXAM_HISTORY: 'naajix_exam_history_v2', 
   DYNAMIC_EXAMS: 'naajix_dynamic_exams',
   OTP_CACHE: 'naajix_otp_cache' // Temp storage for OTPs
 };
 
-// --- SESSION MANAGEMENT (SINGLE DEVICE ENFORCEMENT) ---
+// --- SESSION MANAGEMENT (SINGLE DEVICE ENFORCEMENT & HISTORY) ---
 
 const getActiveSessionsDB = (): Record<string, ActiveSession> => {
   try {
@@ -23,91 +24,230 @@ const saveActiveSessionsDB = (db: Record<string, ActiveSession>) => {
   localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSIONS_DB, JSON.stringify(db));
 };
 
-export const checkDeviceConflict = (userId: string): ActiveSession | null => {
-  const db = getActiveSessionsDB();
-  // Check if there is an active session for this user
-  if (db[userId]) {
-    return db[userId];
-  }
-  return null;
+const getLoginHistoryDB = (): LoginSession[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.LOGIN_HISTORY_DB);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) { return []; }
 };
 
-export const createNewSession = (student: Student): void => {
-  const db = getActiveSessionsDB();
-  const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+const saveLoginHistoryDB = (history: LoginSession[]) => {
+  localStorage.setItem(STORAGE_KEYS.LOGIN_HISTORY_DB, JSON.stringify(history));
+};
+
+// Helper: Mock IP and Device info
+const getDeviceInfo = () => {
+  const ua = navigator.userAgent;
+  let device = 'Desktop';
+  if (/mobile/i.test(ua)) device = 'Mobile';
+  else if (/tablet/i.test(ua)) device = 'Tablet';
   
-  // 1. Create Server-Side Session Record
-  const newSession: ActiveSession = {
-    userId: student.id,
-    deviceSessionId: newSessionId,
-    deviceName: getDeviceName(),
-    ipAddress: '192.168.x.x', // Simulated
-    lastActiveAt: new Date().toISOString()
+  let os = 'Unknown OS';
+  if (ua.indexOf("Win") !== -1) os = "Windows";
+  if (ua.indexOf("Mac") !== -1) os = "MacOS";
+  if (ua.indexOf("Linux") !== -1) os = "Linux";
+  if (ua.indexOf("Android") !== -1) os = "Android";
+  if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+  return `${device} (${os}) - ${navigator.platform}`;
+};
+
+const getIPAddress = () => {
+    // In a real app, this comes from the server request
+    return '197.xxx.xxx.xxx (Mogadishu, SO)';
+};
+
+// Core Login Function
+export const logUserIn = (user: Student | { id: string, fullName: string }, role: UserRole, method: 'email' | 'google' | 'password'): void => {
+  const db = getActiveSessionsDB();
+  const history = getLoginHistoryDB();
+  
+  const existingSession = db[user.id];
+
+  // 1. Single Device Rule: Invalidate old session
+  if (existingSession) {
+    // Update old history record
+    const oldHistoryIndex = history.findIndex(h => h.id === existingSession.loginSessionId);
+    if (oldHistoryIndex !== -1) {
+        history[oldHistoryIndex].isActive = false;
+        history[oldHistoryIndex].logoutTime = new Date().toISOString();
+        history[oldHistoryIndex].terminationReason = 'device_conflict';
+    }
+  }
+
+  // 2. Create New Session IDs
+  const deviceSessionId = `dev_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  const loginSessionId = `hist_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+  // 3. Create History Record
+  const newHistory: LoginSession = {
+      id: loginSessionId,
+      userId: user.id,
+      userName: user.fullName,
+      role,
+      deviceSessionId,
+      loginMethod: method,
+      ipAddress: getIPAddress(),
+      deviceInfo: getDeviceInfo(),
+      loginTime: new Date().toISOString(),
+      isActive: true,
+      terminationReason: 'active'
   };
   
-  db[student.id] = newSession;
+  history.unshift(newHistory); // Add to top
+  saveLoginHistoryDB(history);
+
+  // 4. Create Active Session Record
+  // Expiry: Admin 12h, Student 30d
+  const expiryDate = new Date();
+  if (role === 'admin') expiryDate.setHours(expiryDate.getHours() + 12);
+  else expiryDate.setDate(expiryDate.getDate() + 30);
+
+  const newActiveSession: ActiveSession = {
+      userId: user.id,
+      role,
+      deviceSessionId,
+      loginSessionId,
+      deviceName: getDeviceInfo(),
+      ipAddress: getIPAddress(),
+      lastActiveAt: new Date().toISOString(),
+      expiresAt: expiryDate.toISOString()
+  };
+
+  db[user.id] = newActiveSession;
   saveActiveSessionsDB(db);
 
-  // 2. Set Client-Side Cookie/Token
+  // 5. Set Client Cookie
   const clientToken = {
-    userId: student.id,
-    sessionId: newSessionId,
-    studentData: student // Cache student data for easy access
+    userId: user.id,
+    role,
+    sessionId: deviceSessionId,
+    studentData: role === 'student' ? user : undefined
   };
   localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, JSON.stringify(clientToken));
 };
 
-export const validateCurrentSession = (): Student | null => {
+export const checkDeviceConflict = (userId: string): ActiveSession | null => {
+  const db = getActiveSessionsDB();
+  return db[userId] || null;
+};
+
+// Validate Session (Runs on App Load & Watchdog)
+export const validateCurrentSession = (): { user: Student | null, role: UserRole | null } => {
   try {
-    // 1. Get Client Token
     const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
-    if (!clientTokenStr) return null;
+    if (!clientTokenStr) return { user: null, role: null };
     
     const clientToken = JSON.parse(clientTokenStr);
-    const { userId, sessionId, studentData } = clientToken;
+    const { userId, sessionId, role, studentData } = clientToken;
 
-    // 2. Check "Server" DB
     const db = getActiveSessionsDB();
     const serverSession = db[userId];
 
+    // Check 1: Session exists on server
     if (!serverSession) {
-      // Session expired on server
-      logoutStudent();
-      return null;
+      logoutLocalOnly();
+      return { user: null, role: null };
     }
 
+    // Check 2: Device Conflict (Session ID match)
     if (serverSession.deviceSessionId !== sessionId) {
-      // CONFLICT: Server has a different session ID -> Another device logged in
-      logoutStudent();
-      return null; 
+      logoutLocalOnly(); // Log out this device, it's been kicked
+      return { user: null, role: null };
     }
 
-    // 3. Update Last Active
+    // Check 3: Expiry Time (Absolute)
+    if (new Date() > new Date(serverSession.expiresAt)) {
+        terminateSession(userId, 'timeout');
+        return { user: null, role: null };
+    }
+
+    // Check 4: Idle Timeout (30 mins)
+    const lastActive = new Date(serverSession.lastActiveAt);
+    const now = new Date();
+    const diffMins = (now.getTime() - lastActive.getTime()) / 60000;
+    if (diffMins > 30) {
+        terminateSession(userId, 'timeout');
+        return { user: null, role: null };
+    }
+
+    // Update Last Active
     serverSession.lastActiveAt = new Date().toISOString();
     saveActiveSessionsDB(db);
 
-    // 4. Return cached student data (refreshed from DB for plan accuracy)
-    const freshStudent = getAllStudentsRaw().find(s => s.id === userId);
-    if (freshStudent) {
-        // Update client cache if plan changed
-        if (JSON.stringify(freshStudent) !== JSON.stringify(studentData)) {
+    // Return Data
+    let user = null;
+    if (role === 'student') {
+        const freshStudent = getAllStudentsRaw().find(s => s.id === userId);
+        user = freshStudent ? checkSubscriptionStatus(freshStudent) : studentData;
+        // Update local cache if changed
+        if (freshStudent && JSON.stringify(freshStudent) !== JSON.stringify(clientToken.studentData)) {
             clientToken.studentData = freshStudent;
             localStorage.setItem(STORAGE_KEYS.CURRENT_SESSION, JSON.stringify(clientToken));
         }
-        return checkSubscriptionStatus(freshStudent);
+    } else {
+        // Admin
+        user = { id: 'admin', fullName: 'System Administrator' } as Student;
     }
 
-    return null;
+    return { user, role };
+
   } catch (e) {
-    return null;
+    return { user: null, role: null };
   }
 };
 
-const getDeviceName = () => {
-  const ua = navigator.userAgent;
-  if (/mobile/i.test(ua)) return 'Mobile Device';
-  if (/iPad|Android/i.test(ua)) return 'Tablet';
-  return 'Desktop Computer';
+// Terminate Session (Server Side)
+const terminateSession = (userId: string, reason: 'user_logout' | 'device_conflict' | 'timeout' | 'admin_force') => {
+    const db = getActiveSessionsDB();
+    const session = db[userId];
+    
+    if (session) {
+        // Update History
+        const history = getLoginHistoryDB();
+        const histIndex = history.findIndex(h => h.id === session.loginSessionId);
+        if (histIndex !== -1) {
+            history[histIndex].isActive = false;
+            history[histIndex].logoutTime = new Date().toISOString();
+            history[histIndex].terminationReason = reason;
+            saveLoginHistoryDB(history);
+        }
+
+        // Remove Active Session
+        delete db[userId];
+        saveActiveSessionsDB(db);
+    }
+    
+    // If it's the current user, clear local
+    const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
+    if (clientTokenStr) {
+        const { userId: currentId } = JSON.parse(clientTokenStr);
+        if (currentId === userId) logoutLocalOnly();
+    }
+};
+
+const logoutLocalOnly = () => {
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_SESSION);
+};
+
+export const logoutUser = () => {
+    const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
+    if (clientTokenStr) {
+        const { userId } = JSON.parse(clientTokenStr);
+        terminateSession(userId, 'user_logout');
+    }
+};
+
+export const forceLogoutUser = (userId: string) => {
+    terminateSession(userId, 'admin_force');
+};
+
+export const getLoginHistory = (): LoginSession[] => {
+    return getLoginHistoryDB();
+};
+
+export const getActiveSessions = (): ActiveSession[] => {
+    return Object.values(getActiveSessionsDB());
 };
 
 // --- AUTHENTICATION & OTP ---
@@ -140,6 +280,10 @@ export const verifyOTP = (inputCode: string): boolean => {
     if (Date.now() > expires) return false;
     return code === inputCode;
   } catch (e) { return false; }
+};
+
+export const verifyAdminCredentials = (u: string, p: string): boolean => {
+    return u === 'naajixapp' && p === 'SHaaciyeyare@!123';
 };
 
 // --- SUBSCRIPTION HELPERS ---
@@ -200,21 +344,13 @@ export const registerStudent = (student: Student): void => {
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
 };
 
-export const logoutStudent = (): void => {
-  const clientTokenStr = localStorage.getItem(STORAGE_KEYS.CURRENT_SESSION);
-  if (clientTokenStr) {
-      const { userId } = JSON.parse(clientTokenStr);
-      // Remove from server active sessions
-      const db = getActiveSessionsDB();
-      delete db[userId];
-      saveActiveSessionsDB(db);
-  }
-  localStorage.removeItem(STORAGE_KEYS.CURRENT_SESSION);
-};
+// Deprecated: use logoutUser instead
+export const logoutStudent = logoutUser;
 
 export const getCurrentStudent = (): Student | null => {
-  // Now proxies to validateCurrentSession for security
-  return validateCurrentSession();
+  const { user, role } = validateCurrentSession();
+  if (role === 'student') return user;
+  return null;
 };
 
 export const getAllStudents = (): Student[] => {

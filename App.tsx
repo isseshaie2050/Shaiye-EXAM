@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student } from './types';
+import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, getStudentExamHistory, getCurrentStudent, logoutStudent, validateCurrentSession } from './services/storageService';
+import { saveExamResult, getStudentExamHistory, logoutUser, validateCurrentSession, verifyAdminCredentials, logUserIn } from './services/storageService';
 import { getExam, getAvailableYears } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
@@ -71,6 +71,7 @@ const App: React.FC = () => {
 
   // User Session State
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole | null>(null);
 
   // Navigation State
   const [selectedAuthority, setSelectedAuthority] = useState<ExamAuthority | null>(null);
@@ -165,8 +166,6 @@ const App: React.FC = () => {
         return;
     }
     if (root === 'results') {
-        // If loaded directly, no results state exists, so likely redirect or show empty
-        // We let component handle it (or user will nav away)
         setView(AppState.RESULTS);
         return;
     }
@@ -184,15 +183,13 @@ const App: React.FC = () => {
         if (subject) setSelectedSubjectKey(subject);
 
         if (mode === 'take') {
-            // If navigating directly to take without active exam, we might need to reset/load
-            // Ideally we fallback to overview if no activeExam state, but we set view here.
             setView(AppState.EXAM_ACTIVE);
         }
         else if (subject) setView(AppState.EXAM_OVERVIEW);
         else if (year) setView(AppState.SUBJECT_SELECT);
         else if (level) setView(AppState.YEAR_SELECT);
         else if (auth) setView(AppState.LEVEL_SELECT);
-        else setView(AppState.HOME); // /exams root
+        else setView(AppState.HOME); 
         return;
     }
 
@@ -205,97 +202,54 @@ const App: React.FC = () => {
           if (viewRef.current === AppState.EXAM_ACTIVE) {
               const confirmLeave = window.confirm("You are taking an exam. Leaving now will lose progress. Are you sure?");
               if (!confirmLeave) {
-                  // User wants to stay. We must push the exam URL back into history
-                  // because the browser already popped it.
-                  // We need to reconstruct the exam URL.
-                  // We can rely on current state variables which haven't changed yet.
-                  const url = window.location.href; // Actually this is the NEW url. We want the OLD one.
-                  // Reconstruct:
-                  // Note: selectedAuthority etc are from state (closure/ref needed if inside effect? state variables here are fresh on rerender but we need them inside callback)
-                  // To be safe, let's let the sync happen if they leave, but push if they stay.
-                  
-                  // Since we can't easily access 'previous' URL string here without tracking, 
-                  // we reconstruct based on what we know the exam url SHOULD be.
-                  // However, inside this callback 'selectedAuthority' is stale if not in dep array.
-                  // Using syncStateFromUrl is safer for "Leave", but for "Stay" we need to undo the nav.
-                  
-                  window.history.pushState(null, '', window.location.pathname); // This pushes the NEW path again? No.
-                  // popstate happened. URL is now /overview (example).
-                  // We want URL to be /take.
-                  
-                  // Trigger a re-navigation to self to restore URL visual
-                  // BUT we must not trigger logic that resets the exam.
-                  // We simply want to 'undo' the URL change.
-                  // The best way is typically pushing the current view's url back.
-                  // But we need the params.
-                  
-                  // Limitation: If we can't access params here easily, we might lose them.
-                  // We'll trust the user pressed back.
-                  // Simpler approach: Just re-push the state that matches current viewRef.
-                  // We can't build it without params.
-                  
-                  // WORKAROUND: We just warn. If they cancel, we pushState the *previous* known good URL?
-                  // Actually, strictly speaking, preventing Back is hard. 
-                  // Let's assume if they say "No, stay", we just fix the URL if possible or leave it mismatching but keep UI.
-                  // Best effort:
-                  window.history.pushState(null, '', document.referrer); // Doesn't work well for SPA.
-                  
-                  // Let's just re-enable the view.
-                  // If we do nothing, URL is wrong but View is EXAM_ACTIVE (state hasn't changed yet because we didn't call setView).
-                  // But syncStateFromUrl is called next? No, we call it manually.
+                  window.history.pushState(null, '', document.referrer); 
                   return; 
               } else {
-                  // User confirms leave.
-                  // Cleanup exam state
                   setAnswers([]);
                   setTimeLeft(0);
                   setActiveExam(null);
               }
           }
-          
           syncStateFromUrl();
       };
 
       window.addEventListener('popstate', handlePopState);
-      
-      // Initial Load
       syncStateFromUrl();
-
       return () => window.removeEventListener('popstate', handlePopState);
-  }, [syncStateFromUrl]); // Re-binds when sync logic changes, which is stable. 
-  // Note: accessing state inside handlePopState is tricky without refs. 
-  // But for the "Guard", checking viewRef is sufficient.
-  // For restoring URL, it's complex without storing current URL in ref. 
-  // For this implementation, if they stay, the URL might show the parent page but the exam continues. This is acceptable for "minimal changes".
+  }, [syncStateFromUrl]);
 
 
-  // Initial Load: Check for student session
+  // Initial Load: Check for student/admin session
   useEffect(() => {
-    // We use validateCurrentSession to check expiry AND device conflict on load
-    const student = validateCurrentSession();
-    if (student) {
-      setCurrentStudent(student);
+    const { user, role } = validateCurrentSession();
+    if (user && role) {
+      setCurrentStudent(user);
+      setCurrentUserRole(role);
+      // If admin, redirect to panel if not already there
+      if (role === 'admin' && window.location.pathname === '/admin/login') {
+         navigateTo(AppState.ADMIN_PANEL);
+      }
     } else {
-      // If validation fails (e.g. token exists but invalid), clear state
-      logoutStudent();
+      logoutUser();
       setCurrentStudent(null);
+      setCurrentUserRole(null);
     }
-  }, []);
+  }, [navigateTo]);
 
   // --- SESSION WATCHDOG ---
   useEffect(() => {
-    // Periodically check if the session is still valid (Single Device Enforcement)
+    // Periodically check if the session is still valid (Single Device + Idle Timeout)
     if (!currentStudent) return;
 
     const interval = setInterval(() => {
-       const validStudent = validateCurrentSession();
-       if (!validStudent) {
+       const { user, role } = validateCurrentSession();
+       if (!user) {
            // Session killed remotely or expired
-           alert("Your session has expired or you have logged in from another device.");
+           alert("Kalfadhigaaga waa la joojiyay sabab amni dartii ama waqti dheer oo aadan isticmaalin.");
            handleLogout();
            clearInterval(interval);
        }
-    }, 10000); // Check every 10 seconds
+    }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
   }, [currentStudent]);
@@ -348,12 +302,12 @@ const App: React.FC = () => {
   }, [view, selectedAuthority, selectedLevel, activeExam]);
 
   useEffect(() => {
-    if (currentStudent) {
+    if (currentStudent && currentUserRole === 'student') {
        setExamHistory(getStudentExamHistory(currentStudent.id));
     } else {
        setExamHistory([]);
     }
-  }, [view, currentStudent]);
+  }, [view, currentStudent, currentUserRole]);
 
   // Preload images when exam starts
   useEffect(() => {
@@ -612,7 +566,11 @@ const App: React.FC = () => {
   };
   
   const handleAdminLogin = () => {
-      if (adminUser === 'naajixapp' && adminPass === 'SHaaciyeyare@!123') {
+      if (verifyAdminCredentials(adminUser, adminPass)) {
+          // Log Admin In (Session Tracking)
+          logUserIn({ id: 'admin-001', fullName: 'System Admin' } as Student, 'admin', 'password');
+          setCurrentStudent({ id: 'admin-001', fullName: 'System Admin' } as Student);
+          setCurrentUserRole('admin');
           navigateTo(AppState.ADMIN_PANEL);
           setAdminUser('');
           setAdminPass('');
@@ -622,7 +580,7 @@ const App: React.FC = () => {
   };
   
   const handleNavigateToDashboard = () => {
-      if (currentStudent) {
+      if (currentStudent && currentUserRole === 'student') {
           navigateTo(AppState.DASHBOARD);
       } else {
           navigateTo(AppState.STUDENT_AUTH);
@@ -630,9 +588,11 @@ const App: React.FC = () => {
   };
   
   const handleLogout = () => {
-      logoutStudent();
+      logoutUser();
       setCurrentStudent(null);
+      setCurrentUserRole(null);
       navigateTo(AppState.HOME);
+      alert("Waad ka baxday akoonkaaga si nabad ah");
   };
 
   // --- 1. LANDING PAGE ---
@@ -652,6 +612,7 @@ const App: React.FC = () => {
         <StudentAuth 
             onLoginSuccess={(student) => {
                 setCurrentStudent(student);
+                setCurrentUserRole('student');
                 navigateTo(AppState.HOME);
             }} 
             onCancel={() => navigateTo(AppState.HOME)}
@@ -700,7 +661,7 @@ const App: React.FC = () => {
                       <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
                           <input 
-                            type="password" 
+                             type="password" 
                             value={adminPass}
                             onChange={(e) => setAdminPass(e.target.value)}
                             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
@@ -727,7 +688,7 @@ const App: React.FC = () => {
 
   // --- ADMIN PANEL ---
   if (view === AppState.ADMIN_PANEL) {
-      return <AdminPanel onLogout={() => navigateTo(AppState.HOME)} />;
+      return <AdminPanel onLogout={handleLogout} />;
   }
 
   // --- 2. LEVEL SELECTION (Std 8 vs Form IV) ---
