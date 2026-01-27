@@ -34,12 +34,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                 <span className="hidden xs:inline">Student Dashboard</span>
                 <span className="inline xs:hidden">Login</span>
               </button>
-              <button 
-                 onClick={() => onNavigate(AppState.ADMIN_LOGIN)}
-                 className="text-xs md:text-sm font-bold text-blue-200 hover:text-white transition"
-              >
-                Admin
-              </button>
+              {/* Admin Button Removed for Security (Direct URL Access Only) */}
            </div>
         </div>
 

@@ -254,6 +254,20 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [currentStudent]);
 
+  // --- SECURITY: ADMIN GATE ---
+  useEffect(() => {
+      if (view === AppState.ADMIN_PANEL) {
+          if (!currentStudent) {
+              // Not logged in -> Redirect to Admin Login
+              navigateTo(AppState.ADMIN_LOGIN);
+          } else if (currentUserRole !== 'admin') {
+              // Logged in as student -> Access Denied
+              alert("Access Denied: You do not have permission to view this page.");
+              navigateTo(AppState.HOME);
+          }
+      }
+  }, [view, currentStudent, currentUserRole, navigateTo]);
+
 
   // --- BRANDING: DYNAMIC BROWSER TITLES ---
   useEffect(() => {
@@ -688,6 +702,9 @@ const App: React.FC = () => {
 
   // --- ADMIN PANEL ---
   if (view === AppState.ADMIN_PANEL) {
+      if (!currentStudent || currentUserRole !== 'admin') {
+          return null;
+      }
       return <AdminPanel onLogout={handleLogout} />;
   }
 
