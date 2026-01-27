@@ -14,7 +14,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
       <header className="bg-blue-900 text-white pt-10 pb-16 px-6 relative overflow-hidden">
         {/* Navigation Bar */}
         <div className="absolute top-0 left-0 w-full p-6 flex justify-between z-50">
-           <div></div>
+           {/* Branding: Always Visible Name */}
+           <div 
+             className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-90 transition"
+             onClick={() => window.location.href = '/'}
+           >
+             Naajix
+           </div>
            <div className="flex gap-4">
               <button 
                 onClick={() => onNavigate(AppState.DASHBOARD)}

@@ -18,13 +18,16 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <button onClick={onBack} className="text-blue-600 font-bold hover:underline flex items-center gap-2">
-            ← Back Home
-          </button>
+        {/* Header Bar */}
+        <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-4">
+             <div className="text-blue-900 font-black text-2xl tracking-tight">Naajix</div>
+             <button onClick={onBack} className="text-sm text-blue-600 hover:underline flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
+                ← Home
+             </button>
+          </div>
           <div className="text-right">
-             <h1 className="text-2xl font-bold text-slate-900">Student Dashboard</h1>
-             <p className="text-sm text-slate-500">Welcome back, Student</p>
+             <h1 className="text-xl font-bold text-slate-900">Student Dashboard</h1>
           </div>
         </div>
 

@@ -9,8 +9,12 @@ const PageLayout: React.FC<{ title: string; children: React.ReactNode; onBack: (
   <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900">
     <header className="bg-blue-900 text-white py-6 px-6 shadow-md">
       <div className="max-w-4xl mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <button onClick={onBack} className="text-sm bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded transition">
+        <div className="flex items-center gap-3">
+            <span className="font-black text-2xl tracking-tight">Naajix</span>
+            <span className="text-blue-400">|</span>
+            <h1 className="text-lg font-medium opacity-90">{title}</h1>
+        </div>
+        <button onClick={onBack} className="text-sm bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded transition font-bold">
           Back Home
         </button>
       </div>

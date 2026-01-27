@@ -91,7 +91,7 @@ const App: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPass, setAdminPass] = useState('');
 
-  // Branding: Dynamic Title
+  // --- BRANDING: DYNAMIC BROWSER TITLES ---
   useEffect(() => {
     let title = "Naajix";
     switch (view) {
@@ -99,18 +99,25 @@ const App: React.FC = () => {
         title = "Naajix | Home";
         break;
       case AppState.LEVEL_SELECT:
-        title = `Naajix | ${selectedAuthority === 'SOMALI_GOV' ? 'Somali Government Exams' : 'Puntland State Exams'}`;
+        title = selectedAuthority === 'SOMALI_GOV' ? "Naajix | Somali Government Exams" : "Naajix | Puntland State Exams";
         break;
       case AppState.YEAR_SELECT:
       case AppState.SUBJECT_SELECT:
-        title = `Naajix | ${selectedLevel === 'FORM_IV' ? 'Form IV' : 'Standard 8'}`;
+        title = selectedLevel === 'FORM_IV' ? "Naajix | Form IV" : "Naajix | Standard 8";
+        break;
+      case AppState.EXAM_OVERVIEW:
+      case AppState.EXAM_ACTIVE:
+        title = activeExam ? `Naajix | ${activeExam.subject}` : "Naajix | Exam";
+        break;
+      case AppState.RESULTS:
+        title = "Naajix | Exam Results";
+        break;
+      case AppState.DASHBOARD:
+        title = "Naajix | Student Dashboard";
         break;
       case AppState.ADMIN_LOGIN:
       case AppState.ADMIN_PANEL:
         title = "Naajix | Admin Panel";
-        break;
-      case AppState.DASHBOARD:
-        title = "Naajix | Student Dashboard";
         break;
       case AppState.ABOUT:
         title = "Naajix | About Us";
@@ -120,10 +127,6 @@ const App: React.FC = () => {
         break;
       case AppState.CONTACT:
         title = "Naajix | Contact Us";
-        break;
-      case AppState.EXAM_ACTIVE:
-      case AppState.EXAM_OVERVIEW:
-        title = activeExam ? `Naajix | ${activeExam.subject}` : "Naajix | Exam";
         break;
       default:
         title = "Naajix";
@@ -695,7 +698,11 @@ const App: React.FC = () => {
           <div className="flex flex-col h-screen bg-gray-50">
               {/* Header */}
               <div className="bg-white shadow-sm border-b p-4 flex justify-between items-center z-10 sticky top-0">
-                  <div className="font-bold text-lg text-slate-800">{activeExam.subject}</div>
+                  <div className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <span className="text-blue-900 font-black">Naajix</span>
+                    <span className="text-gray-300">|</span>
+                    {activeExam.subject}
+                  </div>
                   <div className={`font-mono text-xl font-bold ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-blue-800'}`}>
                       {formatTime(timeLeft)}
                   </div>
