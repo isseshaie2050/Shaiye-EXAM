@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExamAuthority, AppState } from '../types';
 
 interface LandingPageProps {
@@ -7,46 +7,81 @@ interface LandingPageProps {
   onNavigate: (view: AppState) => void;
 }
 
+const HERO_SLIDES = [
+  {
+    id: 1,
+    url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop",
+    alt: "Students discussing in a group"
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=2070&auto=format&fit=crop",
+    alt: "Focused student studying"
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1427504743055-b71431e4c1b4?q=80&w=2070&auto=format&fit=crop",
+    alt: "Academic environment"
+  }
+];
+
 const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Auto-rotate slides
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 6000); // Change every 6 seconds
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900">
-      {/* 1. Hero Section */}
-      <header className="bg-blue-900 text-white pt-24 md:pt-10 pb-24 px-6 relative overflow-hidden">
-        {/* Navigation Bar */}
-        <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex flex-col md:flex-row justify-between items-center z-50 gap-4 md:gap-0 bg-blue-900/90 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none shadow-md md:shadow-none">
-           {/* Branding: Always Visible Name */}
-           <div className="w-full md:w-auto flex justify-between items-center">
-             <div 
-               className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-90 transition"
-               onClick={() => onNavigate(AppState.HOME)}
-             >
-               Naajix
-             </div>
-             {/* Mobile-only menu toggles could go here, but for now we just show buttons below or inline */}
-           </div>
-
-           <div className="flex gap-4 w-full md:w-auto justify-end">
-              <button 
-                onClick={() => onNavigate(AppState.DASHBOARD)}
-                className="text-xs md:text-sm font-bold text-blue-200 hover:text-white transition flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span className="hidden xs:inline">Student Dashboard</span>
-                <span className="inline xs:hidden">Login</span>
-              </button>
-              {/* Admin Button Removed for Security (Direct URL Access Only) */}
-           </div>
-        </div>
-
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-          </svg>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900 overflow-x-hidden">
+      
+      {/* 1. Dynamic Hero Section */}
+      <header className="relative min-h-[650px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
         
-        <div className="max-w-4xl mx-auto text-center relative z-10 flex flex-col items-center mt-4 md:mt-10">
-          {/* Logo with White Circle Background - Responsive Size */}
-          <div className="w-24 h-24 md:w-40 md:h-40 bg-white rounded-full flex items-center justify-center mb-6 md:mb-8 shadow-2xl p-2 md:p-4">
+        {/* Navigation Overlay */}
+        <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+           <div 
+             className="text-white font-black text-2xl tracking-tight cursor-pointer hover:opacity-80 transition drop-shadow-md"
+             onClick={() => onNavigate(AppState.HOME)}
+           >
+             Naajix
+           </div>
+           <button 
+              onClick={() => onNavigate(AppState.DASHBOARD)}
+              className="px-5 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm font-bold hover:bg-white hover:text-blue-900 transition shadow-lg"
+            >
+              Student Portal
+            </button>
+        </div>
+
+        {/* Background Slider */}
+        {HERO_SLIDES.map((slide, index) => (
+          <div 
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+          >
+             {/* Ken Burns Effect: Scale slightly when active */}
+             <img 
+               src={slide.url} 
+               alt={slide.alt}
+               className={`w-full h-full object-cover transition-transform duration-[8000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
+             />
+          </div>
+        ))}
+
+        {/* Brand Overlay (Gradient) */}
+        <div className="absolute inset-0 bg-blue-900/90 mix-blend-multiply z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/50 to-gray-50 z-20"></div>
+
+        {/* Hero Content */}
+        <div className="relative z-30 max-w-4xl mx-auto text-center px-6 flex flex-col items-center pt-10">
+          
+          {/* Animated Logo Container */}
+          <div className="w-28 h-28 md:w-36 md:h-36 bg-white rounded-full flex items-center justify-center mb-8 shadow-2xl p-4 animate-fade-in-up">
              <img 
                 src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview.png" 
                 alt="Naajix Logo" 
@@ -54,99 +89,140 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
             />
           </div>
 
-          <div className="inline-block bg-blue-800 px-3 py-1 rounded-full text-[10px] md:text-xs font-semibold tracking-wider mb-4 uppercase text-blue-200">
-            Somali National Exam Platform
+          <div className="space-y-4 mb-10">
+            <div className="inline-block bg-blue-500/20 backdrop-blur-sm border border-blue-300/30 px-4 py-1.5 rounded-full text-[11px] md:text-xs font-bold tracking-widest uppercase text-blue-100 mb-2">
+              The #1 Exam Platform for Somalia
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
+              Master Your Exams.<br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Build Your Future.</span>
+            </h1>
+            
+            <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed opacity-90 font-medium">
+              Professional preparation for <strong>Form IV</strong> & <strong>Standard 8</strong> national examinations. 
+              Real past papers, AI grading, and instant results.
+            </p>
           </div>
-          <p className="text-lg md:text-2xl font-medium text-blue-100 mb-2">
-            "Ku Guuleyso Imtixaankaaga"
-          </p>
-          <p className="text-blue-200 mb-8 max-w-lg mx-auto leading-relaxed text-sm md:text-base">
-            The professional preparation platform for Form IV & Standard 8 national exams.
-          </p>
           
           <button 
              onClick={() => document.getElementById('authorities')?.scrollIntoView({behavior: 'smooth'})}
-             className="px-6 md:px-8 py-3 md:py-3.5 bg-white text-blue-900 rounded-lg font-bold text-base md:text-lg hover:bg-gray-100 transition shadow-lg flex items-center justify-center gap-2 w-full md:w-auto"
+             className="group relative px-8 py-4 bg-white text-blue-900 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
           >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-              Bilow Imtixaan
+              <span className="relative z-10 flex items-center gap-2">
+                Start Practicing Now
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+              </span>
+              <div className="absolute inset-0 bg-gray-50 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out"></div>
           </button>
         </div>
       </header>
 
-      {/* 2. Exam Authority Selection (The Core Flow) */}
-      <section id="authorities" className="py-12 px-6 max-w-5xl mx-auto -mt-16 relative z-20 flex flex-col items-center">
-        <div className="mb-8 drop-shadow-md bg-white border border-gray-100 px-8 py-3 rounded-full shadow-lg transform -translate-y-2">
-            <h2 className="text-xl md:text-2xl font-black text-blue-900 text-center uppercase tracking-wide">
-                Select Exam Authority
-            </h2>
-        </div>
-        <div className="grid md:grid-cols-2 gap-6 w-full">
-          <div 
-            onClick={() => onSelectAuthority('SOMALI_GOV')}
-            className="bg-white p-8 rounded-xl shadow-lg border-2 border-transparent cursor-pointer hover:shadow-2xl hover:border-blue-500 transition group flex flex-col items-center text-center h-full"
-          >
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition shadow-sm">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+      {/* 2. Authority Selection (Cards) */}
+      <section id="authorities" className="py-20 px-6 relative z-30 -mt-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8 w-full">
+            
+            {/* Somali Gov Card */}
+            <div 
+              onClick={() => onSelectAuthority('SOMALI_GOV')}
+              className="bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100 cursor-pointer hover:shadow-2xl hover:border-blue-500/30 transition-all duration-300 group transform hover:-translate-y-2 flex flex-col items-center text-center h-full relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
+              <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition-colors">Somali Government</h3>
+              <p className="text-slate-500 mb-6 leading-relaxed">Official curriculum exams for Federal Government schools. Includes past papers and predicted questions.</p>
+              <div className="mt-auto flex gap-3">
+                 <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md uppercase tracking-wider">Form IV</span>
+                 <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md uppercase tracking-wider">Standard 8</span>
+              </div>
             </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-blue-700">Somali Government Exams</h3>
-            <p className="text-slate-600 mb-4">Official Federal Government curriculum and past papers.</p>
-            <div className="mt-auto flex flex-wrap gap-2 justify-center">
-              <span className="px-3 py-1 bg-gray-100 rounded text-xs font-bold text-gray-500">Form IV</span>
-              <span className="px-3 py-1 bg-gray-100 rounded text-xs font-bold text-gray-500">Standard 8</span>
-            </div>
-          </div>
 
-          <div 
-            onClick={() => onSelectAuthority('PUNTLAND')}
-            className="bg-white p-8 rounded-xl shadow-lg border-2 border-transparent cursor-pointer hover:shadow-2xl hover:border-green-500 transition group flex flex-col items-center text-center h-full"
-          >
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-700 group-hover:bg-green-600 group-hover:text-white transition shadow-sm">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {/* Puntland Card */}
+            <div 
+              onClick={() => onSelectAuthority('PUNTLAND')}
+              className="bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100 cursor-pointer hover:shadow-2xl hover:border-green-500/30 transition-all duration-300 group transform hover:-translate-y-2 flex flex-col items-center text-center h-full relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+              <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mb-6 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-green-700 transition-colors">Puntland State</h3>
+              <p className="text-slate-500 mb-6 leading-relaxed">Comprehensive coverage of Puntland regional examinations with specific subject modules.</p>
+              <div className="mt-auto flex gap-3">
+                 <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-md uppercase tracking-wider">Form IV</span>
+                 <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-md uppercase tracking-wider">Standard 8</span>
+              </div>
             </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-green-700">Puntland State Exams</h3>
-            <p className="text-slate-600 mb-4">Comprehensive coverage of Puntland State regional examinations.</p>
-            <div className="mt-auto flex flex-wrap gap-2 justify-center">
-              <span className="px-3 py-1 bg-gray-100 rounded text-xs font-bold text-gray-500">Form IV</span>
-              <span className="px-3 py-1 bg-gray-100 rounded text-xs font-bold text-gray-500">Standard 8</span>
-            </div>
+
           </div>
         </div>
       </section>
 
-      {/* 3. Features Grid */}
-      <section className="py-16 px-6 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="p-4">
-              <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-blue-600">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+      {/* 3. Stats & Trust (New) */}
+      <section className="py-10 bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-gray-100">
+              <div>
+                  <div className="text-3xl font-black text-blue-900">5,000+</div>
+                  <div className="text-sm text-slate-500 font-medium uppercase mt-1">Students</div>
               </div>
-              <h4 className="font-bold text-lg mb-2">Official Style</h4>
-              <p className="text-sm text-slate-600">Practice with questions formatted exactly like the real Ministry exams.</p>
+              <div>
+                  <div className="text-3xl font-black text-blue-900">12+</div>
+                  <div className="text-sm text-slate-500 font-medium uppercase mt-1">Subjects</div>
+              </div>
+              <div>
+                  <div className="text-3xl font-black text-blue-900">24/7</div>
+                  <div className="text-sm text-slate-500 font-medium uppercase mt-1">AI Grading</div>
+              </div>
+              <div>
+                  <div className="text-3xl font-black text-blue-900">100%</div>
+                  <div className="text-sm text-slate-500 font-medium uppercase mt-1">Free to Start</div>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* 4. Features Grid */}
+      <section className="py-20 px-6 bg-slate-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+             <h2 className="text-3xl font-bold text-slate-900">Everything You Need to Succeed</h2>
+             <p className="text-slate-500 mt-2 max-w-2xl mx-auto">We combine traditional curriculum with modern technology to give you the best advantage.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6 text-blue-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <h4 className="font-bold text-lg mb-2 text-slate-800">Official Exam Format</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Questions are formatted exactly like the real Ministry exams, helping you get comfortable with the structure.</p>
             </div>
             
-            <div className="p-4">
-              <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-purple-600">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6 text-purple-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
               </div>
-              <h4 className="font-bold text-lg mb-2">Rich Content</h4>
-              <p className="text-sm text-slate-600">Includes MCQs, Structured Questions, and Image-based analysis.</p>
+              <h4 className="font-bold text-lg mb-2 text-slate-800">AI-Powered Grading</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Our advanced AI grades your essays and short answers instantly, providing personalized feedback.</p>
             </div>
 
-            <div className="p-4">
-              <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-green-600">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6 text-green-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
               </div>
-              <h4 className="font-bold text-lg mb-2">Instant Results</h4>
-              <p className="text-sm text-slate-600">Get graded instantly with detailed feedback and performance tracking.</p>
+              <h4 className="font-bold text-lg mb-2 text-slate-800">Detailed Analytics</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">Track your progress over time. Identify your weak subjects and improve where it matters most.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. Pricing Plans (NEW SECTION) */}
-      <section className="py-16 px-6 bg-white border-t border-slate-100">
+      {/* 5. Pricing Plans */}
+      <section className="py-20 px-6 bg-white border-t border-slate-100">
         <div className="max-w-6xl mx-auto">
              <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-slate-900">Simple, Affordable Pricing</h2>
@@ -155,8 +231,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
 
             <div className="grid md:grid-cols-3 gap-8">
                 {/* FREE PLAN */}
-                <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col">
-                    <div className="text-slate-500 font-bold uppercase text-xs mb-2">Starter</div>
+                <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition flex flex-col">
+                    <div className="text-slate-500 font-bold uppercase text-xs mb-2 tracking-wide">Starter</div>
                     <div className="text-4xl font-black text-slate-800 mb-6">Free</div>
                     <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-600">
                         <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> Access Somali Gov & Puntland</li>
@@ -170,9 +246,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                 </div>
 
                 {/* BASIC PLAN */}
-                <div className="bg-white p-8 rounded-2xl border-2 border-blue-500 shadow-xl relative overflow-hidden flex flex-col transform md:-translate-y-2">
+                <div className="bg-white p-8 rounded-2xl border-2 border-blue-500 shadow-xl relative overflow-hidden flex flex-col transform md:-translate-y-4 z-10">
                     <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
-                    <div className="text-blue-600 font-bold uppercase text-xs mb-2">Basic</div>
+                    <div className="text-blue-600 font-bold uppercase text-xs mb-2 tracking-wide">Basic</div>
                     <div className="flex items-baseline mb-6">
                         <span className="text-5xl font-black text-slate-900">$2</span>
                         <span className="text-slate-500 ml-1 font-medium">/month</span>
@@ -181,16 +257,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                         <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> <strong>Full Exams (40+ Qs)</strong></li>
                         <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> All Subjects (Std 8 & Form 4)</li>
                         <li className="flex items-start gap-3"><span className="text-blue-500 font-bold">ℹ</span> <strong>Select ONE Authority:</strong></li>
-                        <li className="pl-7 text-xs text-slate-400">Choose either Somali Gov OR Puntland access.</li>
+                        <li className="pl-7 text-xs text-slate-400">Choose either Somali Gov OR Puntland.</li>
                     </ul>
-                    <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg">
+                    <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
                         Get Basic
                     </button>
                 </div>
 
                 {/* PREMIUM PLAN */}
-                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl flex flex-col text-white">
-                    <div className="text-purple-400 font-bold uppercase text-xs mb-2">Ultimate Access</div>
+                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl flex flex-col text-white hover:-translate-y-1 transition hover:shadow-purple-900/20">
+                    <div className="text-purple-400 font-bold uppercase text-xs mb-2 tracking-wide">Ultimate Access</div>
                     <div className="flex items-baseline mb-6">
                         <span className="text-5xl font-black">$3</span>
                         <span className="text-slate-400 ml-1 font-medium">/month</span>
@@ -198,8 +274,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                     <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-300">
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Everything in Basic</strong></li>
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Access BOTH Authorities</strong></li>
-                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Somali Gov AND Puntland</li>
-                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Advanced Performance Analytics</li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Advanced Analytics</li>
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Priority AI Grading</li>
                     </ul>
                     <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 transition shadow-lg">
@@ -210,29 +285,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         </div>
       </section>
 
-      {/* 5. Trust Section */}
-      <section className="py-12 px-6 bg-slate-50 border-t border-slate-200">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Trusted by Students & Teachers</h2>
-          <div className="flex flex-wrap justify-center gap-6">
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Accurate Curriculum</span>
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Secure Platform</span>
-            <span className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 text-sm font-medium shadow-sm">✅ Mobile Optimized</span>
-          </div>
-        </div>
-      </section>
-
       {/* 6. Footer */}
-      <footer className="bg-blue-900 text-slate-400 py-10 px-6 mt-auto">
+      <footer className="bg-white border-t border-gray-200 text-slate-500 py-10 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <span className="block text-white text-xl font-bold mb-1">Naajix</span>
-            <span className="text-sm">© 2026 All Rights Reserved.</span>
+            <span className="block text-blue-900 text-xl font-black mb-1">Naajix</span>
+            <span className="text-sm">© 2026 Naajix. All Rights Reserved.</span>
           </div>
-          <div className="flex gap-6 text-sm text-blue-200">
-            <button onClick={() => onNavigate(AppState.PRIVACY)} className="hover:text-white transition">Privacy Policy</button>
-            <button onClick={() => onNavigate(AppState.CONTACT)} className="hover:text-white transition">Contact Us</button>
-            <button onClick={() => onNavigate(AppState.ABOUT)} className="hover:text-white transition">About</button>
+          <div className="flex gap-6 text-sm font-medium text-slate-600">
+            <button onClick={() => onNavigate(AppState.PRIVACY)} className="hover:text-blue-600 transition">Privacy Policy</button>
+            <button onClick={() => onNavigate(AppState.CONTACT)} className="hover:text-blue-600 transition">Contact Us</button>
+            <button onClick={() => onNavigate(AppState.ABOUT)} className="hover:text-blue-600 transition">About</button>
           </div>
         </div>
       </footer>
