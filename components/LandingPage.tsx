@@ -1,16 +1,37 @@
 
 import React from 'react';
-import { ExamAuthority } from '../types';
+import { ExamAuthority, AppState } from '../types';
 
 interface LandingPageProps {
   onSelectAuthority: (authority: ExamAuthority) => void;
+  onNavigate: (view: AppState) => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900">
       {/* 1. Hero Section */}
       <header className="bg-blue-900 text-white pt-10 pb-16 px-6 relative overflow-hidden">
+        {/* Navigation Bar */}
+        <div className="absolute top-0 left-0 w-full p-6 flex justify-between z-50">
+           <div></div>
+           <div className="flex gap-4">
+              <button 
+                onClick={() => onNavigate(AppState.DASHBOARD)}
+                className="text-sm font-bold text-blue-200 hover:text-white transition flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                Student Dashboard
+              </button>
+              <button 
+                 onClick={() => onNavigate(AppState.ADMIN_LOGIN)}
+                 className="text-sm font-bold text-blue-200 hover:text-white transition"
+              >
+                Admin
+              </button>
+           </div>
+        </div>
+
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
@@ -18,11 +39,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority }) => {
         </div>
         
         <div className="max-w-4xl mx-auto text-center relative z-10 flex flex-col items-center">
-          <img 
-            src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo.png" 
-            alt="Naajix Logo" 
-            className="h-24 md:h-32 mb-6"
-          />
+          {/* Logo with White Circle Background */}
+          <div className="w-40 h-40 bg-white rounded-full flex items-center justify-center mb-8 shadow-2xl p-4">
+             <img 
+                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview.png" 
+                alt="Naajix Logo" 
+                className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
           <div className="inline-block bg-blue-800 px-3 py-1 rounded-full text-xs font-semibold tracking-wider mb-4 uppercase text-blue-200">
             Somali National Exam Platform
           </div>
@@ -123,13 +148,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority }) => {
       </section>
 
       {/* 5. Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-10 px-6 mt-auto">
+      <footer className="bg-blue-900 text-slate-400 py-10 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <span className="block text-white text-xl font-bold mb-1">Naajix</span>
-            <span className="text-sm">© 2025 All Rights Reserved.</span>
+            <span className="text-sm">© 2026 All Rights Reserved.</span>
           </div>
-          <div className="flex gap-6 text-sm">
+          <div className="flex gap-6 text-sm text-blue-200">
             <a href="#" className="hover:text-white transition">Privacy Policy</a>
             <a href="#" className="hover:text-white transition">Contact Us</a>
             <a href="#" className="hover:text-white transition">About</a>

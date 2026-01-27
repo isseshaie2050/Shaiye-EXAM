@@ -324,7 +324,7 @@ const ISLAMIC_STUDIES_2025_EXAM: Exam = {
 
 // --- 3. DATABASE (Simulated NoSQL) ---
 // Keys are composite: "YEAR_SUBJECTKEY" (e.g. "2025_physics")
-const EXAM_DATABASE: Record<string, Exam> = {
+export const EXAM_DATABASE: Record<string, Exam> = {
   [`2025_${SUBJECT_CONFIG.physics.key}`]: PHYSICS_2025_EXAM,
   [`2025_${SUBJECT_CONFIG.math.key}`]: MATHEMATICS_2025_EXAM,
   [`2025_${SUBJECT_CONFIG.history.key}`]: HISTORY_2025_EXAM,

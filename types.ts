@@ -37,6 +37,10 @@ export interface Exam {
   direction?: 'ltr' | 'rtl'; // Support for Arabic/Islamic Studies
   sectionPassages?: Record<string, string>; // Reading passages keyed by SectionType
   sectionImages?: Record<string, string>; // Images associated with a section (e.g. Reading Comprehension image)
+  // Added for Admin created exams
+  authority?: ExamAuthority;
+  level?: EducationLevel;
+  isCustom?: boolean; 
 }
 
 export interface UserAnswer {
@@ -68,7 +72,9 @@ export enum AppState {
   LEVEL_SELECT = 'LEVEL_SELECT', // Std 8 vs Form IV
   SUBJECT_SELECT = 'SUBJECT_SELECT', // Select Subject
   YEAR_SELECT = 'YEAR_SELECT', // Select Year
-  DASHBOARD = 'DASHBOARD',
+  DASHBOARD = 'DASHBOARD', // Student Dashboard
+  ADMIN_LOGIN = 'ADMIN_LOGIN',
+  ADMIN_PANEL = 'ADMIN_PANEL',
   HISTORY = 'HISTORY',
   EXAM_OVERVIEW = 'EXAM_OVERVIEW',
   EXAM_ACTIVE = 'EXAM_ACTIVE',

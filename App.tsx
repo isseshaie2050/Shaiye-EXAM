@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel } from './types';
-import { ACADEMIC_YEARS, SUBJECT_CONFIG, getExam, EXAM_HIERARCHY } from './constants';
+import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, getExamHistory, getSubjectStats } from './services/storageService';
+import { saveExamResult, getExamHistory } from './services/storageService';
+import { getExam, getAvailableYears } from './services/examService';
 import LandingPage from './components/LandingPage';
+import StudentDashboard from './components/StudentDashboard';
+import AdminPanel from './components/AdminPanel';
 
 // Utility to shuffle array (Fisher-Yates)
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -82,6 +85,10 @@ const App: React.FC = () => {
   const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
   
   const [isPaused, setIsPaused] = useState(false);
+
+  // Admin Login State
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPass, setAdminPass] = useState('');
 
   useEffect(() => {
     setExamHistory(getExamHistory());
@@ -260,17 +267,17 @@ const App: React.FC = () => {
 
   const handleLevelSelect = (level: EducationLevel) => {
       setSelectedLevel(level);
+      setView(AppState.YEAR_SELECT);
+  };
+
+  const handleYearSelect = (year: number) => {
+      setSelectedYear(year);
       setView(AppState.SUBJECT_SELECT);
   };
 
   const handleSubjectSelect = (subjectKey: string) => {
     setSelectedSubjectKey(subjectKey);
-    setView(AppState.YEAR_SELECT);
-  };
-
-  const handleYearSelect = (year: number) => {
-      setSelectedYear(year);
-      setView(AppState.EXAM_OVERVIEW);
+    setView(AppState.EXAM_OVERVIEW);
   };
 
   const startExam = () => {
@@ -308,10 +315,77 @@ const App: React.FC = () => {
           return [...existing, { questionId: currentQ.id, answer }];
       });
   };
+  
+  const handleAdminLogin = () => {
+      if (adminEmail === 'admin@naajix.com' && adminPass === 'admin123') {
+          setView(AppState.ADMIN_PANEL);
+          setAdminPass('');
+      } else {
+          alert('Invalid Admin Credentials');
+      }
+  };
 
-  // --- 1. LANDING PAGE (Select Authority) ---
+  // --- 1. LANDING PAGE ---
   if (view === AppState.HOME) {
-    return <LandingPage onSelectAuthority={handleAuthoritySelect} />;
+    return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={setView} />;
+  }
+  
+  // --- STUDENT DASHBOARD ---
+  if (view === AppState.DASHBOARD) {
+      return <StudentDashboard onBack={() => setView(AppState.HOME)} />;
+  }
+
+  // --- ADMIN LOGIN ---
+  if (view === AppState.ADMIN_LOGIN) {
+      return (
+          <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+              <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+                  <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-slate-900">Admin Portal</h2>
+                      <p className="text-slate-500">Secure Access Only</p>
+                  </div>
+                  <div className="space-y-4">
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Email</label>
+                          <input 
+                            type="email" 
+                            value={adminEmail}
+                            onChange={(e) => setAdminEmail(e.target.value)}
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                            placeholder="admin@naajix.com"
+                        />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
+                          <input 
+                            type="password" 
+                            value={adminPass}
+                            onChange={(e) => setAdminPass(e.target.value)}
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                            placeholder="••••••••"
+                        />
+                      </div>
+                      <button 
+                        onClick={handleAdminLogin}
+                        className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg"
+                      >
+                          Login to Admin Panel
+                      </button>
+                      <button 
+                        onClick={() => setView(AppState.HOME)}
+                        className="w-full py-3 text-slate-500 hover:text-slate-700 transition"
+                      >
+                          Cancel
+                      </button>
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  // --- ADMIN PANEL ---
+  if (view === AppState.ADMIN_PANEL) {
+      return <AdminPanel onLogout={() => setView(AppState.HOME)} />;
   }
 
   // --- 2. LEVEL SELECTION (Std 8 vs Form IV) ---
@@ -351,7 +425,40 @@ const App: React.FC = () => {
       );
   }
 
-  // --- 3. SUBJECT SELECTION (Filtered by Authority + Level) ---
+  // --- 3. YEAR SELECTION ---
+  if (view === AppState.YEAR_SELECT) {
+    const availableYears = selectedSubjectKey 
+        ? getAvailableYears(selectedSubjectKey, selectedAuthority!, selectedLevel!)
+        : ACADEMIC_YEARS; // Fallback if subject not selected yet (though logic suggests flow order)
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center pt-20">
+            <div className="max-w-lg w-full">
+                <button onClick={() => setView(AppState.LEVEL_SELECT)} className="mb-8 text-blue-600 hover:underline">← Back to Levels</button>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Select Exam Year</h1>
+                <p className="text-slate-500 mb-8">
+                  {selectedAuthority === 'SOMALI_GOV' ? 'Somali Govt' : 'Puntland'} • {selectedLevel === 'FORM_IV' ? 'Form IV' : 'Standard 8'}
+                </p>
+                
+                <div className="space-y-3">
+                  {ACADEMIC_YEARS.slice().reverse().map(year => (
+                      <button
+                          key={year}
+                          onClick={() => handleYearSelect(year)}
+                          className="w-full p-4 bg-white border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition text-left flex justify-between items-center shadow-sm group"
+                      >
+                          <span className="font-bold text-lg text-slate-700 group-hover:text-blue-800">{year} Exam</span>
+                          <span className="text-gray-400 group-hover:text-blue-500">→</span>
+                      </button>
+                  ))}
+                  {/* Note: The new dynamic system filters by year in getExam, but listing all academic years is generally safe as getExam handles missing data */}
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+  // --- 4. SUBJECT SELECTION ---
   if (view === AppState.SUBJECT_SELECT) {
       const allowedSubjects = EXAM_HIERARCHY[selectedAuthority!][selectedLevel!];
       
@@ -359,9 +466,9 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <button onClick={() => setView(AppState.LEVEL_SELECT)} className="text-blue-600 hover:underline">← Back to Levels</button>
+                    <button onClick={() => setView(AppState.YEAR_SELECT)} className="text-blue-600 hover:underline">← Back to Years</button>
                     <div className="text-sm font-bold text-gray-400 uppercase tracking-wide">
-                        {selectedAuthority === 'SOMALI_GOV' ? 'Somali Govt' : 'Puntland'} • {selectedLevel === 'FORM_IV' ? 'Form IV' : 'Standard 8'}
+                        {selectedAuthority === 'SOMALI_GOV' ? 'Somali Govt' : 'Puntland'} • {selectedLevel === 'FORM_IV' ? 'Form IV' : 'Standard 8'} • {selectedYear}
                     </div>
                 </div>
 
@@ -388,34 +495,6 @@ const App: React.FC = () => {
       );
   }
 
-  // --- 4. YEAR SELECTION ---
-  if (view === AppState.YEAR_SELECT) {
-      return (
-          <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center pt-20">
-              <div className="max-w-lg w-full">
-                  <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="mb-8 text-blue-600 hover:underline">← Back to Subjects</button>
-                  <h1 className="text-3xl font-bold text-slate-900 mb-2">Select Exam Year</h1>
-                  <p className="text-slate-500 mb-8">
-                    {SUBJECT_CONFIG[selectedSubjectKey!]?.label} ({selectedAuthority === 'SOMALI_GOV' ? 'Somali Govt' : 'Puntland'})
-                  </p>
-                  
-                  <div className="space-y-3">
-                    {ACADEMIC_YEARS.slice().reverse().map(year => (
-                        <button
-                            key={year}
-                            onClick={() => handleYearSelect(year)}
-                            className="w-full p-4 bg-white border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition text-left flex justify-between items-center shadow-sm group"
-                        >
-                            <span className="font-bold text-lg text-slate-700 group-hover:text-blue-800">{year} Exam</span>
-                            <span className="text-gray-400 group-hover:text-blue-500">→</span>
-                        </button>
-                    ))}
-                  </div>
-              </div>
-          </div>
-      );
-  }
-
   // --- 5. EXAM OVERVIEW ---
   if (view === AppState.EXAM_OVERVIEW) {
       // Fetch using key
@@ -426,7 +505,10 @@ const App: React.FC = () => {
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Exam Not Found</h2>
             <p className="text-gray-600 mb-6">We couldn't find the {selectedSubjectKey} exam for {selectedYear}.</p>
-            <button onClick={() => setView(AppState.YEAR_SELECT)} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Back to Years</button>
+            <div className="flex justify-center gap-4">
+                <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Back to Subjects</button>
+                {/* Debug hint for demo purposes if static data is missing */}
+            </div>
         </div>
       );
 
@@ -453,7 +535,7 @@ const App: React.FC = () => {
                   Start Exam
               </button>
               <br/>
-              <button onClick={() => setView(AppState.YEAR_SELECT)} className="mt-6 text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
+              <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="mt-6 text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
           </div>
       );
   }
