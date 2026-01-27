@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -106,8 +105,8 @@ const App: React.FC = () => {
       let url = '/';
       if (targetView === AppState.DASHBOARD) url = '/dashboard';
       else if (targetView === AppState.STUDENT_AUTH) url = '/login';
-      else if (targetView === AppState.ADMIN_LOGIN) url = '/admin';
-      else if (targetView === AppState.ADMIN_PANEL) url = '/admin/panel';
+      else if (targetView === AppState.ADMIN_LOGIN) url = '/adminpanel/login';
+      else if (targetView === AppState.ADMIN_PANEL) url = '/adminpanel';
       else if (targetView === AppState.ABOUT) url = '/about';
       else if (targetView === AppState.PRIVACY) url = '/privacy';
       else if (targetView === AppState.CONTACT) url = '/contact';
@@ -162,11 +161,11 @@ const App: React.FC = () => {
     if (root === 'contact') { setView(AppState.CONTACT); return; }
     
     // Explicit Admin Routing
-    if (root === 'admin') {
-        // If /admin/panel -> Panel
-        if (parts[1] === 'panel') setView(AppState.ADMIN_PANEL);
-        // If /admin or /admin/login -> Login
-        else setView(AppState.ADMIN_LOGIN);
+    if (root === 'adminpanel') {
+        // If /adminpanel/login -> Login
+        if (parts[1] === 'login') setView(AppState.ADMIN_LOGIN);
+        // If /adminpanel -> Panel
+        else setView(AppState.ADMIN_PANEL);
         return;
     }
 
@@ -232,7 +231,7 @@ const App: React.FC = () => {
       setCurrentUserRole(role);
       
       // If admin and on a login page, redirect to panel
-      if (role === 'admin' && (window.location.pathname === '/admin' || window.location.pathname === '/admin/login')) {
+      if (role === 'admin' && (window.location.pathname.startsWith('/adminpanel/login') || window.location.pathname === '/adminpanel')) {
          navigateTo(AppState.ADMIN_PANEL);
       }
     } else {
