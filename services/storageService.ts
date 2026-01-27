@@ -58,7 +58,7 @@ const getIPAddress = () => {
 };
 
 // Core Login Function
-export const logUserIn = (user: Student | { id: string, fullName: string }, role: UserRole, method: 'email' | 'google' | 'password'): void => {
+export const logUserIn = (user: Student | { id: string, fullName: string }, role: UserRole, method: 'email' | 'google' | 'password', rememberMe: boolean = true): void => {
   const db = getActiveSessionsDB();
   const history = getLoginHistoryDB();
   
@@ -98,10 +98,17 @@ export const logUserIn = (user: Student | { id: string, fullName: string }, role
   saveLoginHistoryDB(history);
 
   // 4. Create Active Session Record
-  // Expiry: Admin 12h, Student 30d
+  // Expiry: Admin 12h, Student 30d (Remember Me) or 24h
   const expiryDate = new Date();
-  if (role === 'admin') expiryDate.setHours(expiryDate.getHours() + 12);
-  else expiryDate.setDate(expiryDate.getDate() + 30);
+  if (role === 'admin') {
+      expiryDate.setHours(expiryDate.getHours() + 12);
+  } else {
+      if (rememberMe) {
+          expiryDate.setDate(expiryDate.getDate() + 30);
+      } else {
+          expiryDate.setDate(expiryDate.getDate() + 1);
+      }
+  }
 
   const newActiveSession: ActiveSession = {
       userId: user.id,

@@ -32,6 +32,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   const [error, setError] = useState('');
   const [authProvider, setAuthProvider] = useState<'email' | 'google'>('email');
   
+  // "Remember Me" State
+  const [rememberMe, setRememberMe] = useState(false);
+  
   // Pending User State (Wait for OTP or Conflict)
   const [pendingStudent, setPendingStudent] = useState<Student | null>(null);
   const [conflictSession, setConflictSession] = useState<ActiveSession | null>(null);
@@ -149,7 +152,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       }
 
       // Record Login Session (This handles history and device conflict logic)
-      logUserIn(pendingStudent, 'student', authProvider);
+      logUserIn(pendingStudent, 'student', authProvider, rememberMe);
       alert("Si guul leh ayaad u gashay Naajix");
       onLoginSuccess(pendingStudent);
   };
@@ -184,6 +187,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                              value={email} onChange={e => setEmail(e.target.value)}
                              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                              placeholder="student@example.com"
+                             autoComplete="email"
                           />
                       </div>
                       <div>
@@ -193,8 +197,26 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                              value={password} onChange={e => setPassword(e.target.value)}
                              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                              placeholder="••••••••"
+                             autoComplete="current-password"
                           />
                       </div>
+
+                      {/* Remember Me Checkbox */}
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                checked={rememberMe} 
+                                onChange={(e) => setRememberMe(e.target.checked)} 
+                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-slate-600 font-medium">Remember me</span>
+                        </label>
+                        <button type="button" onClick={() => alert("Please contact support to reset your password.")} className="text-sm text-blue-600 font-bold hover:underline">
+                            Forgot Password?
+                        </button>
+                      </div>
+
                       <button type="submit" className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg">
                           Login
                       </button>
@@ -230,18 +252,35 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                   {authProvider === 'email' && (
                        <div>
                           <label className="block text-xs font-bold text-slate-700 mb-1">Email</label>
-                          <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full p-2 border rounded" />
+                          <input 
+                            type="email" required value={email} 
+                            onChange={e => setEmail(e.target.value)} 
+                            className="w-full p-2 border rounded" 
+                            autoComplete="email"
+                          />
                        </div>
                   )}
 
                   <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
-                      <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)} className="w-full p-2 border rounded" placeholder="Ahmed Ali" />
+                      <input 
+                        type="text" required value={fullName} 
+                        onChange={e => setFullName(e.target.value)} 
+                        className="w-full p-2 border rounded" 
+                        placeholder="Ahmed Ali" 
+                        autoComplete="name"
+                      />
                   </div>
 
                   <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                      <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-2 border rounded" placeholder="615xxxxxx" />
+                      <input 
+                        type="tel" required value={phone} 
+                        onChange={e => setPhone(e.target.value)} 
+                        className="w-full p-2 border rounded" 
+                        placeholder="615xxxxxx" 
+                        autoComplete="tel"
+                      />
                   </div>
 
                   <div>
@@ -260,7 +299,12 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                   {authProvider === 'email' && (
                        <div>
                           <label className="block text-xs font-bold text-slate-700 mb-1">Create Password</label>
-                          <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 border rounded" />
+                          <input 
+                            type="password" required value={password} 
+                            onChange={e => setPassword(e.target.value)} 
+                            className="w-full p-2 border rounded" 
+                            autoComplete="new-password"
+                          />
                        </div>
                   )}
 
