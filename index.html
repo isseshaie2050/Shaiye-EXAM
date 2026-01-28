@@ -1,10 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naajix - Somali Exam Preparation Platform</title>
-    <link rel="icon" type="image/png" href="https://shaiyecompany.com/wp-content/uploads/2026/01/Untitled-design-3.png">
+    <link rel="icon" type="image/png" href="https://shaiyecompany.com/wp-content/uploads/2026/01/Untitled-design-5.png">
+    
+    <!-- Performance: Preload Critical Assets -->
+    <link rel="preload" as="image" href="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png">
+    <link rel="preload" as="image" href="https://shaiyecompany.com/wp-content/uploads/2026/01/landing-page-1.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
@@ -12,6 +18,22 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         /* Professional Exam Print feel */
         .exam-paper { background-color: #ffffff; border: 1px solid #d1d5db; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+        
+        /* Loading Animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+        .loading-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #1e3a8a;
+            animation: pulse-ring 2s infinite;
+            z-index: -1;
+        }
     </style>
 <script type="importmap">
 {

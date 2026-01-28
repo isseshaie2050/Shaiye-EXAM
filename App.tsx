@@ -93,16 +93,23 @@ const App: React.FC = () => {
   // --- APP INITIALIZATION ---
   useEffect(() => {
     const init = async () => {
-        // 1. Fetch Dynamic Exams
-        await fetchDynamicExams();
-        
-        // 2. Validate Session
-        const { user, role } = await validateCurrentSession();
-        if (user && role) {
-            setCurrentStudent(user);
-            setCurrentUserRole(role);
+        try {
+            // PERFORMANCE: Run fetches in parallel to reduce wait time
+            const [_, sessionData] = await Promise.all([
+                fetchDynamicExams(),
+                validateCurrentSession()
+            ]);
+            
+            if (sessionData.user && sessionData.role) {
+                setCurrentStudent(sessionData.user);
+                setCurrentUserRole(sessionData.role);
+            }
+        } catch (e) {
+            console.error("Initialization error", e);
+        } finally {
+            // Short timeout to ensure smooth transition
+            setTimeout(() => setLoadingApp(false), 500);
         }
-        setLoadingApp(false);
     };
     init();
   }, []);
@@ -438,7 +445,27 @@ const App: React.FC = () => {
       setAnswers(prev => [...prev.filter(a => a.questionId !== currentQ.id), { questionId: currentQ.id, answer }]);
   };
 
-  if (loadingApp) return <div className="h-screen flex items-center justify-center font-bold text-slate-600">Loading Naajix...</div>;
+  // --- OPTIMIZED LOADING SCREEN ---
+  if (loadingApp) return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 relative overflow-hidden">
+          {/* Animated Background Pulse */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-64 h-64 bg-blue-100 rounded-full animate-ping opacity-20"></div>
+          </div>
+          
+          <div className="relative z-10 flex flex-col items-center">
+              <div className="w-20 h-20 relative loading-ring mb-6">
+                <img 
+                    src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
+                    alt="Naajix"
+                    className="w-full h-full object-contain rounded-full relative z-10" 
+                />
+              </div>
+              <h1 className="text-2xl font-black text-blue-900 tracking-tight animate-pulse">Naajix</h1>
+              <p className="text-sm text-slate-500 font-medium mt-2">Preparing your exam environment...</p>
+          </div>
+      </div>
+  );
 
   // --- VIEW RENDERING (Simplified for brevity as structure is same) ---
   if (view === AppState.HOME) return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={(target) => { if(target===AppState.DASHBOARD) { if(currentStudent) navigateTo(AppState.DASHBOARD); else navigateTo(AppState.STUDENT_AUTH); } else navigateTo(target); }} />;
