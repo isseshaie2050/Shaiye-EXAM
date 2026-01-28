@@ -90,6 +90,11 @@ export const loginWithGoogle = async () => {
     // Determine the redirect URL. In production, this must be whitelisted in Supabase Dashboard.
     const redirectUrl = window.location.origin; 
     
+    console.log("Initiating Google Auth with Redirect URL:", redirectUrl);
+    // NOTE: If you see 'redirect_uri_mismatch' error from Google:
+    // 1. Go to Google Cloud Console > APIs & Services > Credentials
+    // 2. Add "https://<PROJECT_REF>.supabase.co/auth/v1/callback" to Authorized redirect URIs
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
