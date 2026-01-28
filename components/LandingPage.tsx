@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ExamAuthority, AppState } from '../types';
 
@@ -93,9 +92,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
           {/* Animated Logo Container - Using New Circled Logo */}
           <div className="w-64 md:w-80 mb-10 animate-fade-in-up flex justify-center">
              <img 
-                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix_logo-removebg-preview-1.png" 
+                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
                 alt="Naajix Logo" 
-                className="max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                className="max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500 rounded-full"
             />
           </div>
 
