@@ -61,7 +61,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<AppState>(AppState.HOME);
   const viewRef = useRef<AppState>(AppState.HOME); 
   const [loadingApp, setLoadingApp] = useState(true);
-  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<{title: string, msg: string, fix?: string} | null>(null);
 
   // User Session State
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
@@ -95,12 +95,40 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
         // 1. Check for OAuth Errors in URL
-        const params = new URLSearchParams(window.location.hash.substring(1)); // Supabase often puts params in hash
-        const errorDesc = params.get('error_description') || new URLSearchParams(window.location.search).get('error_description');
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
         
+        const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
+        const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
+        const error = hashParams.get('error') || searchParams.get('error');
+
+        // CLEAN URL immediately to hide ugly params
+        if (error || errorDesc) {
+             window.history.replaceState({}, '', '/');
+        }
+
         if (errorDesc) {
-            setGlobalError(decodeURIComponent(errorDesc).replace(/\+/g, ' '));
-            window.history.replaceState({}, '', '/'); // Clean URL
+            const decodedError = decodeURIComponent(errorDesc).replace(/\+/g, ' ');
+            
+            // ERROR TYPE 1: DATABASE ISSUE
+            if (decodedError.includes('Database error saving new user')) {
+                setGlobalError({
+                    title: "Database Configuration Missing",
+                    msg: "You are logged in, but the database rejected your profile creation.",
+                    fix: "Run the SQL script provided in the instructions to create the 'profiles' table and policies."
+                });
+            } 
+            // ERROR TYPE 2: REDIRECT URI MISMATCH
+            else if (errorCode === '400' || decodedError.includes('redirect_uri_mismatch')) {
+                 setGlobalError({
+                    title: "Google Configuration Error",
+                    msg: "Google blocked the login because the Redirect URI is incorrect.",
+                    fix: "In Google Cloud Console, set Redirect URI to: https://qacwagxmyzdacgbnynxu.supabase.co/auth/v1/callback"
+                });
+            }
+            else {
+                setGlobalError({ title: "Login Error", msg: decodedError });
+            }
         }
 
         try {
@@ -481,16 +509,20 @@ const App: React.FC = () => {
   if (globalError) {
       return (
           <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6">
-              <div className="bg-white p-8 rounded-xl max-w-md w-full text-center">
+              <div className="bg-white p-8 rounded-xl max-w-md w-full text-center border-t-4 border-red-500 shadow-2xl">
                   <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Login Error</h3>
-                  <p className="text-red-600 font-bold mb-4">{globalError}</p>
-                  <p className="text-slate-500 text-sm mb-6">
-                     This usually happens if your user profile cannot be created in the database. 
-                     Please contact support or ensure your database tables are set up correctly.
-                  </p>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">{globalError.title}</h3>
+                  <p className="text-slate-600 mb-4 font-medium">{globalError.msg}</p>
+                  
+                  {globalError.fix && (
+                      <div className="bg-blue-50 p-4 rounded-lg text-left text-sm text-blue-800 border border-blue-100 mb-6">
+                          <strong>How to fix:</strong>
+                          <p className="mt-1 font-mono text-xs break-all">{globalError.fix}</p>
+                      </div>
+                  )}
+
                   <button 
                     onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} 
                     className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition"
