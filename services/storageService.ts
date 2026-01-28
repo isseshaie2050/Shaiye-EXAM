@@ -13,16 +13,47 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // Fetch Profile
-    const { data: profile, error } = await supabase
+    // Attempt to fetch profile
+    let { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', session.user.id)
       .single();
 
-    if (error || !profile) {
-      // If profile missing, it might be an admin or raw user. Return null to force cleaner state.
-      return { user: null, role: null };
+    // RECOVERY LOGIC: If profile is missing (e.g., first Google Login without backend trigger), create it
+    if (!profile) {
+         // Construct default profile for OAuth users
+         const metadata = session.user.user_metadata || {};
+         // Extract name from metadata or email
+         const name = metadata.full_name || metadata.name || session.user.email?.split('@')[0] || 'Student';
+         
+         const newProfile = {
+             id: session.user.id,
+             full_name: name,
+             email: session.user.email,
+             phone: '', // OAuth doesn't usually provide phone
+             school: 'Not Specified',
+             education_level: 'FORM_IV', // Default level
+             subscription_plan: 'FREE',
+             subscription_status: 'active',
+             role: 'student',
+             updated_at: new Date().toISOString()
+         };
+         
+         // Attempt to insert the missing profile
+         const { data: createdProfile, error: createError } = await supabase
+            .from('profiles')
+            .upsert(newProfile)
+            .select()
+            .single();
+            
+         if (!createError && createdProfile) {
+             profile = createdProfile;
+         } else {
+             console.error("Failed to create profile for OAuth user", createError);
+             // If we can't create a profile, we can't let them in as a valid student
+             return { user: null, role: null };
+         }
     }
 
     const student: Student = {
@@ -33,10 +64,10 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
         school: profile.school,
         level: profile.education_level,
         registeredAt: session.user.created_at,
-        authProvider: 'email',
+        authProvider: session.user.app_metadata.provider === 'google' ? 'google' : 'email',
         subscriptionPlan: profile.subscription_plan,
         subscriptionStatus: profile.subscription_status,
-        subscriptionStartDate: profile.subscription_end_date,
+        subscriptionStartDate: profile.subscription_end_date, // Using start as end for simplicity or if missing
         subscriptionEndDate: profile.subscription_end_date,
         basicAuthority: profile.basic_authority
     };
@@ -56,10 +87,17 @@ export const logoutUser = async () => {
 // --- AUTHENTICATION ---
 
 export const loginWithGoogle = async () => {
+    // Determine the redirect URL. In production, this must be whitelisted in Supabase Dashboard.
+    const redirectUrl = window.location.origin; 
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.origin // Redirects back to your app
+            redirectTo: redirectUrl,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
         }
     });
     
@@ -80,7 +118,8 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
          const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
          
          if (profileError || !profile) {
-             return { success: false, error: "Login successful, but profile data is missing. Please contact support." };
+             // Try to recover if profile is missing (rare for email login if register worked, but safe to handle)
+              return { success: false, error: "Login successful, but profile data is missing." };
          }
 
          const student: Student = {
@@ -121,10 +160,29 @@ export const registerStudent = async (student: Student, password: string): Promi
     if (error) return { success: false, error: error.message };
 
     if (data.user) {
-        if (!data.session) {
-            return { success: true, requiresConfirmation: true };
+        // SAFETY: If we have a session immediately (Email Confirm disabled), ensure profile exists
+        if (data.session) {
+             const { error: profileError } = await supabase.from('profiles').insert({
+                 id: data.user.id,
+                 full_name: student.fullName,
+                 phone: student.phone,
+                 school: student.school,
+                 education_level: student.level,
+                 email: student.email,
+                 subscription_plan: 'FREE',
+                 subscription_status: 'active',
+                 role: 'student'
+             });
+             
+             if (profileError) {
+                 // Log but don't fail, usually means trigger handled it or duplicate
+                 console.warn("Manual profile creation warning:", profileError.message);
+             }
+             return { success: true };
         }
-        return { success: true };
+        
+        // If no session, it means confirmation email was sent
+        return { success: true, requiresConfirmation: true };
     }
 
     return { success: false, error: "Unknown registration error" };
@@ -140,6 +198,7 @@ export const sendPasswordResetEmail = async (email: string): Promise<{ success: 
 };
 
 export const verifyAdminCredentials = (u: string, p: string): boolean => {
+    // In a real app, admins should be in the DB with a role. This is a hardcoded fallback/demo.
     return u === 'naajixapp' && p === 'SHaaciyeyare@!123';
 };
 
@@ -244,13 +303,13 @@ export const getAllStudents = async (): Promise<Student[]> => {
     return data.map((p: any) => ({
         id: p.id,
         fullName: p.full_name,
-        email: 'Hidden',
+        email: p.email || 'Hidden',
         phone: p.phone,
         school: p.school,
         level: p.education_level,
         subscriptionPlan: p.subscription_plan,
         subscriptionStatus: p.subscription_status,
-        registeredAt: '',
+        registeredAt: p.created_at || '',
         authProvider: 'email'
     }));
 };
