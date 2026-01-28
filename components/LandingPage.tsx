@@ -49,7 +49,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-slate-900 overflow-x-hidden">
       
       {/* 1. Dynamic Hero Section */}
-      <header className="relative min-h-[650px] md:min-h-[750px] flex items-center justify-center overflow-hidden">
+      {/* Mobile: Stacked Layout (Image Top, Content Bottom). Desktop: Absolute Overlay. */}
+      <header className="relative flex flex-col md:block md:min-h-[750px] bg-blue-900 overflow-hidden">
         
         {/* Navigation Overlay */}
         <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
@@ -67,30 +68,36 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
             </button>
         </div>
 
-        {/* Background Slider */}
-        {HERO_SLIDES.map((slide, index) => (
-          <div 
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-          >
-             {/* Ken Burns Effect: Scale slightly when active */}
-             <img 
-               src={slide.url} 
-               alt={slide.alt}
-               className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
-             />
-          </div>
-        ))}
+        {/* Background Slider Wrapper */}
+        {/* Mobile: Relative height (45vh). Desktop: Absolute full fill. */}
+        <div className="relative w-full h-[45vh] md:absolute md:inset-0 md:h-full z-0">
+          {HERO_SLIDES.map((slide, index) => (
+            <div 
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+            >
+               {/* Mobile: object-cover with center position to avoid aggressive cropping on sides */}
+               <img 
+                 src={slide.url} 
+                 alt={slide.alt}
+                 className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
+               />
+            </div>
+          ))}
+          {/* Mobile Tint to ensure nav visibility if image is light */}
+          <div className="absolute inset-0 bg-black/20 md:hidden"></div>
+        </div>
 
-        {/* Brand Overlay (Gradient) */}
-        <div className="absolute inset-0 bg-blue-900/90 mix-blend-multiply z-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/50 to-gray-50 z-20"></div>
+        {/* Desktop Brand Overlays (Hidden on Mobile) */}
+        <div className="hidden md:block absolute inset-0 bg-blue-900/90 mix-blend-multiply z-10"></div>
+        <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/50 to-gray-50 z-20"></div>
 
         {/* Hero Content */}
-        <div className="relative z-30 max-w-5xl mx-auto text-center px-6 flex flex-col items-center pt-10">
+        {/* Mobile: Solid Blue BG, stacked below image. Desktop: Transparent, centered over image. */}
+        <div className="relative z-30 w-full md:max-w-5xl md:mx-auto text-center px-6 flex flex-col items-center py-12 md:pt-10 md:h-full md:justify-center bg-blue-900 md:bg-transparent">
           
-          {/* Animated Logo Container - Using New Circled Logo */}
-          <div className="w-64 md:w-80 mb-10 animate-fade-in-up flex justify-center">
+          {/* Animated Logo Container */}
+          <div className="w-48 md:w-80 mb-8 md:mb-10 animate-fade-in-up flex justify-center">
              <img 
                 src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
                 alt="Naajix Logo" 
@@ -98,18 +105,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
             />
           </div>
 
-          <div className="space-y-8 mb-14">
-            {/* Bigger, clearer badge text as requested */}
-            <div className="inline-block bg-white/10 backdrop-blur-md border border-white/30 px-8 py-3 rounded-full text-lg md:text-2xl font-black tracking-widest uppercase text-white shadow-xl mb-4">
+          <div className="space-y-6 md:space-y-8 mb-10 md:mb-14">
+            <div className="inline-block bg-white/10 backdrop-blur-md border border-white/30 px-6 py-2 md:px-8 md:py-3 rounded-full text-sm md:text-2xl font-black tracking-widest uppercase text-white shadow-xl mb-2 md:mb-4">
               The #1 Exam Platform for Somalia
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg">
+            <h1 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg">
               Master Your Exams.<br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Build Your Future.</span>
             </h1>
             
-            <p className="text-blue-50 text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-md">
+            <p className="text-blue-100 md:text-blue-50 text-base md:text-2xl max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-md">
               Professional preparation for <strong>Form IV</strong> & <strong>Standard 8</strong> national examinations. 
               Real past papers, AI grading, and instant results.
             </p>
@@ -117,11 +123,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
           
           <button 
              onClick={() => document.getElementById('authorities')?.scrollIntoView({behavior: 'smooth'})}
-             className="group relative px-10 py-5 bg-white text-blue-900 rounded-2xl font-black text-xl hover:shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+             className="group relative px-8 py-4 md:px-10 md:py-5 bg-white text-blue-900 rounded-2xl font-black text-lg md:text-xl hover:shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
           >
               <span className="relative z-10 flex items-center gap-3">
                 Start Practicing Now
-                <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                <svg className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </span>
               <div className="absolute inset-0 bg-gray-50 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 ease-out"></div>
           </button>
@@ -129,7 +135,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
       </header>
 
       {/* 2. Authority Selection (Cards) */}
-      <section id="authorities" className="py-20 px-6 relative z-30 -mt-24">
+      {/* Negative margin pulls cards up. Adjusted for mobile to prevent overlap. */}
+      <section id="authorities" className="py-20 px-6 relative z-30 -mt-10 md:-mt-24">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 w-full">
             
