@@ -256,14 +256,15 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
                                 <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Popular</div>
                                 <div className="text-blue-600 font-bold uppercase text-xs mb-2">Basic</div>
                                 <div className="flex items-baseline mb-4">
-                                    <span className="text-4xl font-black text-slate-900">$2</span>
+                                    <span className="text-4xl font-black text-slate-900">$3</span>
                                     <span className="text-slate-500 ml-1">/mo</span>
                                 </div>
+                                <div className="text-xs text-green-600 font-bold mb-4 bg-green-50 px-2 py-1 rounded inline-block">Save vs $40</div>
                                 <ul className="space-y-3 mb-6 flex-1 text-sm text-slate-600">
                                     <li className="flex items-start gap-2"><span>✅</span> <strong>Full Exams (40+ Qs)</strong></li>
-                                    <li className="flex items-start gap-2"><span>✅</span> All Subjects (Std 8 & Form 4)</li>
+                                    <li className="flex items-start gap-2"><span>✅</span> <strong>Access Std 8 AND Form 4</strong></li>
                                     <li className="flex items-start gap-2"><span>❗</span> <strong>Select ONE Authority:</strong></li>
-                                    <li className="pl-6 text-xs text-slate-500">Choose Somali Gov OR Puntland. Cannot switch for 30 days.</li>
+                                    <li className="pl-6 text-xs text-slate-500">Choose Somali Gov OR Puntland.</li>
                                 </ul>
                                 
                                 <div className="space-y-2 mt-auto">
@@ -271,13 +272,13 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
                                         onClick={() => handleUpgrade('BASIC', 'SOMALI_GOV')}
                                         className="w-full py-2 bg-blue-50 text-blue-700 border border-blue-200 font-bold rounded hover:bg-blue-100 transition text-sm"
                                     >
-                                        Select Somali Gov ($2)
+                                        Select Somali Gov ($3)
                                     </button>
                                     <button 
                                         onClick={() => handleUpgrade('BASIC', 'PUNTLAND')}
                                         className="w-full py-2 bg-green-50 text-green-700 border border-green-200 font-bold rounded hover:bg-green-100 transition text-sm"
                                     >
-                                        Select Puntland ($2)
+                                        Select Puntland ($3)
                                     </button>
                                 </div>
                             </div>
@@ -286,13 +287,14 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
                             <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-2xl flex flex-col text-white">
                                 <div className="text-purple-400 font-bold uppercase text-xs mb-2">Ultimate</div>
                                 <div className="flex items-baseline mb-4">
-                                    <span className="text-4xl font-black">$3</span>
+                                    <span className="text-4xl font-black">$6</span>
                                     <span className="text-slate-400 ml-1">/mo</span>
                                 </div>
+                                <div className="text-xs text-red-400 font-bold mb-4 bg-red-900/30 px-2 py-1 rounded inline-block animate-pulse">Save 90% (vs $80)</div>
                                 <ul className="space-y-3 mb-8 flex-1 text-sm text-slate-300">
                                     <li className="flex items-start gap-2"><span className="text-green-400">✔</span> <strong>Everything in Basic</strong></li>
-                                    <li className="flex items-start gap-2"><span className="text-green-400">✔</span> <strong>Access BOTH Authorities</strong></li>
-                                    <li className="flex items-start gap-2"><span className="text-green-400">✔</span> Somali Gov AND Puntland</li>
+                                    <li className="flex items-start gap-2"><span className="text-green-400">✔</span> <strong>Access ALL 4 Categories</strong></li>
+                                    <li className="flex items-start gap-2"><span className="text-green-400">✔</span> Somali Gov (Both) + Puntland (Both)</li>
                                     <li className="flex items-start gap-2"><span className="text-green-400">✔</span> Advanced Analytics</li>
                                     <li className="flex items-start gap-2"><span className="text-green-400">✔</span> Priority Grading</li>
                                 </ul>
@@ -300,7 +302,7 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
                                     onClick={() => handleUpgrade('PREMIUM')}
                                     className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg hover:opacity-90 transition shadow-lg mt-auto"
                                 >
-                                    Get Premium Access ($3)
+                                    Get Premium Access ($6)
                                 </button>
                             </div>
 

@@ -77,7 +77,7 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
 
-        // CRITICAL FIX: Construct and return the student object so the UI knows we succeeded
+        // Construct and return the student object so the UI knows we succeeded
         const student: Student = {
             id: currentUser.uid,
             fullName: currentUser.displayName || 'Student',
@@ -104,14 +104,20 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
     }
 };
 
-export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, requiresConfirmation?: boolean }> => {
+export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, user?: Student, requiresConfirmation?: boolean }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
         
         // Save the name to the Auth Profile
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
-        return { success: true };
+        // Construct the student object to return for auto-login
+        const newStudent: Student = {
+            ...student,
+            id: userCredential.user.uid
+        };
+
+        return { success: true, user: newStudent };
     } catch (error: any) {
         console.error("Registration Error:", error.code, error.message);
         let msg = error.message;

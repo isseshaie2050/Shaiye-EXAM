@@ -14,8 +14,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   const [loading, setLoading] = useState(false);
   
   // Success States
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [confirmationRequired, setConfirmationRequired] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Form State
@@ -92,9 +90,13 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       
       setLoading(false);
       if (res.success) {
-          setRegistrationSuccess(true);
-          if (res.requiresConfirmation) {
-              setConfirmationRequired(true);
+          if (res.user) {
+              // AUTO LOGIN AND REDIRECT
+              onLoginSuccess(res.user);
+          } else {
+             // Fallback to login screen if user object missing (rare)
+             setViewState('LOGIN');
+             setError('Registration successful! Please log in.');
           }
       } else {
           setError(res.error || "Registration failed. Please try again.");
@@ -120,38 +122,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   };
 
   // --- RENDER STATES ---
-
-  if (registrationSuccess) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center border border-gray-100">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-2">Registration Successful!</h2>
-                {confirmationRequired ? (
-                    <div className="mb-6">
-                        <p className="text-slate-600 mb-4">We have sent a confirmation link to <strong>{email}</strong>.</p>
-                        <p className="text-sm text-blue-600 font-bold bg-blue-50 p-4 rounded-lg border border-blue-100">Please check your email and click the link to activate your account before logging in.</p>
-                    </div>
-                ) : (
-                    <p className="text-slate-600 mb-6">Your account has been created successfully.</p>
-                )}
-                
-                <button 
-                    onClick={() => {
-                        setRegistrationSuccess(false);
-                        setViewState('LOGIN');
-                        setPassword(''); 
-                    }}
-                    className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg"
-                >
-                    Proceed to Login
-                </button>
-            </div>
-        </div>
-      );
-  }
 
   if (resetEmailSent) {
       return (
@@ -197,7 +167,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
           {viewState === 'LOGIN' && (
               <div className="space-y-4">
                   
-                  {/* Google Login Button - Inline SVG to fix visibility */}
+                  {/* Google Login Button */}
                   <button 
                     onClick={handleGoogleLogin}
                     disabled={loading}
@@ -317,7 +287,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                    </div>
 
                   <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg mt-4 disabled:opacity-50">
-                      {loading ? 'Creating Account...' : 'Sign Up'}
+                      {loading ? 'Creating Account...' : 'Sign Up & Login'}
                   </button>
                   <button type="button" onClick={() => { setViewState('LOGIN'); setError(''); }} className="w-full py-2 text-slate-500 font-bold text-sm">
                       Back to Login

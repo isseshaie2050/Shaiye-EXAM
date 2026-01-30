@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ExamAuthority, AppState } from '../types';
 
@@ -253,7 +254,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                     <div className="text-4xl font-black text-slate-800 mb-6">Free</div>
                     <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-600">
                         <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> Access Somali Gov & Puntland</li>
-                        <li className="flex items-start gap-3"><span className="text-orange-500 font-bold">!</span> <strong>Limit: 5 Questions</strong> per exam</li>
+                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> <strong>5 Random Questions</strong> (Try It)</li>
                         <li className="flex items-start gap-3"><span className="text-orange-500 font-bold">!</span> Random questions only</li>
                         <li className="flex items-start gap-3"><span className="text-red-400 font-bold">✕</span> No Detailed Analytics</li>
                     </ul>
@@ -267,14 +268,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                     <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
                     <div className="text-blue-600 font-bold uppercase text-xs mb-2 tracking-wide">Basic</div>
                     <div className="flex items-baseline mb-6">
-                        <span className="text-5xl font-black text-slate-900">$2</span>
+                        <span className="text-5xl font-black text-slate-900">$3</span>
                         <span className="text-slate-500 ml-1 font-medium">/month</span>
                     </div>
+                    <div className="text-xs text-green-600 font-bold mb-4 bg-green-50 px-2 py-1 rounded inline-block">Save vs $40</div>
                     <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-600">
                         <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> <strong>Full Exams (40+ Qs)</strong></li>
-                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> All Subjects (Std 8 & Form 4)</li>
+                        <li className="flex items-start gap-3"><span className="text-green-500 font-bold">✓</span> <strong>Access Std 8 AND Form 4</strong></li>
                         <li className="flex items-start gap-3"><span className="text-blue-500 font-bold">ℹ</span> <strong>Select ONE Authority:</strong></li>
-                        <li className="pl-7 text-xs text-slate-400">Choose either Somali Gov OR Puntland.</li>
+                        <li className="pl-7 text-xs text-slate-400">Unlock either Somali Gov (Both Levels) OR Puntland (Both Levels).</li>
                     </ul>
                     <button onClick={() => onNavigate(AppState.STUDENT_AUTH)} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
                         Get Basic
@@ -282,15 +284,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
                 </div>
 
                 {/* PREMIUM PLAN */}
-                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl flex flex-col text-white hover:-translate-y-1 transition hover:shadow-purple-900/20">
+                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl flex flex-col text-white hover:-translate-y-1 transition hover:shadow-purple-900/20 relative overflow-hidden">
+                    <div className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded animate-pulse">Save 90% (vs $80)</div>
                     <div className="text-purple-400 font-bold uppercase text-xs mb-2 tracking-wide">Ultimate Access</div>
                     <div className="flex items-baseline mb-6">
-                        <span className="text-5xl font-black">$3</span>
+                        <span className="text-5xl font-black">$6</span>
                         <span className="text-slate-400 ml-1 font-medium">/month</span>
                     </div>
                     <ul className="space-y-4 mb-8 flex-1 text-sm text-slate-300">
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Everything in Basic</strong></li>
-                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Access BOTH Authorities</strong></li>
+                        <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> <strong>Access ALL 4 Categories</strong></li>
+                        <li className="pl-7 text-xs text-slate-400 mb-1">Somali Gov (Std8 & Form4) + Puntland (Std8 & Form4)</li>
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Advanced Analytics</li>
                         <li className="flex items-start gap-3"><span className="text-green-400 font-bold">✓</span> Priority AI Grading</li>
                     </ul>
