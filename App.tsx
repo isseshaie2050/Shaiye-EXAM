@@ -752,8 +752,9 @@ const App: React.FC = () => {
                         {item.feedback && (
                             <div className="mt-4 pt-4 border-t border-gray-200/50">
                                 <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Naajix Evaluation</span>
-                                {/* Cleanup AI status emojis to avoid duplication if present in text */}
-                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                    <FormattedText text={item.feedback} />
+                                </div>
                             </div>
                         )}
                     </div>
