@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -319,8 +318,8 @@ const App: React.FC = () => {
           if (!currentStudent) {
               navigateTo(AppState.ADMIN_LOGIN);
           } else if (currentUserRole !== 'admin') {
-              alert("Access Denied: You do not have permission to view this page.");
-              navigateTo(AppState.HOME);
+              // Redirect to login if user is not admin
+              navigateTo(AppState.ADMIN_LOGIN);
           }
       }
   }, [view, currentStudent, currentUserRole, navigateTo, loadingApp]);
@@ -463,7 +462,21 @@ const App: React.FC = () => {
 
   const handleAdminLogin = () => {
       if (verifyAdminCredentials(adminUser, adminPass)) {
-          const adminUserObj = { id: 'admin-001', fullName: 'System Admin' } as Student;
+          // Identify the Super Admin
+          const adminUserObj: Student = { 
+              id: 'admin-super', 
+              fullName: 'Super Admin', 
+              email: 'isseshaie2050@gmail.com', 
+              subscriptionPlan: 'PREMIUM',
+              // Complete missing properties for Student type
+              phone: '',
+              school: 'System Admin',
+              level: 'FORM_IV',
+              registeredAt: new Date().toISOString(),
+              authProvider: 'email',
+              subscriptionStatus: 'active'
+          };
+          
           setCurrentStudent(adminUserObj);
           setCurrentUserRole('admin');
           navigateTo(AppState.ADMIN_PANEL);

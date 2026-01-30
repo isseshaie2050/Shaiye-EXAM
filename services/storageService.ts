@@ -18,7 +18,8 @@ import {
 const db = getFirestore();
 
 // --- VIP CONFIGURATION ---
-const VIP_EMAIL = "isseshaie31@gmail.com";
+// Super Admin Email
+const VIP_EMAIL = "isseshaie2050@gmail.com";
 
 // --- DEVICE IDENTITY ---
 const getDeviceId = (): string => {
@@ -47,7 +48,7 @@ const syncUserToFirestore = async (user: User, additionalData?: Partial<Student>
         
         // Force upgrade if VIP matches
         if (isVip && (data.subscriptionPlan !== 'PREMIUM')) {
-            await updateDoc(userRef, { subscriptionPlan: 'PREMIUM' }); // Admin role handled in app state usually, or we can add role field
+            await updateDoc(userRef, { subscriptionPlan: 'PREMIUM' }); 
             data.subscriptionPlan = 'PREMIUM';
         }
 
@@ -98,7 +99,13 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
     
     // Determine Role
     let role: UserRole = 'student';
-    if (currentUser.email === VIP_EMAIL || student.email === VIP_EMAIL || (student as any).role === 'admin') {
+    
+    // Check various admin conditions
+    if (
+        currentUser.email?.toLowerCase() === VIP_EMAIL.toLowerCase() || 
+        student.email?.toLowerCase() === VIP_EMAIL.toLowerCase() || 
+        (student as any).role === 'admin'
+    ) {
         role = 'admin';
     } else if (currentUser.displayName === 'System Admin') {
         role = 'admin'; // Fallback for the hardcoded admin login
@@ -238,12 +245,6 @@ export const registerStudent = async (student: Student, password: string): Promi
 
 export const adminCreateUser = async (data: Student): Promise<boolean> => {
     try {
-        // Note: Creating a user in Auth requires a secondary app instance in a real Node env, 
-        // or we just create a Firestore doc for 'manual' users. 
-        // For this client-side simulation, we will just create the Firestore Doc.
-        // The user won't be able to log in via Auth unless they sign up with the matching email later.
-        // BUT, this fulfills the requirement to "Add user to database".
-        
         const manualId = data.id || `manual-${Date.now()}`;
         const userRef = doc(db, 'users', manualId);
         await setDoc(userRef, {
@@ -340,7 +341,11 @@ export const sendPasswordResetEmail = async (email: string): Promise<{ success: 
 };
 
 export const verifyAdminCredentials = (u: string, p: string): boolean => {
-    return u === 'naajixapp' && p === 'SHaaciyeyare@!123';
+    // Check for specific admin email or a generic 'admin' username
+    const validUser = u.toLowerCase() === VIP_EMAIL.toLowerCase() || u.toLowerCase() === 'admin';
+    const validPass = p === 'Caaliya@!123';
+    
+    return validUser && validPass;
 };
 
 export const getSubjectStats = async (studentId: string) => {
