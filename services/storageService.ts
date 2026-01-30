@@ -1,6 +1,6 @@
 
 import { ExamResult, Student, SubscriptionPlan, ExamAuthority, UserRole } from '../types';
-import { auth, db } from './firebase';
+import { auth } from './firebase';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -11,18 +11,6 @@ import {
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   updateProfile
 } from "firebase/auth";
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy 
-} from "firebase/firestore";
 
 // --- SESSION MANAGEMENT ---
 
@@ -46,59 +34,22 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // Fetch profile from Firestore
-    const userDocRef = doc(db, "profiles", currentUser.uid);
-    const userDocSnap = await getDoc(userDocRef);
-
-    if (userDocSnap.exists()) {
-        const profile = userDocSnap.data();
-        const student: Student = {
-            id: currentUser.uid,
-            fullName: profile.full_name,
-            email: currentUser.email || '',
-            phone: profile.phone || '',
-            school: profile.school || '',
-            level: profile.education_level || 'FORM_IV',
-            registeredAt: profile.created_at || new Date().toISOString(),
-            authProvider: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
-            subscriptionPlan: profile.subscription_plan || 'FREE',
-            subscriptionStatus: profile.subscription_status || 'active',
-            subscriptionEndDate: profile.subscription_end_date,
-            basicAuthority: profile.basic_authority
-        };
-        return { user: student, role: (profile.role as UserRole) || 'student' };
-    } else {
-        // Handle case where auth exists but profile doc doesn't (e.g. first Google Login)
-        // We create a default profile here
-        const name = currentUser.displayName || currentUser.email?.split('@')[0] || 'Student';
-        const newProfile = {
-             full_name: name,
-             email: currentUser.email,
-             phone: '',
-             school: 'Not Specified',
-             education_level: 'FORM_IV',
-             subscription_plan: 'FREE',
-             subscription_status: 'active',
-             role: 'student',
-             created_at: new Date().toISOString()
-        };
-        
-        await setDoc(userDocRef, newProfile);
-        
-        const student: Student = {
-            id: currentUser.uid,
-            fullName: name,
-            email: currentUser.email || '',
-            phone: '',
-            school: 'Not Specified',
-            level: 'FORM_IV',
-            registeredAt: new Date().toISOString(),
-            authProvider: 'google',
-            subscriptionPlan: 'FREE',
-            subscriptionStatus: 'active'
-        };
-        return { user: student, role: 'student' };
-    }
+    // Since we are NOT using a database yet, we construct a default student profile
+    // based on the Auth data.
+    const student: Student = {
+        id: currentUser.uid,
+        fullName: currentUser.displayName || 'Student',
+        email: currentUser.email || '',
+        phone: '', // Not available in Auth
+        school: 'Not Specified',
+        level: 'FORM_IV', // Default
+        registeredAt: new Date().toISOString(),
+        authProvider: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+        subscriptionPlan: 'FREE', // Default for now
+        subscriptionStatus: 'active'
+    };
+    
+    return { user: student, role: 'student' };
 
   } catch (e) {
     console.error("Session Validation Error", e);
@@ -124,62 +75,32 @@ export const loginWithGoogle = async () => {
 
 export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student }> => {
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        // Fetch Profile
-        const userDocRef = doc(db, "profiles", uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-            const profile = userDocSnap.data();
-            const student: Student = {
-                id: uid,
-                fullName: profile.full_name,
-                email: email,
-                phone: profile.phone,
-                school: profile.school,
-                level: profile.education_level,
-                registeredAt: profile.created_at,
-                authProvider: 'email',
-                subscriptionPlan: profile.subscription_plan,
-                subscriptionStatus: profile.subscription_status,
-                subscriptionEndDate: profile.subscription_end_date,
-                basicAuthority: profile.basic_authority
-            };
-            return { success: true, user: student };
-        }
-        
-        return { success: true }; // Profile might be created on validateSession
+        await signInWithEmailAndPassword(auth, email, password);
+        return { success: true };
     } catch (error: any) {
-        return { success: false, error: error.message };
+        let msg = error.message;
+        // Map Firebase error codes to specific messages
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            msg = "Email or password is incorrect";
+        }
+        return { success: false, error: msg };
     }
 };
 
 export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, requiresConfirmation?: boolean }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
-        const user = userCredential.user;
-
-        // Update Display Name
-        await updateProfile(user, { displayName: student.fullName });
-
-        // Create Profile Document in Firestore
-        await setDoc(doc(db, "profiles", user.uid), {
-             full_name: student.fullName,
-             email: student.email,
-             phone: student.phone,
-             school: student.school,
-             education_level: student.level,
-             subscription_plan: 'FREE',
-             subscription_status: 'active',
-             role: 'student',
-             created_at: new Date().toISOString()
-        });
+        // Save the name to the Auth Profile since we aren't using a DB
+        await updateProfile(userCredential.user, { displayName: student.fullName });
 
         return { success: true };
     } catch (error: any) {
-        return { success: false, error: error.message };
+        let msg = error.message;
+        // Map Firebase error codes to specific messages
+        if (error.code === 'auth/email-already-in-use') {
+             msg = "User already exists. Please sign in";
+        }
+        return { success: false, error: msg };
     }
 };
 
@@ -196,148 +117,34 @@ export const verifyAdminCredentials = (u: string, p: string): boolean => {
     return u === 'naajixapp' && p === 'SHaaciyeyare@!123';
 };
 
-// --- SUBSCRIPTION HELPERS ---
+// --- STUBS FOR DB FUNCTIONS (Disabled for Auth-Only Mode) ---
 
 export const upgradeStudentSubscription = async (studentId: string, plan: SubscriptionPlan, authority?: ExamAuthority) => {
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(startDate.getDate() + 30); 
-
-    try {
-        const userDocRef = doc(db, "profiles", studentId);
-        await updateDoc(userDocRef, {
-            subscription_plan: plan,
-            subscription_status: 'active',
-            subscription_end_date: endDate.toISOString(),
-            basic_authority: authority || null
-        });
-
-        // Return updated data structure
-        const snap = await getDoc(userDocRef);
-        const data = snap.data();
-        if (!data) return null;
-
-        return {
-            id: studentId,
-            fullName: data.full_name,
-            email: data.email,
-            phone: data.phone,
-            school: data.school,
-            level: data.education_level,
-            subscriptionPlan: data.subscription_plan,
-            subscriptionStatus: data.subscription_status,
-            basicAuthority: data.basic_authority,
-            subscriptionEndDate: data.subscription_end_date,
-            authProvider: 'email', // Simplified re-return
-            registeredAt: data.created_at
-        } as Student;
-
-    } catch (error) {
-        console.error("Upgrade failed", error);
-        return null;
-    }
+    // No-op without DB
+    return null;
 };
 
-// --- DATA FETCHING ---
-
 export const getStudentExamHistory = async (studentId: string): Promise<ExamResult[]> => {
-    try {
-        const q = query(
-            collection(db, "exam_results"), 
-            where("studentId", "==", studentId),
-            orderBy("date", "desc")
-        );
-        const querySnapshot = await getDocs(q);
-        const results: ExamResult[] = [];
-        querySnapshot.forEach((doc) => {
-            results.push(doc.data() as ExamResult);
-        });
-        return results;
-    } catch (error) {
-        console.error("Error fetching history:", error);
-        // Fallback if index is missing (Firestore requires index for where+orderBy)
-        try {
-             const q2 = query(collection(db, "exam_results"), where("studentId", "==", studentId));
-             const snap = await getDocs(q2);
-             const unsorted: ExamResult[] = [];
-             snap.forEach(doc => unsorted.push(doc.data() as ExamResult));
-             return unsorted.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        } catch (e) {
-            return [];
-        }
-    }
+    // No-op without DB
+    return [];
 };
 
 export const saveExamResult = async (result: ExamResult): Promise<void> => {
-    try {
-        // Use addDoc to auto-generate ID, or setDoc with result.id
-        await setDoc(doc(db, "exam_results", result.id), result);
-    } catch (error) {
-        console.error("Failed to save result", error);
-    }
+    // No-op without DB
+    console.log("Exam finished (Result not saved - DB disabled)", result);
 };
 
 export const getSubjectStats = async (studentId: string) => {
-  const history = await getStudentExamHistory(studentId);
-  const subjects: Record<string, { totalScore: number, totalMax: number, count: number }> = {};
-
-  history.forEach(h => {
-    if (!subjects[h.subject]) {
-      subjects[h.subject] = { totalScore: 0, totalMax: 0, count: 0 };
-    }
-    subjects[h.subject].totalScore += h.score;
-    subjects[h.subject].totalMax += h.maxScore;
-    subjects[h.subject].count += 1;
-  });
-
-  return Object.keys(subjects).map(sub => {
-    const data = subjects[sub];
-    return {
-      subject: sub,
-      average: Math.round((data.totalScore / data.totalMax) * 100),
-      attempts: data.count
-    };
-  });
+  // No-op without DB
+  return [];
 };
 
-// --- ADMIN FETCHERS ---
-
 export const getAllStudents = async (): Promise<Student[]> => {
-    try {
-        const querySnapshot = await getDocs(collection(db, "profiles"));
-        const students: Student[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            students.push({
-                id: doc.id,
-                fullName: data.full_name,
-                email: data.email || 'Hidden',
-                phone: data.phone,
-                school: data.school,
-                level: data.education_level,
-                subscriptionPlan: data.subscription_plan,
-                subscriptionStatus: data.subscription_status,
-                registeredAt: data.created_at || '',
-                authProvider: 'email'
-            });
-        });
-        return students;
-    } catch (error) {
-        return [];
-    }
+    return [];
 };
 
 export const getAllExamResults = async (): Promise<ExamResult[]> => {
-    try {
-        const querySnapshot = await getDocs(collection(db, "exam_results"));
-        const results: ExamResult[] = [];
-        querySnapshot.forEach((doc) => {
-            results.push(doc.data() as ExamResult);
-        });
-        return results.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    } catch (error) {
-        return [];
-    }
+    return [];
 };
 
 export const getActiveSessions = () => []; 

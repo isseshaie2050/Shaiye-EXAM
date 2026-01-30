@@ -1,48 +1,21 @@
 
 import { Exam, ExamAuthority, EducationLevel } from '../types';
 import { EXAM_DATABASE as STATIC_DATABASE } from '../constants';
-import { db } from './firebase';
-import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 
 // Local cache to keep 'getExam' synchronous for UI rendering performance
 let DYNAMIC_CACHE: Record<string, Exam> = {};
 
 export const fetchDynamicExams = async () => {
-    try {
-        const querySnapshot = await getDocs(collection(db, "custom_exams"));
-        const cache: Record<string, Exam> = {};
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            // Firestore data extraction
-            if (data.exam_data) {
-                const exam = data.exam_data as Exam;
-                const key = `${exam.year}_${exam.subjectKey}`;
-                cache[key] = exam;
-            }
-        });
-        DYNAMIC_CACHE = cache;
-    } catch (error) {
-        console.error("Failed to fetch dynamic exams", error);
-    }
+    // Database disabled - No dynamic exams fetched
+    DYNAMIC_CACHE = {};
 };
 
 export const saveDynamicExam = async (exam: Exam) => {
   const key = `${exam.year}_${exam.subjectKey}`;
   exam.isCustom = true;
   
-  // Update Cache
+  // Update Local Cache only (No persistence)
   DYNAMIC_CACHE[key] = exam;
-
-  // Save to DB
-  try {
-      await setDoc(doc(db, "custom_exams", exam.id), {
-          year: exam.year,
-          subject_key: exam.subjectKey,
-          exam_data: exam
-      });
-  } catch (error) {
-      console.error("Failed to save exam to DB", error);
-  }
 };
 
 export const getAllExams = (): Exam[] => {
@@ -56,7 +29,7 @@ export const getExam = (year: number | null, subjectKey: string | null): Exam | 
   
   const key = `${year}_${subjectKey}`;
   
-  // Check Dynamic First (Admin created)
+  // Check Dynamic First (Admin created in-memory)
   if (DYNAMIC_CACHE[key]) {
       return DYNAMIC_CACHE[key];
   }

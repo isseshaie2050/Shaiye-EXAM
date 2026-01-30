@@ -1,22 +1,19 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
-// TODO: Replace the following with your app's Firebase project configuration
-// You can get this from the Firebase Console -> Project Settings -> General -> Your apps
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDgU5bKP5JJA5Ar3o7JTcz2dTaQ5aK6OQY",
+  authDomain: "naajix-2a286.firebaseapp.com",
+  projectId: "naajix-2a286",
+  storageBucket: "naajix-2a286.firebasestorage.app",
+  messagingSenderId: "120951256783",
+  appId: "1:120951256783:web:4146a8a27509760936a9ba"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export Auth and Firestore instances
+// Export Auth instance only (No Firestore/DB yet)
 export const auth = getAuth(app);
-export const db = getFirestore(app);
