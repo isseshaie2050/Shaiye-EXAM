@@ -39,7 +39,10 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
         onLoginSuccess(res.user);
     } else {
         setLoading(false);
-        setError(res.error || "Google login failed.");
+        // Ignore "popup closed" errors (user cancelled)
+        if (res.error && !res.error.includes('auth/popup-closed-by-user')) {
+            setError(res.error || "Google login failed.");
+        }
     }
   };
 

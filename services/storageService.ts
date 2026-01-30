@@ -133,6 +133,16 @@ export const subscribeToSessionUpdates = (userId: string, onConflict: () => void
 export const loginWithGoogle = async (): Promise<{ success: boolean, error?: string, user?: Student }> => {
     try {
         const provider = new GoogleAuthProvider();
+        
+        // Ensure we get the profile and email
+        provider.addScope('profile');
+        provider.addScope('email');
+        
+        // Force the account selection screen to appear (improves UX if multiple accounts)
+        provider.setCustomParameters({
+            prompt: 'select_account'
+        });
+
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
@@ -155,7 +165,8 @@ export const loginWithGoogle = async (): Promise<{ success: boolean, error?: str
 
         return { success: true, user: student };
     } catch (error: any) {
-        return { success: false, error: error.message };
+        // Return detailed error for UI handling
+        return { success: false, error: error.message || "Google Sign-In failed" };
     }
 };
 
