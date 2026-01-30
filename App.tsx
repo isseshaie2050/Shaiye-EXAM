@@ -76,7 +76,7 @@ const App: React.FC = () => {
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [results, setResults] = useState<{ score: number, maxScore: number, feedback: any[], sectionScores: Record<string, {score: number, total: number}> } | null>(null);
+  const [results, setResults] = useState<{ score: number, maxScore: number, feedback: any[], sectionScores: Record<string, {score: number, total: number}>, grade: string } | null>(null);
   const [isGrading, setIsGrading] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [gradingProgress, setGradingProgress] = useState(0);
@@ -193,40 +193,57 @@ const App: React.FC = () => {
     if (root === 'exams') {
         const auth = parts[1] as ExamAuthority;
         const level = parts[2] as EducationLevel;
-        const year = parseInt(parts[3]);
-        const subject = parts[4];
-        const mode = parts[5];
+        const year = parts[3] ? parseInt(parts[3]) : null;
+        const subject = parts[4] || null;
+        const mode = parts[5] || null;
 
-        if (auth) setSelectedAuthority(auth);
-        if (level) setSelectedLevel(level);
-        if (year) setSelectedYear(year);
-        if (subject) setSelectedSubjectKey(subject);
+        // Ensure we pass null if undefined to clear state if navigating back up
+        setSelectedAuthority(auth || null);
+        setSelectedLevel(level || null);
+        setSelectedYear(year);
+        setSelectedSubjectKey(subject);
 
-        if (mode === 'take') {
-            setView(AppState.EXAM_ACTIVE);
+        if (mode === 'take' && subject && year && level && auth) {
+             // Only enter active exam if explicitly navigated via code (usually). 
+             // If activeExam is null (e.g., refresh), go to Overview to avoid blank/error.
+             if (!activeExam) {
+                 setView(AppState.EXAM_OVERVIEW);
+             } else {
+                 setView(AppState.EXAM_ACTIVE);
+             }
         }
-        else if (subject) setView(AppState.EXAM_OVERVIEW);
-        else if (year) setView(AppState.SUBJECT_SELECT);
-        else if (level) setView(AppState.YEAR_SELECT);
+        else if (subject && year && level && auth) setView(AppState.EXAM_OVERVIEW);
+        else if (year && level && auth) setView(AppState.SUBJECT_SELECT);
+        else if (level && auth) setView(AppState.YEAR_SELECT);
         else if (auth) setView(AppState.LEVEL_SELECT);
         else setView(AppState.HOME); 
         return;
     }
 
     setView(AppState.HOME);
-  }, []);
+  }, [activeExam]);
 
   useEffect(() => {
       const handlePopState = (e: PopStateEvent) => {
           if (viewRef.current === AppState.EXAM_ACTIVE) {
               const confirmLeave = window.confirm("You are taking an exam. Leaving now will lose progress. Are you sure?");
               if (!confirmLeave) {
-                  window.history.pushState(null, '', document.referrer); 
+                  // User wants to STAY.
+                  // Reconstruct current exam URL and push it back to prevent browser from leaving
+                   const examUrl = buildUrl(AppState.EXAM_ACTIVE, { 
+                      auth: selectedAuthority!, 
+                      level: selectedLevel!, 
+                      year: selectedYear!, 
+                      subject: selectedSubjectKey! 
+                  });
+                  window.history.pushState(null, '', examUrl);
                   return; 
               } else {
+                  // User wants to LEAVE.
                   setAnswers([]);
                   setTimeLeft(0);
                   setActiveExam(null);
+                  // Let syncStateFromUrl handle the navigation to the previous page
               }
           }
           syncStateFromUrl();
@@ -235,7 +252,7 @@ const App: React.FC = () => {
       window.addEventListener('popstate', handlePopState);
       syncStateFromUrl();
       return () => window.removeEventListener('popstate', handlePopState);
-  }, [syncStateFromUrl]);
+  }, [syncStateFromUrl, selectedAuthority, selectedLevel, selectedYear, selectedSubjectKey]);
 
 
   // --- SECURITY: ADMIN GATE ---
@@ -257,6 +274,7 @@ const App: React.FC = () => {
       case AppState.HOME: title = "Naajix | Home"; break;
       case AppState.EXAM_ACTIVE: title = activeExam ? `Naajix | ${activeExam.subject}` : "Naajix | Exam"; break;
       case AppState.DASHBOARD: title = "Naajix | Dashboard"; break;
+      case AppState.RESULTS: title = "Naajix | Results"; break;
       default: title = "Naajix";
     }
     document.title = title;
@@ -264,7 +282,6 @@ const App: React.FC = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!activeExam || !currentStudent) {
-      // Safety check: if session expired during exam
       alert("Session expired. Please log in to save results.");
       navigateTo(AppState.STUDENT_AUTH);
       return;
@@ -295,7 +312,14 @@ const App: React.FC = () => {
         const isCorrect = userAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
         const score = isCorrect ? q.marks : 0;
         const status = isCorrect ? (activeExam.language === 'somali' ? "✅ **Sax**" : "✅ **Correct**") : (activeExam.language === 'somali' ? "❌ **Qalad**" : "❌ **Incorrect**");
-        feedbackList.push({ questionId: q.id, score, feedback: status, userAnswer, question: q });
+        // Store feedback with original question data for display
+        feedbackList.push({ 
+            questionId: q.id, 
+            score, 
+            feedback: status, 
+            userAnswer, 
+            question: q 
+        });
         totalScore += score;
         sectionScores[q.section].score += score;
       });
@@ -337,6 +361,7 @@ const App: React.FC = () => {
         return idxA - idxB;
       });
 
+      const finalGrade = calculateGrade(totalScore, maxScore);
       const finalResult: ExamResult = {
         id: `res-${Date.now()}`, 
         studentId: currentStudent.id, 
@@ -346,12 +371,12 @@ const App: React.FC = () => {
         year: activeExam.year,
         score: totalScore, 
         maxScore, 
-        grade: calculateGrade(totalScore, maxScore), 
+        grade: finalGrade, 
         date: new Date().toISOString()
       };
 
       await saveExamResult(finalResult); 
-      setResults({ score: totalScore, maxScore, feedback: feedbackList, sectionScores });
+      setResults({ score: totalScore, maxScore, feedback: feedbackList, sectionScores, grade: finalGrade });
       navigateTo(AppState.RESULTS);
 
     } catch (e) {
@@ -396,14 +421,10 @@ const App: React.FC = () => {
   
   // Navigation Handlers ...
   const handleAuthoritySelect = (auth: ExamAuthority) => { 
-      // 1. STRICT LOGIN GATE
       if(!currentStudent) { 
-          // Redirect to auth if not logged in
           navigateTo(AppState.STUDENT_AUTH); 
           return; 
       }
-      
-      // 2. CHECK PLAN RESTRICTIONS
       if(currentStudent.subscriptionPlan === 'BASIC' && currentStudent.basicAuthority && currentStudent.basicAuthority !== auth) {
          alert(`Your Basic Plan is locked to ${currentStudent.basicAuthority === 'SOMALI_GOV' ? 'Somali Government' : 'Puntland'} exams. Please upgrade to Premium to access both.`); 
          return;
@@ -449,18 +470,12 @@ const App: React.FC = () => {
   // --- OPTIMIZED LOADING SCREEN ---
   if (loadingApp) return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 relative overflow-hidden">
-          {/* Animated Background Pulse */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-64 h-64 bg-blue-100 rounded-full animate-ping opacity-20"></div>
           </div>
-          
           <div className="relative z-10 flex flex-col items-center">
               <div className="w-20 h-20 relative loading-ring mb-6">
-                <img 
-                    src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
-                    alt="Naajix"
-                    className="w-full h-full object-contain rounded-full relative z-10" 
-                />
+                <img src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" alt="Naajix" className="w-full h-full object-contain rounded-full relative z-10" />
               </div>
               <h1 className="text-2xl font-black text-blue-900 tracking-tight animate-pulse">Naajix</h1>
               <p className="text-sm text-slate-500 font-medium mt-2">Preparing your exam environment...</p>
@@ -473,25 +488,9 @@ const App: React.FC = () => {
       return (
           <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6">
               <div className="bg-white p-8 rounded-xl max-w-md w-full text-center border-t-4 border-red-500 shadow-2xl">
-                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-2">{globalError.title}</h3>
                   <p className="text-slate-600 mb-4 font-medium">{globalError.msg}</p>
-                  
-                  {globalError.fix && (
-                      <div className="bg-blue-50 p-4 rounded-lg text-left text-sm text-blue-800 border border-blue-100 mb-6">
-                          <strong>How to fix:</strong>
-                          <p className="mt-1 font-mono text-xs break-all">{globalError.fix}</p>
-                      </div>
-                  )}
-
-                  <button 
-                    onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} 
-                    className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition"
-                  >
-                      Try Again
-                  </button>
+                  <button onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition">Try Again</button>
               </div>
           </div>
       );
@@ -514,7 +513,6 @@ const App: React.FC = () => {
   );
   if (view === AppState.ADMIN_PANEL) return <AdminPanel onLogout={handleLogout} />;
   
-  // ... Other simple views ...
   if (view === AppState.ABOUT) return <AboutPage onBack={() => navigateTo(AppState.HOME)} />;
   if (view === AppState.PRIVACY) return <PrivacyPage onBack={() => navigateTo(AppState.HOME)} />;
   if (view === AppState.CONTACT) return <ContactPage onBack={() => navigateTo(AppState.HOME)} />;
@@ -574,15 +572,56 @@ const App: React.FC = () => {
       );
   }
 
-  // ... (Exam Active & Results views logic identical to original, ensuring async saveResult is awaited in handleSubmit)
+  // --- RESULTS VIEW (Updated with Details) ---
   if (view === AppState.RESULTS && results) {
        return (
           <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
               <div className="bg-white p-8 rounded-xl shadow-lg border text-center mb-8">
                   <h2 className="text-2xl font-bold mb-2 text-slate-800">Exam Results</h2>
-                  <div className={`text-6xl font-black mb-2`}>{results.grade}</div>
+                  <div className={`text-6xl font-black mb-2 ${results.grade === 'F' ? 'text-red-600' : 'text-green-600'}`}>{results.grade}</div>
                   <p className="text-xl text-gray-600 font-mono">{Math.round(results.score)} / {results.maxScore} Marks</p>
-                  <button onClick={() => navigateTo(AppState.HOME)} className="mt-6 px-6 py-2 bg-blue-600 text-white rounded">Back Home</button>
+              </div>
+
+              {/* Detailed Breakdown */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-slate-800 border-b pb-2">Detailed Analysis</h3>
+                {results.feedback.map((item, idx) => (
+                    <div key={idx} className={`p-6 rounded-lg border text-left shadow-sm ${item.score > 0 ? 'bg-white border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="font-bold text-slate-700">Question {idx + 1}</span>
+                            <span className={`text-sm font-bold px-2 py-1 rounded ${item.score > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {item.score} / {item.question.marks} Marks
+                            </span>
+                        </div>
+                        <p className="mb-4 text-slate-900 font-medium text-lg leading-relaxed"><FormattedText text={item.question.text} /></p>
+                        
+                        <div className="grid md:grid-cols-2 gap-4 text-sm mb-4">
+                            <div className="bg-gray-50 p-4 rounded border border-gray-100">
+                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Your Answer</span>
+                                <span className={`text-base font-medium ${item.userAnswer ? "text-slate-800" : "text-gray-400 italic"}`}>
+                                    {item.userAnswer || "No answer provided"}
+                                </span>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded border border-blue-100">
+                                <span className="block text-xs font-bold text-blue-500 uppercase mb-1">Correct Answer</span>
+                                <span className="text-base font-medium text-blue-900">{item.question.correctAnswer}</span>
+                            </div>
+                        </div>
+                        
+                        {item.feedback && (
+                            <div className="mt-4 pt-4 border-t border-gray-200/50">
+                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Evaluation / Explanation</span>
+                                {/* Cleanup AI status emojis to avoid duplication if present in text */}
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
+                                {item.question.explanation && <div className="mt-2 text-sm text-slate-600 bg-yellow-50 p-2 rounded"><strong>Note:</strong> {item.question.explanation}</div>}
+                            </div>
+                        )}
+                    </div>
+                ))}
+              </div>
+
+              <div className="text-center mt-8 pb-8">
+                 <button onClick={() => navigateTo(AppState.HOME)} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">Back to Home</button>
               </div>
           </div>
        );
@@ -590,36 +629,55 @@ const App: React.FC = () => {
   
   if (view === AppState.EXAM_ACTIVE && activeExam) {
        const question = activeExam.questions[currentQuestionIndex];
-       if(isGrading) return <div className="h-screen flex items-center justify-center">Grading... {gradingProgress}%</div>;
+       if(isGrading) return <div className="h-screen flex items-center justify-center font-bold text-xl">Grading Exam... {gradingProgress}%</div>;
        return (
            <div className="flex flex-col h-screen bg-gray-50">
-               <div className="bg-white p-4 flex justify-between items-center shadow">
-                   <span className="font-bold">{activeExam.subject}</span>
-                   <span className="text-red-600 font-mono">{formatTime(timeLeft)}</span>
+               <div className="bg-white p-4 flex justify-between items-center shadow sticky top-0 z-20">
+                   <span className="font-bold text-lg">{activeExam.subject}</span>
+                   <span className={`font-mono font-bold text-xl ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>{formatTime(timeLeft)}</span>
                </div>
                <div className="flex-1 p-6 overflow-y-auto">
-                   <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow" dir={activeExam.direction}>
-                        <h2 className="text-xl mb-4 font-bold">{currentQuestionIndex+1}. <FormattedText text={question.text} /></h2>
+                   <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100" dir={activeExam.direction}>
+                        <div className="flex justify-between items-center mb-6">
+                             <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Question {currentQuestionIndex+1} of {activeExam.questions.length}</span>
+                             <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{question.marks} Marks</span>
+                        </div>
+                        <h2 className="text-xl mb-6 font-bold leading-relaxed text-slate-800"><FormattedText text={question.text} /></h2>
                         {question.diagramUrl && <ExamImage src={Array.isArray(question.diagramUrl) ? question.diagramUrl[0] : question.diagramUrl} alt="Diagram" />}
                         {question.type === 'mcq' ? (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {question.options?.map(opt => (
-                                    <button key={opt} onClick={()=>handleAnswer(opt)} className={`w-full text-left p-3 border rounded ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-100 border-blue-500' : ''}`}>
+                                    <button key={opt} onClick={()=>handleAnswer(opt)} className={`w-full text-left p-4 border rounded-lg transition-all ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}>
                                         {opt}
                                     </button>
                                 ))}
                             </div>
                         ) : (
-                            <textarea className="w-full border p-2 rounded h-32" onChange={e=>handleAnswer(e.target.value)} value={answers.find(a=>a.questionId===question.id)?.answer || ''} />
+                            <textarea 
+                                className="w-full border p-4 rounded-lg h-48 focus:ring-2 focus:ring-blue-500 outline-none text-lg" 
+                                onChange={e=>handleAnswer(e.target.value)} 
+                                value={answers.find(a=>a.questionId===question.id)?.answer || ''} 
+                                placeholder="Type your answer here..."
+                            />
                         )}
                    </div>
                </div>
-               <div className="p-4 bg-white border-t flex justify-between">
-                   <button onClick={()=>setCurrentQuestionIndex(i=>Math.max(0,i-1))} disabled={currentQuestionIndex===0} className="px-4 py-2 bg-gray-200 rounded">Prev</button>
+               <div className="p-4 bg-white border-t flex justify-between items-center">
+                   <button onClick={()=>setCurrentQuestionIndex(i=>Math.max(0,i-1))} disabled={currentQuestionIndex===0} className="px-6 py-2 bg-gray-100 text-slate-600 font-bold rounded-lg disabled:opacity-50 hover:bg-gray-200 transition">Previous</button>
+                   
+                   <div className="flex gap-2">
+                       {/* Pagination Dots (Mobile hidden) */}
+                       <div className="hidden md:flex gap-1 items-center">
+                           {activeExam.questions.map((_, idx) => (
+                               <div key={idx} className={`w-2 h-2 rounded-full ${idx === currentQuestionIndex ? 'bg-blue-600' : answers.find(a=>a.questionId===activeExam.questions[idx].id) ? 'bg-green-400' : 'bg-gray-200'}`}></div>
+                           ))}
+                       </div>
+                   </div>
+
                    {currentQuestionIndex === activeExam.questions.length-1 ? (
-                       <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded">Submit</button>
+                       <button onClick={handleSubmit} className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-lg transition">Submit Exam</button>
                    ) : (
-                       <button onClick={()=>setCurrentQuestionIndex(i=>Math.min(activeExam.questions.length-1,i+1))} className="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
+                       <button onClick={()=>setCurrentQuestionIndex(i=>Math.min(activeExam.questions.length-1,i+1))} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Next</button>
                    )}
                </div>
            </div>
@@ -630,6 +688,7 @@ const App: React.FC = () => {
 };
 
 function calculateGrade(score: number, max: number): string {
+  if (max === 0) return 'F';
   const percentage = (score / max) * 100;
   if (percentage >= 90) return 'A+';
   if (percentage >= 85) return 'A';
