@@ -115,20 +115,22 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
                 </div>
             </div>
 
-            {student.subscriptionPlan === 'BASIC' && student.basicAuthority && (
-                <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 text-center">
-                    <div className="text-xs text-blue-500 font-bold uppercase">Locked Authority</div>
-                    <div className="font-bold text-blue-900">{student.basicAuthority === 'SOMALI_GOV' ? 'Somali Gov' : 'Puntland'}</div>
-                </div>
-            )}
+            <div className="flex gap-3">
+                 <button 
+                    onClick={onBack} // Goes to Home/Exam Selection
+                    className="px-6 py-3 rounded-lg font-bold text-blue-700 bg-blue-50 border border-blue-200 shadow-sm transition hover:bg-blue-100 flex items-center gap-2"
+                >
+                    <span>✏️</span> Start Practice Exam
+                </button>
 
-            <button 
-                onClick={() => setShowUpgradeModal(true)}
-                className={`px-6 py-3 rounded-lg font-bold text-white shadow-lg transition transform hover:-translate-y-0.5 
-                ${student.subscriptionPlan === 'PREMIUM' ? 'bg-green-600 hover:bg-green-700' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}
-            >
-                {student.subscriptionPlan === 'FREE' ? 'Upgrade Plan 🚀' : 'Extend / Manage'}
-            </button>
+                <button 
+                    onClick={() => setShowUpgradeModal(true)}
+                    className={`px-6 py-3 rounded-lg font-bold text-white shadow-lg transition transform hover:-translate-y-0.5 
+                    ${student.subscriptionPlan === 'PREMIUM' ? 'bg-green-600 hover:bg-green-700' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'}`}
+                >
+                    {student.subscriptionPlan === 'FREE' ? 'Upgrade Plan 🚀' : 'Extend / Manage'}
+                </button>
+            </div>
         </div>
 
         {/* 1. Summary Cards */}
@@ -184,13 +186,21 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
             )
         )}
 
-        {/* 3. Recent History Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-slate-800">Recent Exam History</h3>
+        {/* 3. Recent Exam History Table (Exams Taken) */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-slate-800">Exams Taken</h3>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">Total: {history.length}</span>
             </div>
             {history.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No exams taken yet. Go take your first exam!</div>
+                <div className="p-12 text-center">
+                    <div className="text-gray-400 text-4xl mb-3">📝</div>
+                    <h4 className="text-gray-500 font-bold mb-2">No exams taken yet</h4>
+                    <p className="text-gray-400 text-sm mb-4">Start practicing to see your results here.</p>
+                    <button onClick={onBack} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">
+                        Practice Now
+                    </button>
+                </div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">

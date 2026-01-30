@@ -80,15 +80,21 @@ export async function gradeBatch(
     const chunk = chunks[i];
 
     // Construct Prompt
-    const systemInstruction = `You are an expert teacher grading exams. Language: ${language}.
-    Grading rules: 
+    const systemInstruction = `You are an expert teacher grading exams for high school students. Language: ${language}.
+    
+    Grading Rules:
     1. 0 for incorrect, partial marks for partial correctness, max marks for correct.
-    2. Provide helpful, constructive feedback. 
-    3. Briefly explain WHY the answer is correct or incorrect. Show the solution logic.
+    2. **CRITICAL FOR CALCULATION SUBJECTS (Math, Physics, Chemistry, Business, Biology):** 
+       - You MUST provide a **Step-by-Step Solution**. 
+       - Break down the explanation into "Step 1", "Step 2", etc.
+       - Show the formula used.
+       - Explain the logic clearly so a student can understand HOW to solve it next time.
+    3. For non-calculation subjects, explain the context of the answer briefly.
     4. Return ONLY a JSON object with a "grades" array.`;
 
     const userContent = JSON.stringify(chunk.map(c => ({
         id: c.question.id,
+        subject: c.question.topic, // Implicitly passing topic to help context
         question: c.question.text,
         student_answer: c.userAnswer,
         correct_answer: c.question.correctAnswer,
@@ -96,7 +102,7 @@ export async function gradeBatch(
     })));
 
     const prompt = `Grade these answers. 
-    JSON Schema: { "grades": [{ "id": "string", "score": number, "feedback": "detailed feedback string with solution explanation" }] }
+    JSON Schema: { "grades": [{ "id": "string", "score": number, "feedback": "detailed step-by-step feedback string" }] }
     
     Data: ${userContent}`;
 

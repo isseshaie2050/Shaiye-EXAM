@@ -681,13 +681,18 @@ const App: React.FC = () => {
   if (view === AppState.RESULTS && results) {
        return (
           <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
-              <div className="bg-white p-8 rounded-xl shadow-lg border text-center mb-8">
+              <div className="bg-white p-8 rounded-xl shadow-lg border text-center mb-8 relative overflow-hidden">
+                   {/* LOGO */}
+                  <div className="flex justify-center mb-4">
+                      <img src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" alt="Naajix" className="h-16 w-auto" />
+                  </div>
+
                   <h2 className="text-2xl font-bold mb-2 text-slate-800">Exam Results</h2>
                   <div className={`text-6xl font-black mb-2 ${results.grade === 'F' ? 'text-red-600' : 'text-green-600'}`}>{results.grade}</div>
                   <p className="text-xl text-gray-600 font-mono">{Math.round(results.score)} / {results.maxScore} Marks</p>
               </div>
 
-              {/* Specific Upgrade Banner for Free Users */}
+              {/* Specific Upgrade Banner for Free Users - TOP */}
               {currentStudent?.subscriptionPlan === 'FREE' && (
                 <div className="mb-8 p-6 bg-gradient-to-r from-blue-900 to-purple-900 rounded-xl text-white shadow-2xl transform hover:scale-[1.02] transition-transform duration-300 border-2 border-yellow-400/50">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -743,10 +748,10 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* 2. AI Evaluation/Feedback */}
+                        {/* 2. Naajix Evaluation (Renamed from AI Evaluation) */}
                         {item.feedback && (
                             <div className="mt-4 pt-4 border-t border-gray-200/50">
-                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">AI Evaluation</span>
+                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Naajix Evaluation</span>
                                 {/* Cleanup AI status emojis to avoid duplication if present in text */}
                                 <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
                             </div>
@@ -754,6 +759,19 @@ const App: React.FC = () => {
                     </div>
                 ))}
               </div>
+
+               {/* UPGRADE BUTTON FOR FREE USERS (BOTTOM) */}
+               {currentStudent?.subscriptionPlan === 'FREE' && (
+                  <div className="mt-10 mb-4 text-center">
+                       <button
+                           onClick={() => navigateTo(AppState.DASHBOARD)}
+                           className="w-full md:w-auto px-10 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-black text-xl rounded-2xl hover:scale-105 transition-transform shadow-2xl animate-bounce"
+                        >
+                           ⭐ Unlock Full Exam Access (Upgrade) ⭐
+                        </button>
+                        <p className="mt-3 text-slate-500 text-sm">Get unlimited questions and advanced analytics.</p>
+                  </div>
+              )}
 
               <div className="text-center mt-8 pb-8 flex justify-center gap-4">
                  <button onClick={() => navigateTo(AppState.HOME)} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">Back to Home</button>
