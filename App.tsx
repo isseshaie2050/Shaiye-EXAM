@@ -751,10 +751,15 @@ const App: React.FC = () => {
                         {/* 2. Naajix Evaluation (Renamed from AI Evaluation) */}
                         {item.feedback && (
                             <div className="mt-4 pt-4 border-t border-gray-200/50">
-                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Naajix Evaluation</span>
-                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-                                    <FormattedText text={item.feedback} />
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">Naajix Evaluation</span>
+                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full border border-blue-100">AI Analysis</span>
                                 </div>
+                                <p className="text-xs text-slate-400 mb-3 italic">
+                                    AI-powered feedback analyzing the accuracy and clarity of your response.
+                                </p>
+                                {/* Cleanup AI status emojis to avoid duplication if present in text */}
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
                             </div>
                         )}
                     </div>
@@ -783,6 +788,7 @@ const App: React.FC = () => {
   
   if (view === AppState.EXAM_ACTIVE && activeExam) {
        const question = activeExam.questions[currentQuestionIndex];
+       const sectionPassage = activeExam.sectionPassages?.[question.section];
        
        // ANIMATED GRADING SCREEN
        if(isGrading) {
@@ -812,6 +818,20 @@ const App: React.FC = () => {
                </div>
                <div className="flex-1 p-6 overflow-y-auto">
                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100" dir={activeExam.direction}>
+                        
+                        {/* Persistent Reading Passage Display */}
+                        {sectionPassage && (
+                            <div className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-inner overflow-y-auto max-h-[300px]">
+                                <div className="text-xs font-bold text-blue-500 uppercase mb-2 tracking-wide flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                    Reading Passage
+                                </div>
+                                <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap font-serif">
+                                    <FormattedText text={sectionPassage} />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex justify-between items-center mb-6">
                              <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Question {currentQuestionIndex+1} of {activeExam.questions.length}</span>
                              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{question.marks} Marks</span>
