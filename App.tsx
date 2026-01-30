@@ -31,11 +31,13 @@ const formatTime = (seconds: number) => {
 // Component to render text with bold formatting by parsing **text**
 const FormattedText: React.FC<{ text: string }> = ({ text }) => {
   if (!text) return null;
+  // This regex captures the text inside **...**
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return (
     <span>
       {parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
+           // Render bold without the stars
            return <strong key={i} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
         }
         return <span key={i}>{part}</span>;
@@ -368,7 +370,7 @@ const App: React.FC = () => {
         const userAnswer = answers.find(a => a.questionId === q.id)?.answer || '';
         const isCorrect = userAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
         const score = isCorrect ? q.marks : 0;
-        const status = isCorrect ? (activeExam.language === 'somali' ? "✅ **Sax**" : "✅ **Correct**") : (activeExam.language === 'somali' ? "❌ **Qalad**" : "❌ **Incorrect**");
+        const status = isCorrect ? (activeExam.language === 'somali' ? "**Sax**" : "**Correct**") : (activeExam.language === 'somali' ? "**Qalad**" : "**Incorrect**");
         feedbackList.push({ 
             questionId: q.id, 
             score, 
@@ -758,8 +760,10 @@ const App: React.FC = () => {
                                 <p className="text-xs text-slate-400 mb-3 italic">
                                     AI-powered feedback analyzing the accuracy and clarity of your response.
                                 </p>
-                                {/* Cleanup AI status emojis to avoid duplication if present in text */}
-                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
+                                {/* Use FormattedText here to render bold markdown properly */}
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                    <FormattedText text={item.feedback} />
+                                </div>
                             </div>
                         )}
                     </div>

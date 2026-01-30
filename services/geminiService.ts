@@ -22,7 +22,7 @@ function gradeLocally(question: Question, userAnswer: string): { score: number, 
     
     // 1. Exact Match (Full marks)
     if (normUser === normCorrect) {
-        return { score: question.marks, feedback: "✅ **Correct** (Exact Match)" };
+        return { score: question.marks, feedback: "✅ **Correct**\n(Exact Match)" };
     }
 
     // 2. Keyword Matching (Partial Grading)
@@ -46,10 +46,10 @@ function gradeLocally(question: Question, userAnswer: string): { score: number, 
 
     if (matchRatio >= 0.7) {
         score = question.marks;
-        feedback = "✅ **Correct** (Keywords matched)";
+        feedback = "✅ **Correct**\n(Keywords matched)";
     } else if (matchRatio >= 0.4) {
         score = Math.max(1, Math.floor(question.marks / 2));
-        feedback = `⚠️ **Partially Correct** (Found key concepts)`;
+        feedback = `⚠️ **Partially Correct**\n(Found key concepts)`;
     }
 
     return { 
@@ -90,7 +90,8 @@ export async function gradeBatch(
        - Show the formula used.
        - Explain the logic clearly so a student can understand HOW to solve it next time.
     3. For non-calculation subjects, explain the context of the answer briefly.
-    4. Return ONLY a JSON object with a "grades" array.`;
+    4. Provide specific feedback for EVERY answer, even if correct or incorrect.
+    5. Return ONLY a JSON object with a "grades" array.`;
 
     const userContent = JSON.stringify(chunk.map(c => ({
         id: c.question.id,
@@ -156,12 +157,13 @@ export function formatFeedback(question: Question, score: number, aiFeedback: st
   
   let status = "";
   if (score === question.marks) {
-      status = isSomali ? "✅ **Sax**" : isArabic ? "✅ **صحيح**" : "✅ **Correct**";
+      status = isSomali ? "**Sax**" : isArabic ? "**صحيح**" : "**Correct**";
   } else if (score === 0) {
-      status = isSomali ? "❌ **Qalad**" : isArabic ? "❌ **خطأ**" : "❌ **Incorrect**";
+      status = isSomali ? "**Qalad**" : isArabic ? "**خطأ**" : "**Incorrect**";
   } else {
-      status = isSomali ? `⚠️ **Qeyb ahaan waa sax**` : isArabic ? `⚠️ **صحيح جزئيا**` : `⚠️ **Partially Correct**`;
+      status = isSomali ? "**Qeyb ahaan waa sax**" : isArabic ? "**صحيح جزئيا**" : "**Partially Correct**";
   }
 
+  // Combine status with feedback, ensuring Markdown bold syntax is preserved for the renderer
   return `${status}\n\n${aiFeedback}`;
 }
