@@ -11,7 +11,6 @@ import {
   signInWithPopup, 
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   updateProfile,
-  sendEmailVerification as firebaseSendEmailVerification,
   User
 } from "firebase/auth";
 
@@ -50,12 +49,7 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // STRICT: Enforce email verification. 
-    // If user logged in with password but isn't verified, kill session.
-    if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
-       await signOut(auth);
-       return { user: null, role: null };
-    }
+    // EMAIL VERIFICATION REMOVED: Allow access immediately
 
     // Construct a profile from Auth data only (No DB)
     const student: Student = {
@@ -146,25 +140,14 @@ export const loginWithGoogle = async () => {
     }
 };
 
-export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean, requiresConfirmation?: boolean, firebaseUser?: User }> => {
+export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean }> => {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
 
-        // 1. STRICT EMAIL VERIFICATION CHECK
-        if (!currentUser.emailVerified) {
-            // NOTE: We do NOT sign out immediately here. We return the user object so the UI 
-            // can offer a "Resend Verification" button. The Dashboard guard (validateCurrentSession) 
-            // will still prevent access to the app content.
-            return { 
-                success: false, 
-                requiresConfirmation: true, 
-                error: "Email not verified",
-                firebaseUser: currentUser // Pass back for resend capability
-            };
-        }
+        // EMAIL VERIFICATION REMOVED
 
-        // 2. CHECK FOR DEVICE CONFLICT (Only if verified)
+        // 2. CHECK FOR DEVICE CONFLICT
         const hasConflict = await checkDeviceConflict(currentUser.uid);
         
         const student: Student = {
@@ -199,42 +182,24 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
     }
 };
 
-export const resendVerificationEmail = async (user: User): Promise<{ success: boolean, error?: string }> => {
-    try {
-        // Construct action settings to help with delivery and redirection
-        const actionCodeSettings = {
-            url: window.location.href, // Redirect back to this app after verifying
-            handleCodeInApp: true,
-        };
-        await firebaseSendEmailVerification(user, actionCodeSettings);
-        return { success: true };
-    } catch (error: any) {
-        // Error handling for rate limiting
-        if (error.code === 'auth/too-many-requests') {
-            return { success: false, error: "Too many requests. Please wait a moment before resending." };
-        }
-        return { success: false, error: error.message };
-    }
-};
-
-export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, user?: Student, requiresConfirmation?: boolean }> => {
+export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, user?: Student }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
         
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
-        // 1. SEND VERIFICATION EMAIL
-        const actionCodeSettings = {
-            url: window.location.href,
-            handleCodeInApp: true,
+        // EMAIL VERIFICATION REMOVED: User is auto-logged in by firebase
+
+        const newStudent: Student = {
+             ...student,
+             id: userCredential.user.uid,
+             authProvider: 'email'
         };
-        await firebaseSendEmailVerification(userCredential.user, actionCodeSettings);
 
-        // 2. DO NOT AUTO LOGIN - Sign out immediately
-        await signOut(auth);
+        // Claim session immediately
+        await claimDeviceSession(newStudent.id);
 
-        // Return requiresConfirmation: true so UI knows to show the pending screen
-        return { success: true, requiresConfirmation: true };
+        return { success: true, user: newStudent };
     } catch (error: any) {
         console.error("Registration Error:", error.code, error.message);
         let msg = error.message;

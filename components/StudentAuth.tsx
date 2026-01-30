@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
 import { EducationLevel, Student } from '../types';
-import { logUserIn, registerStudent, loginWithGoogle, sendPasswordResetEmail, claimDeviceSession, resendVerificationEmail, logoutUser } from '../services/storageService';
-import { User } from 'firebase/auth';
+import { logUserIn, registerStudent, loginWithGoogle, sendPasswordResetEmail, claimDeviceSession } from '../services/storageService';
 
 interface StudentAuthProps {
   onLoginSuccess: (student: Student) => void;
@@ -10,13 +9,12 @@ interface StudentAuthProps {
 }
 
 const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) => {
-  // Views: 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT' | 'VERIFICATION_PENDING'
-  const [viewState, setViewState] = useState<'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT' | 'VERIFICATION_PENDING'>('LOGIN');
+  // Views: 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT'
+  const [viewState, setViewState] = useState<'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT'>('LOGIN');
   const [loading, setLoading] = useState(false);
   
   // Success States
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [resendStatus, setResendStatus] = useState<string>('');
 
   // Form State
   const [email, setEmail] = useState('');
@@ -26,9 +24,8 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   const [school, setSchool] = useState('');
   const [level, setLevel] = useState<EducationLevel>('FORM_IV');
   
-  // Temporary storage for conflict resolution or verification
+  // Temporary storage for conflict resolution
   const [pendingUser, setPendingUser] = useState<Student | null>(null);
-  const [unverifiedFirebaseUser, setUnverifiedFirebaseUser] = useState<User | null>(null);
   
   const [error, setError] = useState('');
 
@@ -53,10 +50,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
       if (res.success && res.user) {
           onLoginSuccess(res.user);
-      } else if (res.requiresConfirmation) {
-          // Store the firebase user object to allow resending email
-          if (res.firebaseUser) setUnverifiedFirebaseUser(res.firebaseUser);
-          setViewState('VERIFICATION_PENDING');
       } else if (res.conflict && res.user) {
           // Device Conflict Detected
           setPendingUser(res.user);
@@ -64,28 +57,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       } else {
           if (res.error?.includes('Invalid login credentials')) {
                setError("Incorrect email or password.");
-          } else if (res.error?.includes('Email not confirmed')) {
-               setError("Please confirm your email address before logging in.");
           } else {
                setError(res.error || 'Login failed. Please check your credentials.');
           }
-      }
-  };
-
-  const handleResendVerification = async () => {
-      if (!unverifiedFirebaseUser) {
-          setError("Session expired. Please login again to resend.");
-          return;
-      }
-      setLoading(true);
-      const res = await resendVerificationEmail(unverifiedFirebaseUser);
-      setLoading(false);
-
-      if (res.success) {
-          setResendStatus("Verification email sent! Please check your Inbox and Spam folder.");
-      } else {
-          setResendStatus("");
-          setError(res.error || "Failed to resend email.");
       }
   };
 
@@ -130,12 +104,8 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       const res = await registerStudent(newStudent, password);
       
       setLoading(false);
-      if (res.success) {
-          if (res.requiresConfirmation) {
-              setViewState('VERIFICATION_PENDING');
-          } else if (res.user) {
-              onLoginSuccess(res.user);
-          }
+      if (res.success && res.user) {
+          onLoginSuccess(res.user);
       } else {
           setError(res.error || "Registration failed. Please try again.");
       }
@@ -160,58 +130,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   };
 
   // --- RENDER STATES ---
-
-  if (viewState === 'VERIFICATION_PENDING') {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center border border-yellow-100">
-                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 text-yellow-600">
-                     <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">Verification Pending</h2>
-                <p className="text-slate-600 mb-6 leading-relaxed">
-                    We have sent you a verification email to <span className="font-bold text-slate-800">{email}</span>. Please verify it and log in.
-                </p>
-                
-                {resendStatus && (
-                    <div className="mb-6 p-3 bg-green-50 text-green-700 text-sm font-bold rounded border border-green-200">
-                        {resendStatus}
-                    </div>
-                )}
-                 {error && (
-                    <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm font-bold rounded border border-red-200">
-                        {error}
-                    </div>
-                )}
-
-                <div className="space-y-3">
-                    {unverifiedFirebaseUser && (
-                        <button 
-                            onClick={handleResendVerification}
-                            disabled={loading}
-                            className="w-full py-3 bg-white border-2 border-yellow-400 text-yellow-700 font-bold rounded-lg hover:bg-yellow-50 transition shadow-sm"
-                        >
-                            {loading ? 'Sending...' : 'Resend Verification Email'}
-                        </button>
-                    )}
-
-                    <button 
-                        onClick={() => {
-                            logoutUser(); // Ensure strict logout on exit
-                            setViewState('LOGIN');
-                            setError('');
-                            setResendStatus('');
-                            setUnverifiedFirebaseUser(null);
-                        }}
-                        className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg"
-                    >
-                        Back to Login
-                    </button>
-                </div>
-            </div>
-        </div>
-      );
-  }
 
   if (viewState === 'DEVICE_CONFLICT') {
       return (
@@ -408,7 +326,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                    </div>
 
                   <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition shadow-lg mt-4 disabled:opacity-50">
-                      {loading ? 'Creating Account...' : 'Sign Up & Verify Email'}
+                      {loading ? 'Creating Account...' : 'Sign Up'}
                   </button>
                   <button type="button" onClick={() => { setViewState('LOGIN'); setError(''); }} className="w-full py-2 text-slate-500 font-bold text-sm">
                       Back to Login
