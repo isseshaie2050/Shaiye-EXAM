@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { EducationLevel, Student } from '../types';
-import { logUserIn, registerStudent, loginWithGoogle, sendPasswordResetEmail } from '../services/storageService';
+import { logUserIn, registerStudent, loginWithGoogle, sendPasswordResetEmail, claimDeviceSession } from '../services/storageService';
 
 interface StudentAuthProps {
   onLoginSuccess: (student: Student) => void;
@@ -9,8 +9,8 @@ interface StudentAuthProps {
 }
 
 const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) => {
-  // Views: 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD'
-  const [viewState, setViewState] = useState<'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD'>('LOGIN');
+  // Views: 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT'
+  const [viewState, setViewState] = useState<'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD' | 'DEVICE_CONFLICT'>('LOGIN');
   const [loading, setLoading] = useState(false);
   
   // Success States
@@ -23,6 +23,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   const [phone, setPhone] = useState('');
   const [school, setSchool] = useState('');
   const [level, setLevel] = useState<EducationLevel>('FORM_IV');
+  
+  // Temporary storage for conflict resolution
+  const [pendingUser, setPendingUser] = useState<Student | null>(null);
   
   const [error, setError] = useState('');
 
@@ -44,8 +47,13 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       const res = await logUserIn(email, password);
       
       setLoading(false);
+
       if (res.success && res.user) {
           onLoginSuccess(res.user);
+      } else if (res.conflict && res.user) {
+          // Device Conflict Detected
+          setPendingUser(res.user);
+          setViewState('DEVICE_CONFLICT');
       } else {
           if (res.error?.includes('Invalid login credentials')) {
                setError("Incorrect email or password.");
@@ -55,6 +63,15 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                setError(res.error || 'Login failed. Please check your credentials.');
           }
       }
+  };
+
+  const handleForceLogin = async () => {
+      if (!pendingUser) return;
+      setLoading(true);
+      // Overwrite the session in DB
+      await claimDeviceSession(pendingUser.id);
+      setLoading(false);
+      onLoginSuccess(pendingUser);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -94,7 +111,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
               // AUTO LOGIN AND REDIRECT
               onLoginSuccess(res.user);
           } else {
-             // Fallback to login screen if user object missing (rare)
              setViewState('LOGIN');
              setError('Registration successful! Please log in.');
           }
@@ -122,6 +138,37 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
   };
 
   // --- RENDER STATES ---
+
+  if (viewState === 'DEVICE_CONFLICT') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 font-sans">
+             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center border border-red-100">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 animate-pulse">
+                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h2 className="text-xl font-bold text-slate-800 mb-2">Device Conflict Detected</h2>
+                <p className="text-slate-600 mb-6 text-sm">
+                    This account is currently active on another device. For security, you can only use one device at a time.
+                </p>
+                <div className="space-y-3">
+                    <button 
+                        onClick={handleForceLogin}
+                        disabled={loading}
+                        className="w-full py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition shadow-lg"
+                    >
+                        {loading ? 'Logging out other device...' : 'Log out other device & Continue'}
+                    </button>
+                    <button 
+                        onClick={() => { setViewState('LOGIN'); setPendingUser(null); }}
+                        className="w-full py-3 bg-gray-100 text-slate-600 font-bold rounded-lg hover:bg-gray-200 transition"
+                    >
+                        Cancel
+                    </button>
+                </div>
+             </div>
+        </div>
+      );
+  }
 
   if (resetEmailSent) {
       return (

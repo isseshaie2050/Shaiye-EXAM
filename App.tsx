@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, logoutUser, validateCurrentSession, verifyAdminCredentials } from './services/storageService';
+import { saveExamResult, logoutUser, validateCurrentSession, verifyAdminCredentials, subscribeToSessionUpdates } from './services/storageService';
 import { getExam, fetchDynamicExams } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
@@ -95,7 +95,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
         try {
-            // PERFORMANCE: Run fetches in parallel to reduce wait time
+            // PERFORMANCE: Run fetches in parallel
             const [_, sessionData] = await Promise.all([
                 fetchDynamicExams(),
                 validateCurrentSession()
@@ -108,12 +108,32 @@ const App: React.FC = () => {
         } catch (e) {
             console.error("Initialization error", e);
         } finally {
-            // Short timeout to ensure smooth transition
-            setTimeout(() => setLoadingApp(false), 500);
+            // PERFORMANCE: No artificial delay
+            setLoadingApp(false);
         }
     };
     init();
   }, []);
+
+  // --- SESSION MONITORING (Single Device Enforcement) ---
+  useEffect(() => {
+      let unsubscribe: (() => void) | undefined;
+      
+      if (currentStudent && !globalError) {
+          unsubscribe = subscribeToSessionUpdates(currentStudent.id, () => {
+              setGlobalError({
+                  title: "Session Terminated",
+                  msg: "You have logged in on another device. This session has been closed.",
+                  fix: "Login again here if you want to use this device."
+              });
+              setCurrentStudent(null);
+          });
+      }
+
+      return () => {
+          if (unsubscribe) unsubscribe();
+      };
+  }, [currentStudent, globalError]);
 
   // --- ROUTING ENGINE ---
   const buildUrl = (targetView: AppState, params?: { auth?: ExamAuthority, level?: EducationLevel, year?: number, subject?: string }) => {
@@ -148,7 +168,7 @@ const App: React.FC = () => {
       const url = buildUrl(targetView, params);
       window.history.pushState({}, '', url);
       
-      // Update State
+      // Update State immediately for responsiveness
       if (params) {
           if (params.auth) setSelectedAuthority(params.auth);
           if (params.level) setSelectedLevel(params.level);
@@ -164,6 +184,11 @@ const App: React.FC = () => {
 
     if (parts.length === 0 || parts[0] === '') {
         setView(AppState.HOME);
+        // Important: clear selections when going home
+        setSelectedAuthority(null);
+        setSelectedLevel(null);
+        setSelectedYear(null);
+        setSelectedSubjectKey(null);
         return;
     }
 
@@ -174,49 +199,78 @@ const App: React.FC = () => {
     if (root === 'about') { setView(AppState.ABOUT); return; }
     if (root === 'privacy') { setView(AppState.PRIVACY); return; }
     if (root === 'contact') { setView(AppState.CONTACT); return; }
+    if (root === 'results') { setView(AppState.RESULTS); return; }
     
     // Explicit Admin Routing
     if (root === 'adminpanel') {
-        if (parts.length > 1 && parts[1] === 'login') {
-             setView(AppState.ADMIN_LOGIN);
-        } else {
-             setView(AppState.ADMIN_PANEL);
-        }
+        if (parts.length > 1 && parts[1] === 'login') setView(AppState.ADMIN_LOGIN);
+        else setView(AppState.ADMIN_PANEL);
         return;
     }
 
-    if (root === 'results') {
-        setView(AppState.RESULTS);
-        return;
-    }
-
+    // Exam Path Routing: /exams/[auth]/[level]/[year]/[subject]/[mode]
     if (root === 'exams') {
-        const auth = parts[1] as ExamAuthority;
-        const level = parts[2] as EducationLevel;
-        const year = parts[3] ? parseInt(parts[3]) : null;
-        const subject = parts[4] || null;
-        const mode = parts[5] || null;
+        const authParam = parts[1]?.toUpperCase() as ExamAuthority;
+        const levelParam = parts[2]?.toUpperCase() as EducationLevel;
+        const yearParam = parts[3] ? parseInt(parts[3]) : null;
+        const subjectParam = parts[4] || null;
+        const modeParam = parts[5] || null;
 
-        // Ensure we pass null if undefined to clear state if navigating back up
-        setSelectedAuthority(auth || null);
-        setSelectedLevel(level || null);
-        setSelectedYear(year);
-        setSelectedSubjectKey(subject);
-
-        if (mode === 'take' && subject && year && level && auth) {
-             // Only enter active exam if explicitly navigated via code (usually). 
-             // If activeExam is null (e.g., refresh), go to Overview to avoid blank/error.
-             if (!activeExam) {
-                 setView(AppState.EXAM_OVERVIEW);
-             } else {
-                 setView(AppState.EXAM_ACTIVE);
-             }
+        // Validations to ensure we don't end up on blank pages
+        const validAuth = authParam === 'SOMALI_GOV' || authParam === 'PUNTLAND';
+        const validLevel = levelParam === 'FORM_IV' || levelParam === 'STD_8';
+        
+        // --- NAVIGATION STATE LOGIC ---
+        // We set the state based on URL depth. Crucially, if a parameter is missing in the URL,
+        // we MUST set the state to null to ensure the View renders correctly.
+        
+        setSelectedAuthority(validAuth ? authParam : null);
+        
+        // Depth 1: Authority only
+        if (validAuth && !levelParam) {
+            setSelectedLevel(null); setSelectedYear(null); setSelectedSubjectKey(null);
+            setView(AppState.LEVEL_SELECT);
+            return;
         }
-        else if (subject && year && level && auth) setView(AppState.EXAM_OVERVIEW);
-        else if (year && level && auth) setView(AppState.SUBJECT_SELECT);
-        else if (level && auth) setView(AppState.YEAR_SELECT);
-        else if (auth) setView(AppState.LEVEL_SELECT);
-        else setView(AppState.HOME); 
+
+        setSelectedLevel(validLevel ? levelParam : null);
+
+        // Depth 2: Authority + Level
+        if (validAuth && validLevel && !yearParam) {
+            setSelectedYear(null); setSelectedSubjectKey(null);
+            setView(AppState.YEAR_SELECT);
+            return;
+        }
+
+        setSelectedYear(yearParam);
+
+        // Depth 3: Auth + Level + Year
+        if (validAuth && validLevel && yearParam && !subjectParam) {
+            setSelectedSubjectKey(null);
+            setView(AppState.SUBJECT_SELECT);
+            return;
+        }
+
+        setSelectedSubjectKey(subjectParam);
+
+        // Depth 4: Auth + Level + Year + Subject
+        if (validAuth && validLevel && yearParam && subjectParam) {
+            if (modeParam === 'take') {
+                // Determine if we can really take the exam or need to load it
+                if (!activeExam) {
+                    // If refreshing on a /take URL, fallback to overview to load data
+                    setView(AppState.EXAM_OVERVIEW);
+                } else {
+                    setView(AppState.EXAM_ACTIVE);
+                }
+            } else {
+                setView(AppState.EXAM_OVERVIEW);
+            }
+            return;
+        }
+        
+        // Fallback for weird URLs
+        setView(AppState.HOME);
         return;
     }
 
@@ -229,7 +283,6 @@ const App: React.FC = () => {
               const confirmLeave = window.confirm("You are taking an exam. Leaving now will lose progress. Are you sure?");
               if (!confirmLeave) {
                   // User wants to STAY.
-                  // Reconstruct current exam URL and push it back to prevent browser from leaving
                    const examUrl = buildUrl(AppState.EXAM_ACTIVE, { 
                       auth: selectedAuthority!, 
                       level: selectedLevel!, 
@@ -239,18 +292,18 @@ const App: React.FC = () => {
                   window.history.pushState(null, '', examUrl);
                   return; 
               } else {
-                  // User wants to LEAVE.
+                  // User wants to LEAVE. Clean up active exam state.
                   setAnswers([]);
                   setTimeLeft(0);
                   setActiveExam(null);
-                  // Let syncStateFromUrl handle the navigation to the previous page
+                  // Allow syncStateFromUrl to handle the rest
               }
           }
           syncStateFromUrl();
       };
 
       window.addEventListener('popstate', handlePopState);
-      syncStateFromUrl();
+      syncStateFromUrl(); // Initial sync
       return () => window.removeEventListener('popstate', handlePopState);
   }, [syncStateFromUrl, selectedAuthority, selectedLevel, selectedYear, selectedSubjectKey]);
 
@@ -312,7 +365,6 @@ const App: React.FC = () => {
         const isCorrect = userAnswer.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
         const score = isCorrect ? q.marks : 0;
         const status = isCorrect ? (activeExam.language === 'somali' ? "✅ **Sax**" : "✅ **Correct**") : (activeExam.language === 'somali' ? "❌ **Qalad**" : "❌ **Incorrect**");
-        // Store feedback with original question data for display
         feedbackList.push({ 
             questionId: q.id, 
             score, 
@@ -399,9 +451,7 @@ const App: React.FC = () => {
   }, [view, timeLeft, isPaused, handleSubmit]);
 
   const handleAdminLogin = () => {
-      // Local check for admin
       if (verifyAdminCredentials(adminUser, adminPass)) {
-          // Fake session for admin locally
           const adminUserObj = { id: 'admin-001', fullName: 'System Admin' } as Student;
           setCurrentStudent(adminUserObj);
           setCurrentUserRole('admin');
@@ -486,11 +536,13 @@ const App: React.FC = () => {
   // --- GLOBAL ERROR MODAL ---
   if (globalError) {
       return (
-          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6">
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6 backdrop-blur-sm">
               <div className="bg-white p-8 rounded-xl max-w-md w-full text-center border-t-4 border-red-500 shadow-2xl">
                   <h3 className="text-xl font-bold text-slate-800 mb-2">{globalError.title}</h3>
-                  <p className="text-slate-600 mb-4 font-medium">{globalError.msg}</p>
-                  <button onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition">Try Again</button>
+                  <p className="text-slate-600 mb-6 font-medium">{globalError.msg}</p>
+                  <button onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition">
+                      {globalError.fix || "Login Again"}
+                  </button>
               </div>
           </div>
       );
@@ -519,22 +571,32 @@ const App: React.FC = () => {
   
   if (view === AppState.LEVEL_SELECT) return (
        <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
-         <button onClick={()=>navigateTo(AppState.HOME)} className="mb-8">← Back</button>
+         <button onClick={()=>navigateTo(AppState.HOME)} className="mb-8 font-bold text-slate-500 hover:text-blue-600">← Back to Home</button>
          <h1 className="text-2xl font-bold mb-8">Select Level</h1>
          <div className="grid md:grid-cols-2 gap-8">
-             <div onClick={()=>handleLevelSelect('STD_8')} className="bg-white p-8 rounded shadow cursor-pointer hover:shadow-lg">Standard 8</div>
-             <div onClick={()=>handleLevelSelect('FORM_IV')} className="bg-white p-8 rounded shadow cursor-pointer hover:shadow-lg">Form IV</div>
+             <div onClick={()=>handleLevelSelect('STD_8')} className="bg-white p-8 rounded-xl shadow-lg cursor-pointer hover:shadow-xl hover:-translate-y-1 transition text-center border border-gray-100">
+                 <div className="text-4xl mb-4">📘</div>
+                 <div className="font-black text-xl text-slate-800">Standard 8</div>
+                 <div className="text-sm text-slate-500">Middle School</div>
+             </div>
+             <div onClick={()=>handleLevelSelect('FORM_IV')} className="bg-white p-8 rounded-xl shadow-lg cursor-pointer hover:shadow-xl hover:-translate-y-1 transition text-center border border-gray-100">
+                 <div className="text-4xl mb-4">🎓</div>
+                 <div className="font-black text-xl text-slate-800">Form IV</div>
+                 <div className="text-sm text-slate-500">Secondary School</div>
+             </div>
          </div>
        </div>
   );
   
   if (view === AppState.YEAR_SELECT) return (
        <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
-         <button onClick={()=>navigateTo(AppState.LEVEL_SELECT, {auth: selectedAuthority!})} className="mb-8">← Back</button>
+         <button onClick={()=>navigateTo(AppState.LEVEL_SELECT, {auth: selectedAuthority!})} className="mb-8 font-bold text-slate-500 hover:text-blue-600">← Back to Levels</button>
          <h1 className="text-2xl font-bold mb-4">Select Year</h1>
          <div className="space-y-2 w-full max-w-md">
              {ACADEMIC_YEARS.slice().reverse().map(y => (
-                 <button key={y} onClick={()=>handleYearSelect(y)} className="w-full p-4 bg-white rounded shadow hover:bg-blue-50 text-left font-bold">{y} Exam</button>
+                 <button key={y} onClick={()=>handleYearSelect(y)} className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md hover:bg-blue-50 text-left font-bold border border-gray-100 transition">
+                     {y} Examination
+                 </button>
              ))}
          </div>
        </div>
@@ -542,11 +604,12 @@ const App: React.FC = () => {
 
   if (view === AppState.SUBJECT_SELECT) return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <button onClick={() => navigateTo(AppState.YEAR_SELECT, { auth: selectedAuthority!, level: selectedLevel! })} className="mb-6">← Back</button>
-            <h1 className="text-3xl font-bold mb-6">Select Subject</h1>
+            <button onClick={() => navigateTo(AppState.YEAR_SELECT, { auth: selectedAuthority!, level: selectedLevel! })} className="mb-6 font-bold text-slate-500 hover:text-blue-600">← Back to Years</button>
+            <h1 className="text-3xl font-bold mb-6 text-center text-slate-800">Select Subject</h1>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 {EXAM_HIERARCHY[selectedAuthority!][selectedLevel!].map(key => (
-                     <button key={key} onClick={() => handleSubjectSelect(key)} className="p-5 border rounded bg-white hover:shadow-lg font-bold capitalize">
+                     <button key={key} onClick={() => handleSubjectSelect(key)} className="p-6 border border-gray-100 rounded-xl bg-white hover:shadow-lg font-bold capitalize hover:bg-blue-50 transition flex flex-col items-center text-center">
+                         <span className="text-sm text-slate-400 font-mono mb-2 uppercase">{selectedLevel === 'STD_8' ? 'Std 8' : 'Form 4'}</span>
                          {SUBJECT_CONFIG[key]?.label || key}
                      </button>
                 ))}
@@ -559,15 +622,44 @@ const App: React.FC = () => {
       if(!exam) return <div className="p-10 text-center">Exam Not Found</div>;
       
       return (
-          <div className="p-8 max-w-2xl mx-auto text-center mt-10">
-              <h1 className="text-3xl font-bold mb-2">{exam.subject} ({exam.year})</h1>
-              <p className="mb-8 text-gray-600">{exam.questions.length} Questions • {exam.durationMinutes} Minutes</p>
-              {currentStudent?.subscriptionPlan === 'FREE' && (
-                  <div className="bg-orange-50 p-4 mb-6 rounded border border-orange-200 text-orange-800 text-sm">
-                      ⚠️ Free Plan: You will receive 5 random questions. Upgrade for full access.
+          <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+              <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full text-center border border-gray-100">
+                  <div className="mb-6">
+                     <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">{selectedAuthority} • {selectedLevel}</span>
                   </div>
-              )}
-              <button onClick={startExam} className="px-10 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg">Start Exam</button>
+                  <h1 className="text-3xl font-black mb-2 text-slate-900">{exam.subject}</h1>
+                  <h2 className="text-xl text-slate-500 font-bold mb-8">{exam.year} Examination</h2>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                          <div className="text-2xl font-black text-slate-800">{exam.questions.length}</div>
+                          <div className="text-xs text-slate-500 font-bold uppercase">Questions</div>
+                      </div>
+                       <div className="p-4 bg-slate-50 rounded-lg">
+                          <div className="text-2xl font-black text-slate-800">{exam.durationMinutes}</div>
+                          <div className="text-xs text-slate-500 font-bold uppercase">Minutes</div>
+                      </div>
+                  </div>
+
+                  {currentStudent?.subscriptionPlan === 'FREE' && (
+                      <div className="bg-orange-50 p-4 mb-6 rounded-lg border border-orange-200 text-orange-800 text-sm flex items-start gap-3 text-left">
+                          <span className="text-xl">⚠️</span>
+                          <div>
+                              <strong>Free Plan Detected</strong>
+                              <p className="mt-1">You will receive 5 random questions. Upgrade for full access.</p>
+                          </div>
+                      </div>
+                  )}
+
+                  <div className="space-y-3">
+                      <button onClick={startExam} className="w-full px-10 py-4 bg-green-600 text-white rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg hover:-translate-y-1 transition">
+                          Start Exam
+                      </button>
+                      <button onClick={() => navigateTo(AppState.SUBJECT_SELECT, {auth: selectedAuthority!, level: selectedLevel!, year: selectedYear!})} className="w-full px-10 py-3 text-slate-500 font-bold hover:bg-gray-100 rounded-xl transition">
+                          Cancel
+                      </button>
+                  </div>
+              </div>
           </div>
       );
   }

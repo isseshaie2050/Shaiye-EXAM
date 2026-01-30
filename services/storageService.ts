@@ -1,6 +1,7 @@
 
 import { ExamResult, Student, SubscriptionPlan, ExamAuthority, UserRole } from '../types';
 import { auth } from './firebase';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -11,6 +12,19 @@ import {
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   updateProfile
 } from "firebase/auth";
+
+// Initialize Firestore
+const db = getFirestore();
+
+// --- DEVICE IDENTITY ---
+const getDeviceId = (): string => {
+    let id = localStorage.getItem('naajix_device_id');
+    if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('naajix_device_id', id);
+    }
+    return id;
+};
 
 // --- SESSION MANAGEMENT ---
 
@@ -57,7 +71,60 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
 };
 
 export const logoutUser = async () => {
+    // Optional: Clear session record from DB on logout if desired, 
+    // but usually we just sign out auth.
     await signOut(auth);
+};
+
+// --- DEVICE SESSION CONTROL ---
+
+export const checkDeviceConflict = async (userId: string): Promise<boolean> => {
+    try {
+        const sessionRef = doc(db, 'sessions', userId);
+        const sessionSnap = await getDoc(sessionRef);
+        
+        if (sessionSnap.exists()) {
+            const data = sessionSnap.data();
+            const currentDeviceId = getDeviceId();
+            // If DB has a device ID and it's NOT this one, we have a conflict
+            if (data.deviceId && data.deviceId !== currentDeviceId) {
+                return true; 
+            }
+        }
+        return false;
+    } catch (error) {
+        console.error("Error checking session:", error);
+        return false; // Fail open if DB issue
+    }
+};
+
+export const claimDeviceSession = async (userId: string) => {
+    try {
+        const currentDeviceId = getDeviceId();
+        const sessionRef = doc(db, 'sessions', userId);
+        await setDoc(sessionRef, {
+            deviceId: currentDeviceId,
+            lastLogin: new Date().toISOString(),
+            platform: navigator.platform
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error claiming session:", error);
+    }
+};
+
+// Returns a cleanup function (unsubscribe)
+export const subscribeToSessionUpdates = (userId: string, onConflict: () => void) => {
+    const sessionRef = doc(db, 'sessions', userId);
+    return onSnapshot(sessionRef, (doc) => {
+        const currentDeviceId = getDeviceId();
+        if (doc.exists()) {
+            const data = doc.data();
+            // If the DB says a different device is active, trigger conflict
+            if (data.deviceId && data.deviceId !== currentDeviceId) {
+                onConflict();
+            }
+        }
+    });
 };
 
 // --- AUTHENTICATION ---
@@ -72,12 +139,14 @@ export const loginWithGoogle = async () => {
     }
 };
 
-export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student }> => {
+export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean }> => {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
 
-        // Construct and return the student object so the UI knows we succeeded
+        // CHECK FOR CONFLICT BEFORE RETURNING SUCCESS
+        const hasConflict = await checkDeviceConflict(currentUser.uid);
+        
         const student: Student = {
             id: currentUser.uid,
             fullName: currentUser.displayName || 'Student',
@@ -91,12 +160,18 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
             subscriptionStatus: 'active'
         };
 
+        if (hasConflict) {
+            // Return success false, but indicate conflict so UI can show "Force Login" button
+            return { success: false, conflict: true, user: student }; 
+        }
+
+        // No conflict, claim session immediately
+        await claimDeviceSession(currentUser.uid);
+
         return { success: true, user: student };
     } catch (error: any) {
         console.error("Login Error:", error.code, error.message);
         let msg = error.message;
-        
-        // Map Firebase error codes to specific messages
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
             msg = "Email or password is incorrect";
         }
@@ -108,10 +183,11 @@ export const registerStudent = async (student: Student, password: string): Promi
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
         
-        // Save the name to the Auth Profile
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
-        // Construct the student object to return for auto-login
+        // New user -> Claim session immediately
+        await claimDeviceSession(userCredential.user.uid);
+
         const newStudent: Student = {
             ...student,
             id: userCredential.user.uid
@@ -121,8 +197,6 @@ export const registerStudent = async (student: Student, password: string): Promi
     } catch (error: any) {
         console.error("Registration Error:", error.code, error.message);
         let msg = error.message;
-
-        // Map Firebase error codes to specific messages
         if (error.code === 'auth/email-already-in-use') {
              msg = "User already exists. Please sign in";
         }
