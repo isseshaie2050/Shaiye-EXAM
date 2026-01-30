@@ -11,7 +11,8 @@ import {
   signInWithPopup, 
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   updateProfile,
-  sendEmailVerification
+  sendEmailVerification as firebaseSendEmailVerification,
+  User
 } from "firebase/auth";
 
 // Initialize Firestore
@@ -145,16 +146,22 @@ export const loginWithGoogle = async () => {
     }
 };
 
-export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean, requiresConfirmation?: boolean }> => {
+export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean, requiresConfirmation?: boolean, firebaseUser?: User }> => {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
 
         // 1. STRICT EMAIL VERIFICATION CHECK
-        // We check this BEFORE anything else (DB calls, conflicts, etc.)
         if (!currentUser.emailVerified) {
-            await signOut(auth); // Immediately force logout
-            return { success: false, requiresConfirmation: true, error: "Email not verified" };
+            // NOTE: We do NOT sign out immediately here. We return the user object so the UI 
+            // can offer a "Resend Verification" button. The Dashboard guard (validateCurrentSession) 
+            // will still prevent access to the app content.
+            return { 
+                success: false, 
+                requiresConfirmation: true, 
+                error: "Email not verified",
+                firebaseUser: currentUser // Pass back for resend capability
+            };
         }
 
         // 2. CHECK FOR DEVICE CONFLICT (Only if verified)
@@ -192,6 +199,24 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
     }
 };
 
+export const resendVerificationEmail = async (user: User): Promise<{ success: boolean, error?: string }> => {
+    try {
+        // Construct action settings to help with delivery and redirection
+        const actionCodeSettings = {
+            url: window.location.href, // Redirect back to this app after verifying
+            handleCodeInApp: true,
+        };
+        await firebaseSendEmailVerification(user, actionCodeSettings);
+        return { success: true };
+    } catch (error: any) {
+        // Error handling for rate limiting
+        if (error.code === 'auth/too-many-requests') {
+            return { success: false, error: "Too many requests. Please wait a moment before resending." };
+        }
+        return { success: false, error: error.message };
+    }
+};
+
 export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, user?: Student, requiresConfirmation?: boolean }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
@@ -199,7 +224,11 @@ export const registerStudent = async (student: Student, password: string): Promi
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
         // 1. SEND VERIFICATION EMAIL
-        await sendEmailVerification(userCredential.user);
+        const actionCodeSettings = {
+            url: window.location.href,
+            handleCodeInApp: true,
+        };
+        await firebaseSendEmailVerification(userCredential.user, actionCodeSettings);
 
         // 2. DO NOT AUTO LOGIN - Sign out immediately
         await signOut(auth);
