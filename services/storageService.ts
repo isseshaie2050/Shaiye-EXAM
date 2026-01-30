@@ -10,7 +10,8 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  sendEmailVerification
 } from "firebase/auth";
 
 // Initialize Firestore
@@ -46,6 +47,13 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
     
     if (!currentUser) {
       return { user: null, role: null };
+    }
+
+    // Enforce email verification for persisted sessions
+    // Note: Google accounts are automatically verified, but email/password ones might not be if session persisted weirdly.
+    if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
+       await signOut(auth);
+       return { user: null, role: null };
     }
 
     // Construct a profile from Auth data only (No DB)
@@ -139,10 +147,16 @@ export const loginWithGoogle = async () => {
     }
 };
 
-export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean }> => {
+export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student, conflict?: boolean, requiresConfirmation?: boolean }> => {
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
+
+        // EMAIL VERIFICATION CHECK
+        if (!currentUser.emailVerified) {
+            await signOut(auth);
+            return { success: false, requiresConfirmation: true, error: "Email not verified" };
+        }
 
         // CHECK FOR CONFLICT BEFORE RETURNING SUCCESS
         const hasConflict = await checkDeviceConflict(currentUser.uid);
@@ -185,15 +199,18 @@ export const registerStudent = async (student: Student, password: string): Promi
         
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
-        // New user -> Claim session immediately
-        await claimDeviceSession(userCredential.user.uid);
+        // SEND VERIFICATION EMAIL
+        await sendEmailVerification(userCredential.user);
+
+        // DO NOT AUTO LOGIN - Sign out immediately
+        await signOut(auth);
 
         const newStudent: Student = {
             ...student,
             id: userCredential.user.uid
         };
 
-        return { success: true, user: newStudent };
+        return { success: true, user: newStudent, requiresConfirmation: true };
     } catch (error: any) {
         console.error("Registration Error:", error.code, error.message);
         let msg = error.message;
