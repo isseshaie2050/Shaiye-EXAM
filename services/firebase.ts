@@ -15,5 +15,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export Auth instance only (No Firestore/DB yet)
+// Export Auth instance only
 export const auth = getAuth(app);

@@ -5,9 +5,10 @@ import { SubscriptionPlan, ExamAuthority, Student } from '../types';
 
 interface Props {
   onBack: () => void;
+  onLogout?: () => void; // New optional prop for custom logout handling
 }
 
-const StudentDashboard: React.FC<Props> = ({ onBack }) => {
+const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
   const [student, setStudent] = useState<Student | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [stats, setStats] = useState<any[]>([]);
@@ -22,7 +23,7 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
           
           if (user) {
               setStudent(user);
-              // Fetch exam history linked to this user from Supabase
+              // Fetch exam history linked to this user (Empty in Auth-only mode but safe)
               const h = await getStudentExamHistory(user.id);
               setHistory(h);
               // Calculate stats
@@ -43,9 +44,12 @@ const StudentDashboard: React.FC<Props> = ({ onBack }) => {
   
   const handleLogout = async () => {
       await logoutUser();
-      onBack(); 
-      // Force reload to clear any residual state
-      window.location.reload(); 
+      if (onLogout) {
+          onLogout();
+      } else {
+          onBack(); 
+          window.location.reload(); 
+      }
   };
 
   const getDaysRemaining = () => {

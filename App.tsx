@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
-import { saveExamResult, getStudentExamHistory, logoutUser, validateCurrentSession, verifyAdminCredentials, logUserIn } from './services/storageService';
-import { getExam, getAvailableYears, fetchDynamicExams } from './services/examService';
+import { saveExamResult, logoutUser, validateCurrentSession, verifyAdminCredentials } from './services/storageService';
+import { getExam, fetchDynamicExams } from './services/examService';
 import LandingPage from './components/LandingPage';
 import StudentDashboard from './components/StudentDashboard';
 import AdminPanel from './components/AdminPanel';
@@ -391,7 +391,7 @@ const App: React.FC = () => {
       await logoutUser();
       setCurrentStudent(null);
       setCurrentUserRole(null);
-      navigateTo(AppState.HOME);
+      navigateTo(AppState.STUDENT_AUTH);
   };
   
   // Navigation Handlers ...
@@ -497,10 +497,10 @@ const App: React.FC = () => {
       );
   }
 
-  // --- VIEW RENDERING (Simplified for brevity as structure is same) ---
+  // --- VIEW RENDERING ---
   if (view === AppState.HOME) return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={(target) => { if(target===AppState.DASHBOARD) { if(currentStudent) navigateTo(AppState.DASHBOARD); else navigateTo(AppState.STUDENT_AUTH); } else navigateTo(target); }} />;
-  if (view === AppState.STUDENT_AUTH) return <StudentAuth onLoginSuccess={(student) => { setCurrentStudent(student); setCurrentUserRole('student'); navigateTo(AppState.HOME); }} onCancel={() => navigateTo(AppState.HOME)} />;
-  if (view === AppState.DASHBOARD) return <StudentDashboard onBack={() => navigateTo(AppState.HOME)} />;
+  if (view === AppState.STUDENT_AUTH) return <StudentAuth onLoginSuccess={(student) => { setCurrentStudent(student); setCurrentUserRole('student'); navigateTo(AppState.DASHBOARD); }} onCancel={() => navigateTo(AppState.HOME)} />;
+  if (view === AppState.DASHBOARD) return <StudentDashboard onBack={() => navigateTo(AppState.HOME)} onLogout={() => { handleLogout(); navigateTo(AppState.STUDENT_AUTH); }} />;
   if (view === AppState.ADMIN_LOGIN) return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md space-y-4">

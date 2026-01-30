@@ -34,18 +34,17 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // Since we are NOT using a database yet, we construct a default student profile
-    // based on the Auth data.
+    // Construct a profile from Auth data only (No DB)
     const student: Student = {
         id: currentUser.uid,
         fullName: currentUser.displayName || 'Student',
         email: currentUser.email || '',
-        phone: '', // Not available in Auth
+        phone: '', 
         school: 'Not Specified',
-        level: 'FORM_IV', // Default
+        level: 'FORM_IV',
         registeredAt: new Date().toISOString(),
         authProvider: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
-        subscriptionPlan: 'FREE', // Default for now
+        subscriptionPlan: 'FREE', 
         subscriptionStatus: 'active'
     };
     
@@ -78,7 +77,9 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
         await signInWithEmailAndPassword(auth, email, password);
         return { success: true };
     } catch (error: any) {
+        console.error("Login Error:", error.code, error.message);
         let msg = error.message;
+        
         // Map Firebase error codes to specific messages
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
             msg = "Email or password is incorrect";
@@ -90,12 +91,15 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
 export const registerStudent = async (student: Student, password: string): Promise<{ success: boolean, error?: string, requiresConfirmation?: boolean }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, student.email!, password);
-        // Save the name to the Auth Profile since we aren't using a DB
+        
+        // Save the name to the Auth Profile
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
         return { success: true };
     } catch (error: any) {
+        console.error("Registration Error:", error.code, error.message);
         let msg = error.message;
+
         // Map Firebase error codes to specific messages
         if (error.code === 'auth/email-already-in-use') {
              msg = "User already exists. Please sign in";
@@ -120,22 +124,18 @@ export const verifyAdminCredentials = (u: string, p: string): boolean => {
 // --- STUBS FOR DB FUNCTIONS (Disabled for Auth-Only Mode) ---
 
 export const upgradeStudentSubscription = async (studentId: string, plan: SubscriptionPlan, authority?: ExamAuthority) => {
-    // No-op without DB
     return null;
 };
 
 export const getStudentExamHistory = async (studentId: string): Promise<ExamResult[]> => {
-    // No-op without DB
     return [];
 };
 
 export const saveExamResult = async (result: ExamResult): Promise<void> => {
-    // No-op without DB
     console.log("Exam finished (Result not saved - DB disabled)", result);
 };
 
 export const getSubjectStats = async (studentId: string) => {
-  // No-op without DB
   return [];
 };
 
