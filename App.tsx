@@ -429,7 +429,7 @@ const App: React.FC = () => {
         studentName: currentStudent.fullName,
         examId: activeExam.id, 
         subject: activeExam.subject, 
-        year: activeExam.year,
+        year: activeExam.year, 
         score: totalScore, 
         maxScore, 
         grade: finalGrade, 
@@ -687,6 +687,28 @@ const App: React.FC = () => {
                   <p className="text-xl text-gray-600 font-mono">{Math.round(results.score)} / {results.maxScore} Marks</p>
               </div>
 
+              {/* Specific Upgrade Banner for Free Users */}
+              {currentStudent?.subscriptionPlan === 'FREE' && (
+                <div className="mb-8 p-6 bg-gradient-to-r from-blue-900 to-purple-900 rounded-xl text-white shadow-2xl transform hover:scale-[1.02] transition-transform duration-300 border-2 border-yellow-400/50">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="text-center md:text-left">
+                            <h3 className="text-xl font-black text-yellow-300 mb-2 uppercase tracking-wide flex items-center justify-center md:justify-start gap-2">
+                                <span>⚠️</span> Free Plan Limit Reached
+                            </h3>
+                            <p className="font-medium text-blue-100 text-lg">
+                               Upgrade to unlock unlimited version of the exams and enter all exams without limit.
+                            </p>
+                        </div>
+                        <button
+                           onClick={() => navigateTo(AppState.DASHBOARD)}
+                           className="whitespace-nowrap px-8 py-4 bg-yellow-400 text-blue-900 font-black rounded-lg hover:bg-yellow-300 transition shadow-lg text-lg flex items-center gap-2 animate-pulse"
+                        >
+                           <span>🚀</span> UPGRADE NOW
+                        </button>
+                    </div>
+                </div>
+              )}
+
               {/* Detailed Breakdown */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-slate-800 border-b pb-2">Detailed Analysis</h3>
@@ -703,13 +725,13 @@ const App: React.FC = () => {
                         <div className="grid md:grid-cols-2 gap-4 text-sm mb-4">
                             <div className="bg-gray-50 p-4 rounded border border-gray-100">
                                 <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Your Answer</span>
-                                <span className={`text-base font-medium ${item.userAnswer ? "text-slate-800" : "text-gray-400 italic"}`}>
+                                <span className={`text-lg font-black ${item.userAnswer ? "text-slate-900" : "text-gray-400 italic"}`}>
                                     {item.userAnswer || "No answer provided"}
                                 </span>
                             </div>
                             <div className="bg-blue-50 p-4 rounded border border-blue-100">
                                 <span className="block text-xs font-bold text-blue-500 uppercase mb-1">Correct Answer</span>
-                                <span className="text-base font-medium text-blue-900">{item.question.correctAnswer}</span>
+                                <span className="text-lg font-black text-blue-900">{item.question.correctAnswer}</span>
                             </div>
                         </div>
                         
@@ -733,7 +755,7 @@ const App: React.FC = () => {
                 ))}
               </div>
 
-              <div className="text-center mt-8 pb-8">
+              <div className="text-center mt-8 pb-8 flex justify-center gap-4">
                  <button onClick={() => navigateTo(AppState.HOME)} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">Back to Home</button>
               </div>
           </div>
