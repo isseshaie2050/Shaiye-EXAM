@@ -74,8 +74,24 @@ export const loginWithGoogle = async () => {
 
 export const logUserIn = async (email: string, password: string): Promise<{ success: boolean, error?: string, user?: Student }> => {
     try {
-        await signInWithEmailAndPassword(auth, email, password);
-        return { success: true };
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const currentUser = userCredential.user;
+
+        // CRITICAL FIX: Construct and return the student object so the UI knows we succeeded
+        const student: Student = {
+            id: currentUser.uid,
+            fullName: currentUser.displayName || 'Student',
+            email: currentUser.email || '',
+            phone: '', 
+            school: 'Not Specified',
+            level: 'FORM_IV',
+            registeredAt: new Date().toISOString(),
+            authProvider: 'email',
+            subscriptionPlan: 'FREE', 
+            subscriptionStatus: 'active'
+        };
+
+        return { success: true, user: student };
     } catch (error: any) {
         console.error("Login Error:", error.code, error.message);
         let msg = error.message;
