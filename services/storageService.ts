@@ -49,8 +49,8 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // Enforce email verification for persisted sessions
-    // Note: Google accounts are automatically verified, but email/password ones might not be if session persisted weirdly.
+    // STRICT: Enforce email verification. 
+    // If user logged in with password but isn't verified, kill session.
     if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
        await signOut(auth);
        return { user: null, role: null };
@@ -79,8 +79,6 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
 };
 
 export const logoutUser = async () => {
-    // Optional: Clear session record from DB on logout if desired, 
-    // but usually we just sign out auth.
     await signOut(auth);
 };
 
@@ -152,13 +150,14 @@ export const logUserIn = async (email: string, password: string): Promise<{ succ
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const currentUser = userCredential.user;
 
-        // EMAIL VERIFICATION CHECK
+        // 1. STRICT EMAIL VERIFICATION CHECK
+        // We check this BEFORE anything else (DB calls, conflicts, etc.)
         if (!currentUser.emailVerified) {
-            await signOut(auth);
+            await signOut(auth); // Immediately force logout
             return { success: false, requiresConfirmation: true, error: "Email not verified" };
         }
 
-        // CHECK FOR CONFLICT BEFORE RETURNING SUCCESS
+        // 2. CHECK FOR DEVICE CONFLICT (Only if verified)
         const hasConflict = await checkDeviceConflict(currentUser.uid);
         
         const student: Student = {
@@ -199,18 +198,14 @@ export const registerStudent = async (student: Student, password: string): Promi
         
         await updateProfile(userCredential.user, { displayName: student.fullName });
 
-        // SEND VERIFICATION EMAIL
+        // 1. SEND VERIFICATION EMAIL
         await sendEmailVerification(userCredential.user);
 
-        // DO NOT AUTO LOGIN - Sign out immediately
+        // 2. DO NOT AUTO LOGIN - Sign out immediately
         await signOut(auth);
 
-        const newStudent: Student = {
-            ...student,
-            id: userCredential.user.uid
-        };
-
-        return { success: true, user: newStudent, requiresConfirmation: true };
+        // Return requiresConfirmation: true so UI knows to show the pending screen
+        return { success: true, requiresConfirmation: true };
     } catch (error: any) {
         console.error("Registration Error:", error.code, error.message);
         let msg = error.message;

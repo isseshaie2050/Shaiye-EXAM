@@ -51,7 +51,7 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
       if (res.success && res.user) {
           onLoginSuccess(res.user);
       } else if (res.requiresConfirmation) {
-          // Verification Required
+          // Verification Required - Switch to Pending View
           setViewState('VERIFICATION_PENDING');
       } else if (res.conflict && res.user) {
           // Device Conflict Detected
@@ -113,7 +113,6 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
           if (res.requiresConfirmation) {
               setViewState('VERIFICATION_PENDING');
           } else if (res.user) {
-              // Should not be reached given current logic, but fallback just in case
               onLoginSuccess(res.user);
           }
       } else {
@@ -148,9 +147,9 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
                 <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 text-yellow-600">
                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">Verify Your Email</h2>
+                <h2 className="text-2xl font-bold text-slate-800 mb-4">Verification Pending</h2>
                 <p className="text-slate-600 mb-8 leading-relaxed">
-                    We have sent you a verification email to <br/><span className="font-bold text-slate-800">{email}</span>. <br/>Please verify it and log in.
+                    We have sent you a verification email to <span className="font-bold text-slate-800">{email}</span>. Please verify it and log in.
                 </p>
                 <button 
                     onClick={() => {
