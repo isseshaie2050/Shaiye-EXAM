@@ -77,9 +77,12 @@ const App: React.FC = () => {
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [results, setResults] = useState<{ score: number, maxScore: number, feedback: any[], sectionScores: Record<string, {score: number, total: number}>, grade: string } | null>(null);
+  
+  // Grading State
   const [isGrading, setIsGrading] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [gradingProgress, setGradingProgress] = useState(0);
+  const [gradingMessage, setGradingMessage] = useState("Analyzing answers...");
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -122,9 +125,9 @@ const App: React.FC = () => {
       if (currentStudent && !globalError) {
           unsubscribe = subscribeToSessionUpdates(currentStudent.id, () => {
               setGlobalError({
-                  title: "Session Terminated",
-                  msg: "You have logged in on another device. This session has been closed.",
-                  fix: "Login again here if you want to use this device."
+                  title: "Device Switch Detected",
+                  msg: "A new login was detected on another device. To protect your account security, this session has been paused.",
+                  fix: "Continue here (Log out other device)"
               });
               setCurrentStudent(null);
           });
@@ -342,6 +345,7 @@ const App: React.FC = () => {
 
     setIsGrading(true);
     setGradingProgress(0);
+    setGradingMessage("Connecting to AI Grader...");
     setIsPaused(true);
 
     let totalScore = 0;
@@ -393,9 +397,13 @@ const App: React.FC = () => {
       setGradingProgress(Math.round((processedCount / totalQuestionsCount) * 100));
 
       if (textItemsToGrade.length > 0) {
+        setGradingMessage("Analyzing text responses...");
         const batchResults = await gradeBatch(textItemsToGrade, activeExam.language, (c, t) => {
              const currentTotal = processedCount + c;
              setGradingProgress(Math.round((currentTotal / totalQuestionsCount) * 100));
+             // Cycle messages based on progress
+             if (currentTotal / totalQuestionsCount > 0.8) setGradingMessage("Finalizing Results...");
+             else if (currentTotal / totalQuestionsCount > 0.5) setGradingMessage("Comparing with Answer Key...");
         });
         
         textItemsToGrade.forEach(item => {
@@ -407,6 +415,7 @@ const App: React.FC = () => {
       }
 
       setGradingProgress(100);
+      setGradingMessage("Saving Results...");
       feedbackList.sort((a, b) => {
         const idxA = activeExam.questions.findIndex(q => q.id === a.questionId);
         const idxB = activeExam.questions.findIndex(q => q.id === b.questionId);
@@ -533,14 +542,18 @@ const App: React.FC = () => {
       </div>
   );
 
-  // --- GLOBAL ERROR MODAL ---
+  // --- GLOBAL ERROR MODAL (Friendly Session Warning) ---
   if (globalError) {
       return (
-          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6 backdrop-blur-sm">
-              <div className="bg-white p-8 rounded-xl max-w-md w-full text-center border-t-4 border-red-500 shadow-2xl">
+          <div className="fixed inset-0 bg-slate-900/90 flex items-center justify-center z-50 p-6 backdrop-blur-sm">
+              <div className="bg-white p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                  <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-2">{globalError.title}</h3>
-                  <p className="text-slate-600 mb-6 font-medium">{globalError.msg}</p>
-                  <button onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} className="w-full py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition">
+                  <p className="text-slate-600 mb-6 font-medium leading-relaxed">{globalError.msg}</p>
+                  <button onClick={() => { setGlobalError(null); setView(AppState.STUDENT_AUTH); }} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg">
                       {globalError.fix || "Login Again"}
                   </button>
               </div>
@@ -700,12 +713,20 @@ const App: React.FC = () => {
                             </div>
                         </div>
                         
+                        {/* 1. Official Explanation (from DB) */}
+                         {item.question.explanation && (
+                            <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-100">
+                                <span className="block text-xs font-bold text-yellow-700 uppercase mb-1">Solution / Explanation</span>
+                                <div className="text-slate-700 text-sm">{item.question.explanation}</div>
+                            </div>
+                        )}
+
+                        {/* 2. AI Evaluation/Feedback */}
                         {item.feedback && (
                             <div className="mt-4 pt-4 border-t border-gray-200/50">
-                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Evaluation / Explanation</span>
+                                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">AI Evaluation</span>
                                 {/* Cleanup AI status emojis to avoid duplication if present in text */}
                                 <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">{item.feedback.replace(/✅ \*\*.*?\*\*\n\n|❌ \*\*.*?\*\*\n\n|⚠️ \*\*.*?\*\*\n\n/g, '')}</div>
-                                {item.question.explanation && <div className="mt-2 text-sm text-slate-600 bg-yellow-50 p-2 rounded"><strong>Note:</strong> {item.question.explanation}</div>}
                             </div>
                         )}
                     </div>
@@ -721,7 +742,27 @@ const App: React.FC = () => {
   
   if (view === AppState.EXAM_ACTIVE && activeExam) {
        const question = activeExam.questions[currentQuestionIndex];
-       if(isGrading) return <div className="h-screen flex items-center justify-center font-bold text-xl">Grading Exam... {gradingProgress}%</div>;
+       
+       // ANIMATED GRADING SCREEN
+       if(isGrading) {
+           return (
+             <div className="h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+                <div className="w-24 h-24 mb-8 relative">
+                    <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center font-bold text-blue-600">
+                        {gradingProgress}%
+                    </div>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2 animate-pulse">{gradingMessage}</h2>
+                <p className="text-slate-500 max-w-md">Our AI is evaluating your answers and generating personalized feedback. This usually takes about 10-20 seconds.</p>
+                <div className="mt-8 w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600 transition-all duration-300 ease-out" style={{ width: `${gradingProgress}%` }}></div>
+                </div>
+             </div>
+           );
+       }
+
        return (
            <div className="flex flex-col h-screen bg-gray-50">
                <div className="bg-white p-4 flex justify-between items-center shadow sticky top-0 z-20">

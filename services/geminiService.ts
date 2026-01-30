@@ -1,3 +1,4 @@
+
 import { Question } from "../types";
 import { GoogleGenAI } from "@google/genai";
 
@@ -79,9 +80,12 @@ export async function gradeBatch(
     const chunk = chunks[i];
 
     // Construct Prompt
-    const systemInstruction = `You are a strict teacher grading exams. Language: ${language}.
-    Grading rules: 0 for incorrect, partial marks for partial correctness, max marks for correct.
-    Return ONLY a JSON object with a "grades" array.`;
+    const systemInstruction = `You are an expert teacher grading exams. Language: ${language}.
+    Grading rules: 
+    1. 0 for incorrect, partial marks for partial correctness, max marks for correct.
+    2. Provide helpful, constructive feedback. 
+    3. Briefly explain WHY the answer is correct or incorrect. Show the solution logic.
+    4. Return ONLY a JSON object with a "grades" array.`;
 
     const userContent = JSON.stringify(chunk.map(c => ({
         id: c.question.id,
@@ -92,7 +96,7 @@ export async function gradeBatch(
     })));
 
     const prompt = `Grade these answers. 
-    JSON Schema: { "grades": [{ "id": "string", "score": number, "feedback": "concise feedback string" }] }
+    JSON Schema: { "grades": [{ "id": "string", "score": number, "feedback": "detailed feedback string with solution explanation" }] }
     
     Data: ${userContent}`;
 
