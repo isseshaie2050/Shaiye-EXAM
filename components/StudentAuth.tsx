@@ -33,7 +33,11 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
     setLoading(true);
     setError('');
     const res = await loginWithGoogle();
-    if (!res.success) {
+    
+    if (res.success && res.user) {
+        // Success - Redirect immediately
+        onLoginSuccess(res.user);
+    } else {
         setLoading(false);
         setError(res.error || "Google login failed.");
     }
@@ -46,19 +50,21 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
       const res = await logUserIn(email, password);
       
-      setLoading(false);
-
       if (res.success && res.user) {
           onLoginSuccess(res.user);
-      } else if (res.conflict && res.user) {
-          // Device Conflict Detected
-          setPendingUser(res.user);
-          setViewState('DEVICE_CONFLICT');
+          // Note: We don't set loading false here to prevent flicker during redirect
       } else {
-          if (res.error?.includes('Invalid login credentials')) {
-               setError("Incorrect email or password.");
+          setLoading(false);
+          if (res.conflict && res.user) {
+              // Device Conflict Detected
+              setPendingUser(res.user);
+              setViewState('DEVICE_CONFLICT');
           } else {
-               setError(res.error || 'Login failed. Please check your credentials.');
+              if (res.error?.includes('Invalid login credentials')) {
+                   setError("Incorrect email or password.");
+              } else {
+                   setError(res.error || 'Login failed. Please check your credentials.');
+              }
           }
       }
   };
@@ -103,10 +109,10 @@ const StudentAuth: React.FC<StudentAuthProps> = ({ onLoginSuccess, onCancel }) =
 
       const res = await registerStudent(newStudent, password);
       
-      setLoading(false);
       if (res.success && res.user) {
           onLoginSuccess(res.user);
       } else {
+          setLoading(false);
           setError(res.error || "Registration failed. Please try again.");
       }
   };

@@ -130,11 +130,30 @@ export const subscribeToSessionUpdates = (userId: string, onConflict: () => void
 
 // --- AUTHENTICATION ---
 
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (): Promise<{ success: boolean, error?: string, user?: Student }> => {
     try {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        return { success: true };
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // Construct Student Object
+        const student: Student = {
+            id: user.uid,
+            fullName: user.displayName || 'Student',
+            email: user.email || '',
+            phone: '', 
+            school: 'Not Specified',
+            level: 'FORM_IV',
+            registeredAt: new Date().toISOString(),
+            authProvider: 'google',
+            subscriptionPlan: 'FREE', 
+            subscriptionStatus: 'active'
+        };
+
+        // Claim session immediately
+        await claimDeviceSession(user.uid);
+
+        return { success: true, user: student };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
