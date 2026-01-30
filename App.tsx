@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole } from './types';
+import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
 import { gradeBatch, formatFeedback } from './services/geminiService';
 import { saveExamResult, logoutUser, validateCurrentSession, verifyAdminCredentials, subscribeToSessionUpdates } from './services/storageService';
@@ -504,13 +504,23 @@ const App: React.FC = () => {
     const examTemplate = getExam(selectedYear, selectedSubjectKey);
     if (!examTemplate) { alert("Exam not found."); return; }
 
-    let questionsToUse = examTemplate.questions;
-    questionsToUse = shuffleArray([...questionsToUse]).map(q => {
-        if (q.type === 'mcq' && q.options) return { ...q, options: shuffleArray([...q.options]) };
+    let questionsToUse: Question[] = [];
+
+    if (currentStudent.subscriptionPlan === 'FREE') {
+        // Free: Randomize order and take top 5
+        questionsToUse = shuffleArray([...examTemplate.questions]).slice(0, 5);
+    } else {
+        // Basic/Premium: Keep original ASCENDING order (1, 2, 3...)
+        questionsToUse = [...examTemplate.questions];
+    }
+
+    // Always shuffle options for MCQs to prevent position memorization
+    questionsToUse = questionsToUse.map(q => {
+        if (q.type === 'mcq' && q.options) {
+            return { ...q, options: shuffleArray([...q.options]) };
+        }
         return q;
     });
-
-    if (currentStudent.subscriptionPlan === 'FREE') questionsToUse = questionsToUse.slice(0, 5);
 
     setActiveExam({ ...examTemplate, questions: questionsToUse });
     setAnswers([]); setCurrentQuestionIndex(0);
