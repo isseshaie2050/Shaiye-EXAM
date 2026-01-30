@@ -1,22 +1,28 @@
 
 import { Exam, ExamAuthority, EducationLevel } from '../types';
 import { EXAM_DATABASE as STATIC_DATABASE } from '../constants';
-import { supabase } from './supabaseClient';
+import { db } from './firebase';
+import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 
 // Local cache to keep 'getExam' synchronous for UI rendering performance
 let DYNAMIC_CACHE: Record<string, Exam> = {};
 
 export const fetchDynamicExams = async () => {
-    const { data, error } = await supabase.from('custom_exams').select('*');
-    if (!error && data) {
+    try {
+        const querySnapshot = await getDocs(collection(db, "custom_exams"));
         const cache: Record<string, Exam> = {};
-        data.forEach((row: any) => {
-            const exam = row.exam_data as Exam;
-            // Ensure ID match
-            const key = `${exam.year}_${exam.subjectKey}`;
-            cache[key] = exam;
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            // Firestore data extraction
+            if (data.exam_data) {
+                const exam = data.exam_data as Exam;
+                const key = `${exam.year}_${exam.subjectKey}`;
+                cache[key] = exam;
+            }
         });
         DYNAMIC_CACHE = cache;
+    } catch (error) {
+        console.error("Failed to fetch dynamic exams", error);
     }
 };
 
@@ -28,14 +34,15 @@ export const saveDynamicExam = async (exam: Exam) => {
   DYNAMIC_CACHE[key] = exam;
 
   // Save to DB
-  const { error } = await supabase.from('custom_exams').upsert({
-      id: exam.id, // Use exam ID as primary key
-      year: exam.year,
-      subject_key: exam.subjectKey,
-      exam_data: exam
-  });
-
-  if (error) console.error("Failed to save exam to DB", error);
+  try {
+      await setDoc(doc(db, "custom_exams", exam.id), {
+          year: exam.year,
+          subject_key: exam.subjectKey,
+          exam_data: exam
+      });
+  } catch (error) {
+      console.error("Failed to save exam to DB", error);
+  }
 };
 
 export const getAllExams = (): Exam[] => {

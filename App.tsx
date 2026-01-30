@@ -94,43 +94,6 @@ const App: React.FC = () => {
   // --- APP INITIALIZATION ---
   useEffect(() => {
     const init = async () => {
-        // 1. Check for OAuth Errors in URL
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const searchParams = new URLSearchParams(window.location.search);
-        
-        const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
-        const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
-        const error = hashParams.get('error') || searchParams.get('error');
-
-        // CLEAN URL immediately to hide ugly params
-        if (error || errorDesc) {
-             window.history.replaceState({}, '', '/');
-        }
-
-        if (errorDesc) {
-            const decodedError = decodeURIComponent(errorDesc).replace(/\+/g, ' ');
-            
-            // ERROR TYPE 1: DATABASE ISSUE
-            if (decodedError.includes('Database error saving new user')) {
-                setGlobalError({
-                    title: "Database Configuration Missing",
-                    msg: "You are logged in, but the database rejected your profile creation.",
-                    fix: "Run the SQL script provided in the instructions to create the 'profiles' table and policies."
-                });
-            } 
-            // ERROR TYPE 2: REDIRECT URI MISMATCH
-            else if (errorCode === '400' || decodedError.includes('redirect_uri_mismatch')) {
-                 setGlobalError({
-                    title: "Google Configuration Error",
-                    msg: "Google blocked the login because the Redirect URI is incorrect.",
-                    fix: "In Google Cloud Console, set Redirect URI to: https://qacwagxmyzdacgbnynxu.supabase.co/auth/v1/callback"
-                });
-            }
-            else {
-                setGlobalError({ title: "Login Error", msg: decodedError });
-            }
-        }
-
         try {
             // PERFORMANCE: Run fetches in parallel to reduce wait time
             const [_, sessionData] = await Promise.all([
