@@ -514,7 +514,7 @@ const App: React.FC = () => {
         questionsToUse = [...examTemplate.questions];
     }
 
-    // Always shuffle options for MCQs to prevent position memorization
+    // Always shuffle options for MCQs to prevent position memorization (A, B, C, D)
     questionsToUse = questionsToUse.map(q => {
         if (q.type === 'mcq' && q.options) {
             return { ...q, options: shuffleArray([...q.options]) };
