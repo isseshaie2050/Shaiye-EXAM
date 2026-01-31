@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { ExamAuthority, AppState } from '../types';
+import { ExamAuthority, AppState, Student } from '../types';
 
 interface LandingPageProps {
   onSelectAuthority: (authority: ExamAuthority) => void;
   onNavigate: (view: AppState) => void;
+  student: Student | null;
 }
 
 const HERO_SLIDES = [
@@ -35,7 +36,7 @@ const HERO_SLIDES = [
   }
 ];
 
-const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate, student }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-rotate slides
@@ -61,12 +62,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
            >
              Naajix
            </div>
-           <button 
-              onClick={() => onNavigate(AppState.DASHBOARD)}
-              className="px-5 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm font-bold hover:bg-white hover:text-blue-900 transition shadow-lg"
-            >
-              Student Portal
-            </button>
+           
+           <div className="flex items-center gap-4">
+               {student && (
+                   <span className="hidden md:block text-white font-bold text-shadow-md bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                       Welcome back, {student.fullName.split(' ')[0]}! 👋
+                   </span>
+               )}
+               <button 
+                  onClick={() => onNavigate(AppState.DASHBOARD)}
+                  className="px-5 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm font-bold hover:bg-white hover:text-blue-900 transition shadow-lg"
+                >
+                  Student Portal
+                </button>
+           </div>
         </div>
 
         {/* Background Slider Wrapper */}

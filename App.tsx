@@ -493,6 +493,15 @@ const App: React.FC = () => {
       setCurrentUserRole(null);
       navigateTo(AppState.STUDENT_AUTH);
   };
+
+  const handleExitExam = () => {
+      if (window.confirm("⚠️ WARNING: You are about to cancel your exam.\n\nAll your progress will be lost and this attempt will not be saved. Are you sure you want to exit?")) {
+          setActiveExam(null);
+          setAnswers([]);
+          setTimeLeft(0);
+          navigateTo(AppState.DASHBOARD);
+      }
+  };
   
   // Navigation Handlers ...
   const handleAuthoritySelect = (auth: ExamAuthority) => { 
@@ -588,9 +597,9 @@ const App: React.FC = () => {
   }
 
   // --- VIEW RENDERING ---
-  if (view === AppState.HOME) return <LandingPage onSelectAuthority={handleAuthoritySelect} onNavigate={(target) => { if(target===AppState.DASHBOARD) { if(currentStudent) navigateTo(AppState.DASHBOARD); else navigateTo(AppState.STUDENT_AUTH); } else navigateTo(target); }} />;
+  if (view === AppState.HOME) return <LandingPage student={currentStudent} onSelectAuthority={handleAuthoritySelect} onNavigate={(target) => { if(target===AppState.DASHBOARD) { if(currentStudent) navigateTo(AppState.DASHBOARD); else navigateTo(AppState.STUDENT_AUTH); } else navigateTo(target); }} />;
   if (view === AppState.STUDENT_AUTH) return <StudentAuth onLoginSuccess={(student) => { setCurrentStudent(student); setCurrentUserRole('student'); navigateTo(AppState.DASHBOARD); }} onCancel={() => navigateTo(AppState.HOME)} />;
-  if (view === AppState.DASHBOARD) return <StudentDashboard onBack={() => navigateTo(AppState.HOME)} onLogout={() => { handleLogout(); navigateTo(AppState.STUDENT_AUTH); }} />;
+  if (view === AppState.DASHBOARD) return <StudentDashboard onBack={() => { window.location.href = '/'; }} onLogout={() => { handleLogout(); navigateTo(AppState.STUDENT_AUTH); }} />;
   if (view === AppState.ADMIN_LOGIN) return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md space-y-4">
@@ -808,7 +817,10 @@ const App: React.FC = () => {
               )}
 
               <div className="text-center mt-8 pb-8 flex justify-center gap-4">
-                 <button onClick={() => navigateTo(AppState.HOME)} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">Back to Home</button>
+                 <button onClick={() => {
+                     // Force refresh to clear state and go home
+                     window.location.href = '/';
+                 }} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">Return to Dashboard</button>
               </div>
           </div>
        );
@@ -845,8 +857,16 @@ const App: React.FC = () => {
        return (
            <div className="flex flex-col h-screen bg-gray-50">
                <div className="bg-white p-4 flex justify-between items-center shadow sticky top-0 z-20">
-                   <span className="font-bold text-lg">{activeExam.subject}</span>
-                   <span className={`font-mono font-bold text-xl ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>{formatTime(timeLeft)}</span>
+                   <div className="flex items-center gap-4">
+                       <span className="font-bold text-lg">{activeExam.subject}</span>
+                       <span className={`font-mono font-bold text-xl ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>{formatTime(timeLeft)}</span>
+                   </div>
+                   <button 
+                       onClick={handleExitExam} 
+                       className="px-4 py-2 bg-red-50 text-red-600 font-bold rounded-lg border border-red-200 hover:bg-red-100 transition text-sm flex items-center gap-2"
+                   >
+                       <span>✕</span> Exit Exam
+                   </button>
                </div>
                <div className="flex-1 p-6 overflow-y-auto">
                    <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100" dir={activeExam.direction}>
