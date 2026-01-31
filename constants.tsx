@@ -385,7 +385,7 @@ const ISLAMIC_STUDIES_2025_EXAM: Exam = {
   language: 'arabic',
   questions: [
     // MCQs
-    { id: 'isl-1', section: SectionType.MCQ, text: '1. عدة المرأة التي مات عنها زوجها:', type: 'mcq', options: ['ثلاثة أشهر', 'أربعة أشهر وعشرا', 'ثلاثة أشهر', 'أربعة أشهر'], correctAnswer: 'أربعة أشهر وعشرا', marks: 1, topic: 'Fiqh', explanation: 'عدة المتوفى عنها زوجها أربعة أشهر وعشرة أيام.' },
+    { id: 'isl-1', section: SectionType.MCQ, text: '1. عدة المرأة التي مات عنها زوجها:', type: 'mcq', options: ['ثلاثة قروء', 'أربعة أشهر وعشرا', 'ثلاثة أشهر', 'أربعة أشهر'], correctAnswer: 'أربعة أشهر وعشرا', marks: 1, topic: 'Fiqh', explanation: 'عدة المتوفى عنها زوجها أربعة أشهر وعشرة أيام.' },
     { id: 'isl-2', section: SectionType.MCQ, text: '2. قال الله سبحانه وتعالى: (وهو الذي جعل لكم النجوم لتهتدوا بها) الحكمة من خلق النجوم هي هداية:', type: 'mcq', options: ['الناس', 'الكون', 'الحيوان', 'العلماء'], correctAnswer: 'الناس', marks: 1, topic: 'Tafsir', explanation: 'لهداية الناس في ظلمات البر والبحر.' },
     { id: 'isl-3', section: SectionType.MCQ, text: '3. الطلاق الواقع بطلقة واحدة هو:', type: 'mcq', options: ['البدعي', 'السني', 'المعلق', 'البائن'], correctAnswer: 'السني', marks: 1, topic: 'Fiqh', explanation: 'الطلاق السني هو طلقة واحدة في طهر لم يمسها فيه.' },
     { id: 'isl-4', section: SectionType.MCQ, text: '4. أول مذهب من المذاهب الفقهية الأربعة هو مذهب:', type: 'mcq', options: ['الشافعي', 'الحنبلي', 'المالكي', 'الحنفي'], correctAnswer: 'الحنفي', marks: 1, topic: 'History', explanation: 'الإمام أبو حنيفة هو الأقدم (توفي 150 هـ).' },

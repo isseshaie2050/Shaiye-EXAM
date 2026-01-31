@@ -753,7 +753,7 @@ const App: React.FC = () => {
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-slate-800 border-b pb-2">Detailed Analysis</h3>
                 {results.feedback.map((item, idx) => (
-                    <div key={idx} className={`p-6 rounded-lg border text-left shadow-sm ${item.score > 0 ? 'bg-white border-green-200' : 'bg-red-50 border-red-200'}`}>
+                    <div key={idx} className={`p-6 rounded-lg border shadow-sm ${activeExam?.direction === 'rtl' ? 'text-right' : 'text-left'} ${item.score > 0 ? 'bg-white border-green-200' : 'bg-red-50 border-red-200'}`} dir={activeExam?.direction || 'ltr'}>
                         <div className="flex justify-between items-start mb-2">
                             <span className="font-bold text-slate-700">Question {idx + 1}</span>
                             <span className={`text-sm font-bold px-2 py-1 rounded ${item.score > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -893,7 +893,11 @@ const App: React.FC = () => {
                         {question.type === 'mcq' ? (
                             <div className="space-y-3">
                                 {question.options?.map(opt => (
-                                    <button key={opt} onClick={()=>handleAnswer(opt)} className={`w-full text-left p-4 border rounded-lg transition-all ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}>
+                                    <button 
+                                        key={opt} 
+                                        onClick={()=>handleAnswer(opt)} 
+                                        className={`w-full p-4 border rounded-lg transition-all ${activeExam.direction === 'rtl' ? 'text-right' : 'text-left'} ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}
+                                    >
                                         {opt}
                                     </button>
                                 ))}
@@ -944,16 +948,5 @@ const App: React.FC = () => {
 
   return <div>View Not Found</div>;
 };
-
-function calculateGrade(score: number, max: number): string {
-  if (max === 0) return 'F';
-  const percentage = (score / max) * 100;
-  if (percentage >= 90) return 'A+';
-  if (percentage >= 85) return 'A';
-  if (percentage >= 75) return 'B';
-  if (percentage >= 60) return 'C';
-  if (percentage >= 50) return 'D';
-  return 'F';
-}
 
 export default App;
