@@ -115,20 +115,21 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
         try {
-            // PERFORMANCE: Run fetches in parallel
-            const [_, sessionData] = await Promise.all([
-                fetchDynamicExams(),
-                validateCurrentSession()
-            ]);
+            // 1. Validate Session FIRST to establish Auth context
+            const sessionData = await validateCurrentSession();
             
             if (sessionData.user && sessionData.role) {
                 setCurrentStudent(sessionData.user);
                 setCurrentUserRole(sessionData.role);
             }
+
+            // 2. Fetch exams AFTER auth is potentially established
+            // This is critical if Firestore rules require auth (allow read: if request.auth != null)
+            await fetchDynamicExams();
+            
         } catch (e) {
             console.error("Initialization error", e);
         } finally {
-            // PERFORMANCE: No artificial delay
             setLoadingApp(false);
         }
     };

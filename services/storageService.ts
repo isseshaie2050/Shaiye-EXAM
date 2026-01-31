@@ -1,7 +1,7 @@
 
 import { ExamResult, Student, SubscriptionPlan, ExamAuthority, UserRole } from '../types';
-import { auth } from './firebase';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
+import { auth, db } from './firebase'; // Import db from centralized file
+import { doc, getDoc, setDoc, onSnapshot, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -13,9 +13,6 @@ import {
   updateProfile,
   User
 } from "firebase/auth";
-
-// Initialize Firestore
-const db = getFirestore();
 
 // --- VIP CONFIGURATION ---
 // Super Admin Email

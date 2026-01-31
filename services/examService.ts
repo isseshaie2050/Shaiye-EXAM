@@ -1,10 +1,8 @@
 
 import { Exam, ExamAuthority, EducationLevel } from '../types';
 import { EXAM_DATABASE as STATIC_DATABASE } from '../constants';
-import { getFirestore, collection, getDocs, setDoc, doc } from 'firebase/firestore';
-
-// Initialize Firestore
-const db = getFirestore();
+import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { db } from './firebase'; // Import initialized db
 
 // Local cache to keep 'getExam' synchronous for UI rendering performance
 let DYNAMIC_CACHE: Record<string, Exam> = {};
@@ -21,7 +19,7 @@ export const fetchDynamicExams = async () => {
         });
         console.log("Loaded exams from Firebase:", Object.keys(DYNAMIC_CACHE));
     } catch (e) {
-        console.error("Error fetching exams from Firebase:", e);
+        console.error("Error fetching exams from Firebase. Ensure Firestore Rules allow read access.", e);
     }
 };
 
@@ -42,7 +40,7 @@ export const saveDynamicExam = async (exam: Exam) => {
       console.log("Exam saved to Firebase successfully:", docId);
   } catch (e) {
       console.error("Error saving exam to Firebase:", e);
-      alert("Failed to save exam to cloud. Please check connection.");
+      alert("Failed to save exam to cloud. Check console for permission errors.");
       throw e;
   }
 };
