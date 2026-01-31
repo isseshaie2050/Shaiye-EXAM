@@ -97,7 +97,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         {/* Mobile: Solid Blue BG, stacked below image. Desktop: Transparent, centered over image. */}
         <div className="relative z-30 w-full md:max-w-5xl md:mx-auto text-center px-6 flex flex-col items-center py-12 md:pt-10 md:h-full md:justify-center bg-blue-900 md:bg-transparent">
           
-          {/* Animated Logo Container with White Circle Background */}
+          {/* Animated Logo Container with SOLID WHITE Circle Background */}
           <div className="w-48 md:w-80 mb-8 md:mb-10 animate-fade-in-up flex justify-center">
              <div className="bg-white rounded-full p-4 md:p-8 shadow-2xl flex items-center justify-center aspect-square">
                  <img 
