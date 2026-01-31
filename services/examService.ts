@@ -18,8 +18,12 @@ export const fetchDynamicExams = async () => {
             DYNAMIC_CACHE[key] = { ...exam, isCustom: true };
         });
         console.log("Loaded exams from Firebase:", Object.keys(DYNAMIC_CACHE));
-    } catch (e) {
-        console.error("Error fetching exams from Firebase. Ensure Firestore Rules allow read access.", e);
+    } catch (e: any) {
+        if (e.code === 'permission-denied') {
+             console.log("Guest user: Using static exams only (Cloud exams require login).");
+        } else {
+             console.error("Error fetching exams from Firebase:", e);
+        }
     }
 };
 

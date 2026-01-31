@@ -123,18 +123,27 @@ const App: React.FC = () => {
                 setCurrentUserRole(sessionData.role);
             }
 
-            // 2. Fetch exams AFTER auth is potentially established
-            // This is critical if Firestore rules require auth (allow read: if request.auth != null)
+            // 2. Fetch exams. If rules require auth, this might fail initially for guests
+            // but will be retried in the useEffect below once currentStudent is set.
             await fetchDynamicExams();
             
         } catch (e) {
-            console.error("Initialization error", e);
+            console.error("Initialization warning:", e);
         } finally {
             setLoadingApp(false);
         }
     };
     init();
   }, []);
+
+  // --- RE-FETCH EXAMS ON LOGIN ---
+  useEffect(() => {
+      if (currentStudent) {
+          // When user authenticates, fetch the cloud exams which might be protected by Firestore rules
+          // This fixes the issue where exams entered via Admin Panel are invisible to users
+          fetchDynamicExams().catch(e => console.error("Background fetch failed", e));
+      }
+  }, [currentStudent]);
 
   // --- SESSION MONITORING (Single Device Enforcement) ---
   useEffect(() => {
