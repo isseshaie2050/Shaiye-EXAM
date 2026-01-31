@@ -199,7 +199,7 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
              </div>
         )}
 
-        {activeTab === 'create' && <CreateExamForm />}
+        {activeTab === 'create' && <CreateExamForm onExamCreated={() => setRefreshTrigger(prev => prev + 1)} />}
       </div>
     </div>
   );
@@ -248,20 +248,60 @@ const UserTable: React.FC<{ users: Student[], onPlanChange: (id: string, plan: S
     );
 };
 
-// ... (CreateExamForm same as previous) ...
-const CreateExamForm: React.FC = () => {
-    const [authority, setAuthority] = useState<ExamAuthority>('SOMALI_GOV');
-    const [subjectKey, setSubjectKey] = useState<string>('math');
-    const [year, setYear] = useState<number>(2026);
-    const [language, setLanguage] = useState<'english'|'somali'|'arabic'>('english');
-    const [questions, setQuestions] = useState<Question[]>([]);
-    
-    // Simple stub for UI
+const CreateExamForm: React.FC<{ onExamCreated: () => void }> = ({ onExamCreated }) => {
+    const [jsonInput, setJsonInput] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleJsonUpload = async () => {
+        if (!jsonInput) return;
+        setLoading(true);
+        try {
+            const examData = JSON.parse(jsonInput);
+            // Basic validation
+            if (!examData.id || !examData.year || !examData.subjectKey || !examData.questions) {
+                alert("Invalid Exam JSON format. Must contain id, year, subjectKey, and questions.");
+                setLoading(false);
+                return;
+            }
+
+            await saveDynamicExam(examData);
+            alert(`Exam '${examData.subject}' (${examData.year}) saved to Firebase successfully!`);
+            setJsonInput('');
+            onExamCreated();
+        } catch (e) {
+            console.error(e);
+            alert("Error parsing JSON or saving to Firebase. Check console.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-             <h2 className="text-3xl font-bold text-slate-800">Create New Exam (Manual)</h2>
-             <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center">
-                <p className="text-gray-500">Exam creation interface loaded.</p>
+             <div className="flex justify-between items-end">
+                 <h2 className="text-3xl font-bold text-slate-800">Add New Exam</h2>
+             </div>
+             
+             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="font-bold text-lg mb-4 text-slate-700">Paste Exam JSON</h3>
+                <p className="text-sm text-slate-500 mb-4">
+                    Paste the full JSON object for the exam here. This will save it to the Firebase database, ensuring it persists across reloads.
+                </p>
+                <textarea 
+                    className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder='{ "id": "eng-2025", "year": 2025, "subject": "English", "subjectKey": "english", ... }'
+                    value={jsonInput}
+                    onChange={e => setJsonInput(e.target.value)}
+                />
+                <div className="mt-4 flex justify-end">
+                    <button 
+                        onClick={handleJsonUpload} 
+                        disabled={loading}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg disabled:opacity-50 transition"
+                    >
+                        {loading ? 'Saving to Database...' : 'Save Exam to Firebase'}
+                    </button>
+                </div>
              </div>
         </div>
     );
