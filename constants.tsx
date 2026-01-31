@@ -105,98 +105,25 @@ const MATHEMATICS_2025_EXAM: Exam = {
   ]
 };
 
-const ISLAMIC_STUDIES_2025_EXAM: Exam = {
-  id: 'isl-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.islamic.label,
-  subjectKey: SUBJECT_CONFIG.islamic.key,
-  durationMinutes: 120,
-  direction: 'rtl',
-  language: 'arabic',
-  questions: [
-    // MCQs
-    { id: 'isl-1', section: SectionType.MCQ, text: '1. عدة المرأة التي مات عنها زوجها:', type: 'mcq', options: ['ثلاثة قروء', 'أربعة أشهر وعشرا', 'ثلاثة أشهر', 'أربعة أشهر'], correctAnswer: 'أربعة أشهر وعشرا', marks: 1, topic: 'Fiqh', explanation: 'عدة المتوفى عنها زوجها أربعة أشهر وعشرة أيام.' },
-    { id: 'isl-2', section: SectionType.MCQ, text: '2. قال الله سبحانه وتعالى: (وهو الذي جعل لكم النجوم لتهتدوا بها) الحكمة من خلق النجوم هي هداية:', type: 'mcq', options: ['الناس', 'الكون', 'الحيوان', 'العلماء'], correctAnswer: 'الناس', marks: 1, topic: 'Tafsir', explanation: 'لهداية الناس في ظلمات البر والبحر.' },
-    { id: 'isl-3', section: SectionType.MCQ, text: '3. الطلاق الواقع بطلقة واحدة هو:', type: 'mcq', options: ['البدعي', 'السني', 'المعلق', 'البائن'], correctAnswer: 'السني', marks: 1, topic: 'Fiqh', explanation: 'الطلاق السني هو طلقة واحدة في طهر لم يمسها فيه.' },
-    { id: 'isl-4', section: SectionType.MCQ, text: '4. أول مذهب من المذاهب الفقهية الأربعة هو مذهب:', type: 'mcq', options: ['الشافعي', 'الحنبلي', 'المالكي', 'الحنفي'], correctAnswer: 'الحنفي', marks: 1, topic: 'History', explanation: 'الإمام أبو حنيفة هو الأقدم (توفي 150 هـ).' },
-    { id: 'isl-5', section: SectionType.MCQ, text: '5. من صفات عباد الرحمن المذكورة في سورة الفرقان (بالمفهوم المخالف أو المنهي عنه):', type: 'mcq', options: ['الكبر', 'عدم الحلم', 'التهديد بالقتل', 'التبذير'], correctAnswer: 'التبذير', marks: 1, topic: 'Tafsir', explanation: 'والذين إذا أنفقوا لم يسرفوا ولم يقتروا.' },
-    { id: 'isl-6', section: SectionType.MCQ, text: '6. من مؤلفات أحمد بن حنبل:', type: 'mcq', options: ['المدونة', 'الرسالة', 'الموطأ', 'المسند'], correctAnswer: 'المسند', marks: 1, topic: 'Hadith', explanation: 'مسند الإمام أحمد.' },
-    { id: 'isl-7', section: SectionType.MCQ, text: '7. عدد أبواب الجنة:', type: 'mcq', options: ['سبعة', 'ثمانية', 'ستة', 'تسعة'], correctAnswer: 'ثمانية', marks: 1, topic: 'Aqeedah', explanation: 'للجنة ثمانية أبواب.' },
-    { id: 'isl-8', section: SectionType.MCQ, text: '8. المقصود بكلمة (إملاق) في القرآن الكريم:', type: 'mcq', options: ['الهلاك', 'المصيبة', 'الفقر', 'العذاب'], correctAnswer: 'الفقر', marks: 1, topic: 'Vocabulary', explanation: 'الإملاق هو الفقر الشديد.' },
-    { id: 'isl-9', section: SectionType.MCQ, text: '9. من صور النفاق الاعتقادي:', type: 'mcq', options: ['الخيانة في الأمانة', 'تكذيب القرآن', 'الكذب في الحديث', 'إخلاف الموعد'], correctAnswer: 'تكذيب القرآن', marks: 1, topic: 'Aqeedah', explanation: 'تكذيب القرآن كفر مخرج من الملة (نفاق اعتقادي).' },
-    { id: 'isl-10', section: SectionType.MCQ, text: '10. ينقسم الحديث المقبول إلى قسمين هما:', type: 'mcq', options: ['المتواتر والآحاد', 'الضعيف والموضوع', 'الصحيح والحسن', 'المشهور والعزيز'], correctAnswer: 'الصحيح والحسن', marks: 1, topic: 'Hadith', explanation: 'المقبول يشمل الصحيح والحسن.' },
-    { id: 'isl-11', section: SectionType.MCQ, text: '11. (النهي يقتضي الفساد) هذه قاعدة:', type: 'mcq', options: ['فقهية', 'أصولية', 'تفسيرية', 'عقدية'], correctAnswer: 'أصولية', marks: 1, topic: 'Usul Fiqh', explanation: 'من قواعد أصول الفقه.' },
-    { id: 'isl-12', section: SectionType.MCQ, text: '12. من آداب البيع والشراء (تصحيح للسؤال):', type: 'mcq', options: ['إظهار عيوب المسلم', 'البعد عن الاحتكار', 'البعد عن التبذير', 'إقالة النادم'], correctAnswer: 'إقالة النادم', marks: 1, topic: 'Fiqh', explanation: 'من أقال مسلما أقال الله عثرته.' },
-    { id: 'isl-13', section: SectionType.MCQ, text: '13. المد في كلمة (يا أبا) هو:', type: 'mcq', options: ['البدل', 'المنفصل', 'اللازم', 'المتصل'], correctAnswer: 'المنفصل', marks: 1, topic: 'Tajweed', explanation: 'مد منفصل لأن الهمزة في كلمة أخرى.' },
-    { id: 'isl-14', section: SectionType.MCQ, text: '14. الآية (يكتبون الكتاب بأيديهم...) دليل على تحريف:', type: 'mcq', options: ['التوراة', 'القرآن', 'الإنجيل', 'الزبور'], correctAnswer: 'التوراة', marks: 1, topic: 'Aqeedah', explanation: 'نزلت في اليهود وتحريف التوراة.' },
-    { id: 'isl-15', section: SectionType.MCQ, text: '15. الحكم الشرعي للوصية للأقارب المحتاجين غير الوارثين:', type: 'mcq', options: ['الاستحباب', 'الوجوب', 'الكراهة', 'التحريم'], correctAnswer: 'الاستحباب', marks: 1, topic: 'Fiqh', explanation: 'مستحبة وقيل واجبة.' },
-    { id: 'isl-16', section: SectionType.MCQ, text: '16. من علامات قرب أجل النبي صلى الله عليه وسلم نزول:', type: 'mcq', options: ['سورة العصر', 'سورة الفتح', 'سورة النصر', 'سورة الكهف'], correctAnswer: 'سورة النصر', marks: 1, topic: 'Seerah', explanation: 'نعيت إليه نفسه.' },
-    { id: 'isl-17', section: SectionType.MCQ, text: '17. هو العلم الذي يعرف به حكم الله تعالى:', type: 'mcq', options: ['الفقه', 'التفسير', 'السنة', 'التوحيد'], correctAnswer: 'الفقه', marks: 1, topic: 'Fiqh', explanation: 'تعريف الفقه.' },
-    { id: 'isl-18', section: SectionType.MCQ, text: '18. المقصود بكلمة (عصمة) أي:', type: 'mcq', options: ['حفظ القرآن', 'التي لا يقرن بها', 'مكسورة القرآن', 'محفوظة القرآن'], correctAnswer: 'حفظ القرآن', marks: 1, topic: 'Vocabulary', explanation: 'العصمة تعني الحفظ والمنعة.' },
-    { id: 'isl-19', section: SectionType.MCQ, text: '19. الحيض مانع من وجوب الصلاة، هذا الحكم:', type: 'mcq', options: ['تكليفي', 'إجباري', 'تخييري', 'وضعي'], correctAnswer: 'وضعي', marks: 1, topic: 'Usul Fiqh', explanation: 'المانع من أقسام الحكم الوضعي.' },
-    { id: 'isl-20', section: SectionType.MCQ, text: '20. حكم الدعوة إلى الله تعالى (على الأمة):', type: 'mcq', options: ['فرض عين', 'فرض كفاية', 'مباح', 'مكروه'], correctAnswer: 'فرض كفاية', marks: 1, topic: 'Dawah', explanation: 'فرض كفاية إذا قام به البعض سقط عن الباقين.' },
-    { id: 'isl-21', section: SectionType.MCQ, text: '21. ما نزل القرآن في شأنه وقت وقوعه كما في سؤال (يسألونك) يسمى سببه:', type: 'mcq', options: ['النزول', 'السؤال', 'الحدث', 'الوقوع'], correctAnswer: 'السؤال', marks: 1, topic: 'Quran Sciences', explanation: 'سبب النزول قد يكون سؤالا.' },
-    { id: 'isl-22', section: SectionType.MCQ, text: '22. دية إصبع واحد من أصابع اليدين:', type: 'mcq', options: ['نصف الدية', 'عشر الدية', 'ربع الدية', 'ثلث الدية'], correctAnswer: 'عشر الدية', marks: 1, topic: 'Fiqh', explanation: 'في كل إصبع عشر من الإبل (عشر الدية).' },
-    { id: 'isl-23', section: SectionType.MCQ, text: '23. قال تعالى: (قل يا أهل الكتاب تعالوا إلى كلمة سواء...) دليل على مشروعية:', type: 'mcq', options: ['المخالطة', 'الحوار', 'الأمر', 'الوصايا'], correctAnswer: 'الحوار', marks: 1, topic: 'Tafsir', explanation: 'الحوار مع أهل الكتاب.' },
-    { id: 'isl-24', section: SectionType.MCQ, text: '24. إذا قال الرجل لزوجته (أنت طالق) فهذا الطلاق يسمى:', type: 'mcq', options: ['الكناية', 'الصريح', 'المنجز', 'المعلق'], correctAnswer: 'الصريح', marks: 1, topic: 'Fiqh', explanation: 'لفظ صريح لا يحتاج لنية.' },
-    { id: 'isl-25', section: SectionType.MCQ, text: '25. قال تعالى: (قال النبي باسم مولاه) - السؤال افتراضي حول كلمة مولى:', type: 'mcq', options: ['إسلامي', 'عثماني', 'رضوي', 'عبودي'], correctAnswer: 'عبودي', marks: 1, topic: 'Vocabulary', explanation: 'المولى قد تعني العبد أو السيد.' },
-    { id: 'isl-26', section: SectionType.MCQ, text: '26. من أسباب حصول الشفاعة كثرة:', type: 'mcq', options: ['العمل', 'الأولاد', 'العمل الصالح', 'قراءة القرآن'], correctAnswer: 'العمل الصالح', marks: 1, topic: 'Aqeedah', explanation: 'أو الصلاة على النبي.' },
-    { id: 'isl-27', section: SectionType.MCQ, text: '27. نصيب الزوجة إذا تركت زوجًا ولها فرع وارث:', type: 'mcq', options: ['الربع', 'السدس', 'النصف', 'الثمن'], correctAnswer: 'الثمن', marks: 1, topic: 'Inheritance', explanation: 'لوجود الفرع الوارث.' },
-    { id: 'isl-28', section: SectionType.MCQ, text: '28. مجال الاعتدال في قوله تعالى: (ولا تجعل يدك مغلولة إلى عنقك...):', type: 'mcq', options: ['العبادة', 'الصدق', 'العقوبة', 'الإنفاق'], correctAnswer: 'الإنفاق', marks: 1, topic: 'Tafsir', explanation: 'الاعتدال في الإنفاق.' },
-    { id: 'isl-29', section: SectionType.MCQ, text: '29. حكم السحر في الشريعة الإسلامية:', type: 'mcq', options: ['أخلاق', 'مكروه', 'حرام', 'عفو'], correctAnswer: 'حرام', marks: 1, topic: 'Aqeedah', explanation: 'من الكبائر.' },
-    { id: 'isl-30', section: SectionType.MCQ, text: '30. المقصود بـ (حد الحرابة) هو حد:', type: 'mcq', options: ['شرب الخمر', 'الردة', 'قطع الطريق', 'السرقة'], correctAnswer: 'قطع الطريق', marks: 1, topic: 'Fiqh', explanation: 'الحرابة هي قطع الطريق.' },
-    { id: 'isl-31', section: SectionType.MCQ, text: '31. الآية (يحرفون الكلم عن مواضعه) دليل على تحريف:', type: 'mcq', options: ['التوراة', 'الإنجيل', 'القرآن', 'الزبور'], correctAnswer: 'التوراة', marks: 1, topic: 'Aqeedah', explanation: 'نزلت في اليهود.' },
-    { id: 'isl-32', section: SectionType.MCQ, text: '32. ما نزل من القرآن قبل الهجرة حتى وإن نزل بغير مكة يسمى:', type: 'mcq', options: ['المدني', 'المصري', 'العراقي', 'المكي'], correctAnswer: 'المكي', marks: 1, topic: 'Quran Sciences', explanation: 'العبرة بالزمان.' },
-    { id: 'isl-33', section: SectionType.MCQ, text: '33. الزكاة الواجبة إخراجها من الغنم من (121 إلى 200):', type: 'mcq', options: ['شاتان', 'ثلاث شياه', 'أربع شياه', 'خمس شياه'], correctAnswer: 'شاتان', marks: 1, topic: 'Fiqh', explanation: 'نصاب الغنم.' },
-    { id: 'isl-34', section: SectionType.MCQ, text: '34. عدد الفروض المقدرة في كتاب الله تعالى:', type: 'mcq', options: ['أربعة', 'خمسة', 'ستة', 'سبعة'], correctAnswer: 'ستة', marks: 1, topic: 'Inheritance', explanation: 'النصف، الربع، الثمن، الثلثان، الثلث، السدس.' },
-    { id: 'isl-35', section: SectionType.MCQ, text: '35. من شروط خيار العيب:', type: 'mcq', options: ['أن يكون لمدة معلومة', 'أن لا يزيد العيب عن ثلاثة أيام', 'أن تكون معلومة', 'أن يكون العيب قديمًا'], correctAnswer: 'أن يكون العيب قديمًا', marks: 1, topic: 'Fiqh', explanation: 'يجب أن يكون العيب موجودا عند العقد.' },
-    { id: 'isl-36', section: SectionType.MCQ, text: '36. من أشهر الحج:', type: 'mcq', options: ['محرم', 'شوال', 'شعبان', 'رجب'], correctAnswer: 'شوال', marks: 1, topic: 'Fiqh', explanation: 'شوال وذو القعدة وذو الحجة.' },
-    { id: 'isl-37', section: SectionType.MCQ, text: '37. يستفاد من قوله تعالى: (سبح لله ما في السماوات...) - التسبيح يعني:', type: 'mcq', options: ['تعظيم الله', 'تمجيد الله', 'تنزيه الله', 'تكريم الله'], correctAnswer: 'تنزيه الله', marks: 1, topic: 'Tafsir', explanation: 'التسبيح هو التنزيه.' },
-    { id: 'isl-38', section: SectionType.MCQ, text: '38. وقع صلح الحديبية في السنة:', type: 'mcq', options: ['الثالثة للهجرة', 'الرابعة للهجرة', 'الخامسة للهجرة', 'السادسة للهجرة'], correctAnswer: 'السادسة للهجرة', marks: 1, topic: 'Seerah', explanation: '6 هـ.' },
-    { id: 'isl-39', section: SectionType.MCQ, text: '39. الإيمان بالكتب ركن من أركان:', type: 'mcq', options: ['الإسلام', 'الإيمان', 'الإحسان', 'الصلاة'], correctAnswer: 'الإيمان', marks: 1, topic: 'Aqeedah', explanation: 'أركان الإيمان ستة.' },
-    { id: 'isl-40', section: SectionType.MCQ, text: '40. حكم التوبة من الذنب:', type: 'mcq', options: ['واجبة', 'مستحبة', 'مندوبة', 'سنة'], correctAnswer: 'واجبة', marks: 1, topic: 'Aqeedah', explanation: 'واجبة على الفور.' },
-
-    // Structured
-    { id: 'isl-41', section: SectionType.SHORT_ANSWER, text: '1. حدد الفرق بين الجناية والجريمة مع بيان أوجه الشبه والاختلاف.', type: 'text', correctAnswer: 'الجناية أعم من الجريمة، أو الجريمة هي مخالفة الشرع...', marks: 4, topic: 'Fiqh', explanation: 'تفصيل الفرق الفقهي والقانوني.' },
-    { id: 'isl-42', section: SectionType.SHORT_ANSWER, text: '2. الفتنة آفة خطيرة تهدد الشعب الصومالي، اشرح طريقتها للتخلص منها.', type: 'text', correctAnswer: 'التمسك بالدين، الوحدة، العدل...', marks: 4, topic: 'General', explanation: 'حلول اجتماعية ودينية.' },
-    { id: 'isl-43', section: SectionType.SHORT_ANSWER, text: '3. قارن بين حقوق الإنسان في الإسلام وحقوق الإنسان في القوانين الوضعية.', type: 'text', correctAnswer: 'حقوق الإسلام ربانية وشاملة...', marks: 4, topic: 'General', explanation: 'مقارنة.' },
-    { id: 'isl-44', section: SectionType.SHORT_ANSWER, text: '4. استخرج الفوائد من آية: (قل يا أهل الكتاب تعالوا إلى كلمة سواء...).', type: 'text', correctAnswer: 'مشروعية الحوار، التوحيد أساس الدين...', marks: 4, topic: 'Tafsir', explanation: 'استنباط.' },
-    { id: 'isl-45', section: SectionType.SHORT_ANSWER, text: '5. في أي مجال تنطبق آية: (ذات اليمين وذات الشمال وأنتم لا تشعرون)؟', type: 'text', correctAnswer: 'في قدرة الله وتقليبه للأمور (أهل الكهف).', marks: 4, topic: 'Tafsir', explanation: 'قصة أهل الكهف.' },
-    { id: 'isl-46', section: SectionType.SHORT_ANSWER, text: '6. بيّن مقدار الواجب من هذه الأنصبة (زكاة/ميراث).', type: 'text', correctAnswer: 'تفصيل الأنصبة.', marks: 4, topic: 'Fiqh', explanation: 'حساب.' },
-    { id: 'isl-47', section: SectionType.SHORT_ANSWER, text: '7. استخرج أنواع المد الفرعي من الآيات.', type: 'text', correctAnswer: 'متصل، منفصل، لازم...', marks: 4, topic: 'Tajweed', explanation: 'أحكام التجويد.' },
-    { id: 'isl-48', section: SectionType.SHORT_ANSWER, text: '8. ما المعيار الحقيقي للتفاضل بين الناس؟', type: 'text', correctAnswer: 'التقوى.', marks: 4, topic: 'Aqeedah', explanation: 'إن أكرمكم عند الله أتقاكم.' },
-    { id: 'isl-49', section: SectionType.SHORT_ANSWER, text: '9. وضّح مقدار الديات في الأعضاء (اليد، العين، إلخ).', type: 'text', correctAnswer: 'نصف الدية في الواحد، كاملة في الاثنين.', marks: 4, topic: 'Fiqh', explanation: 'أحكام الديات.' },
-    { id: 'isl-50', section: SectionType.SHORT_ANSWER, text: '10. وضّح حقوق المرأة في الإسلام.', type: 'text', correctAnswer: 'الميراث، التملك، التعليم، الاختيار...', marks: 4, topic: 'General', explanation: 'حقوق.' },
-    { id: 'isl-51', section: SectionType.SHORT_ANSWER, text: '11. اذكر الأدلة الشرعية المتفق عليها.', type: 'text', correctAnswer: 'القرآن، السنة، الإجماع، القياس.', marks: 4, topic: 'Usul Fiqh', explanation: 'مصادر التشريع.' },
-    { id: 'isl-52', section: SectionType.SHORT_ANSWER, text: '12. متى يسقط حد القذف؟', type: 'text', correctAnswer: 'بالعفو، أو اللعان، أو إقامة البينة.', marks: 4, topic: 'Fiqh', explanation: 'مسقطات الحد.' },
-    { id: 'isl-53', section: SectionType.SHORT_ANSWER, text: '13. بيّن أنواع الواجب.', type: 'text', correctAnswer: 'موسع/مضيق، عيني/كفائي، محدد/غير محدد.', marks: 4, topic: 'Usul Fiqh', explanation: 'أقسام الواجب.' },
-    { id: 'isl-54', section: SectionType.SHORT_ANSWER, text: '14. عدّد مراتب النفس.', type: 'text', correctAnswer: 'الأمارة بالسوء، اللوامة، المطمئنة.', marks: 4, topic: 'Tazkiyah', explanation: 'أنواع النفس.' },
-    { id: 'isl-55', section: SectionType.SHORT_ANSWER, text: '15. ما الفرق بين القرآن الكريم والحديث القدسي؟', type: 'text', correctAnswer: 'القرآن لفظ ومعنى من الله ومتعبد بتلاوته. القدسي معناه من الله ولفظه من النبي.', marks: 4, topic: 'Quran Sciences', explanation: 'فروق.' }
-  ]
-};
-
-// --- MISSING EXAM DEFINITIONS (Added to fix reference errors) ---
-
 const PHYSICS_2025_EXAM: Exam = {
-  id: 'physics-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.physics.label,
-  subjectKey: SUBJECT_CONFIG.physics.key,
-  durationMinutes: 120,
-  questions: [
-    { id: 'phys-1', section: SectionType.MCQ, text: '1. Which of the following is a scalar quantity?', type: 'mcq', options: ['Velocity', 'Force', 'Mass', 'Acceleration'], correctAnswer: 'Mass', marks: 1, topic: 'Kinematics', explanation: 'Mass has magnitude but no direction.' }
-  ]
+    id: 'phy-2025',
+    year: 2025,
+    subject: SUBJECT_CONFIG.physics.label,
+    subjectKey: SUBJECT_CONFIG.physics.key,
+    durationMinutes: 120,
+    questions: [
+        { id: 'phy-1', section: SectionType.MCQ, text: '1. Which of these is a vector quantity?', type: 'mcq', options: ['Mass', 'Distance', 'Displacement', 'Time'], correctAnswer: 'Displacement', marks: 1, topic: 'Kinematics', explanation: 'Displacement has both magnitude and direction.' }
+    ]
 };
 
 const HISTORY_2025_EXAM: Exam = {
-  id: 'history-2025',
+  id: 'his-2025',
   year: 2025,
   subject: SUBJECT_CONFIG.history.label,
   subjectKey: SUBJECT_CONFIG.history.key,
   durationMinutes: 90,
-  language: 'somali',
   questions: [
-      { id: 'hist-1', section: SectionType.MCQ, text: '1. Goorma ayuu xornimada qaatay gobolka Waqooyi ee Soomaaliya?', type: 'mcq', options: ['26 Juun 1960', '1 Luulyo 1960', '12 Abriil 1960', '21 Oktoobar 1969'], correctAnswer: '26 Juun 1960', marks: 1, topic: 'History of Somalia', explanation: 'Waqooyi waxay xornimada ka qaadatay Ingiriiska 26kii Juun 1960.' }
+      { id: 'his-1', section: SectionType.MCQ, text: '1. When did Somalia gain independence?', type: 'mcq', options: ['1950', '1960', '1970', '1980'], correctAnswer: '1960', marks: 1, topic: 'Somali History', explanation: 'Somalia gained independence in 1960.' }
   ]
 };
 
@@ -205,9 +132,9 @@ const CHEMISTRY_2025_EXAM: Exam = {
   year: 2025,
   subject: SUBJECT_CONFIG.chemistry.label,
   subjectKey: SUBJECT_CONFIG.chemistry.key,
-  durationMinutes: 120,
+  durationMinutes: 90,
   questions: [
-      { id: 'chem-1', section: SectionType.MCQ, text: '1. What is the pH of a neutral solution at 25°C?', type: 'mcq', options: ['0', '7', '14', '1'], correctAnswer: '7', marks: 1, topic: 'Acids and Bases', explanation: 'Neutral pH is 7.' }
+      { id: 'chem-1', section: SectionType.MCQ, text: '1. What is the chemical symbol for Gold?', type: 'mcq', options: ['Au', 'Ag', 'Fe', 'Cu'], correctAnswer: 'Au', marks: 1, topic: 'Periodic Table', explanation: 'Au comes from Latin Aurum.' }
   ]
 };
 
@@ -216,9 +143,9 @@ const BIOLOGY_2025_EXAM: Exam = {
   year: 2025,
   subject: SUBJECT_CONFIG.biology.label,
   subjectKey: SUBJECT_CONFIG.biology.key,
-  durationMinutes: 120,
+  durationMinutes: 90,
   questions: [
-      { id: 'bio-1', section: SectionType.MCQ, text: '1. Which organelle is known as the powerhouse of the cell?', type: 'mcq', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi apparatus'], correctAnswer: 'Mitochondria', marks: 1, topic: 'Cell Biology', explanation: 'Mitochondria generate most of the chemical energy.' }
+      { id: 'bio-1', section: SectionType.MCQ, text: '1. Which organ pumps blood?', type: 'mcq', options: ['Brain', 'Heart', 'Lungs', 'Liver'], correctAnswer: 'Heart', marks: 1, topic: 'Circulatory System', explanation: 'The heart pumps blood.' }
   ]
 };
 
@@ -228,9 +155,8 @@ const GEOGRAPHY_2025_EXAM: Exam = {
   subject: SUBJECT_CONFIG.geography.label,
   subjectKey: SUBJECT_CONFIG.geography.key,
   durationMinutes: 90,
-  language: 'somali',
   questions: [
-      { id: 'geo-1', section: SectionType.MCQ, text: '1. Waa kee webiga ugu dheer adduunka?', type: 'mcq', options: ['Niil', 'Amasoon', 'Yenisei', 'Mississipi'], correctAnswer: 'Niil', marks: 1, topic: 'World Geography', explanation: 'Webiga Niil waa ka ugu dheer.' }
+      { id: 'geo-1', section: SectionType.MCQ, text: '1. What is the capital of Somalia?', type: 'mcq', options: ['Hargeisa', 'Mogadishu', 'Kismayo', 'Bosaso'], correctAnswer: 'Mogadishu', marks: 1, topic: 'Cities', explanation: 'Mogadishu is the capital.' }
   ]
 };
 
@@ -240,9 +166,8 @@ const SOMALI_2025_EXAM: Exam = {
   subject: SUBJECT_CONFIG.somali.label,
   subjectKey: SUBJECT_CONFIG.somali.key,
   durationMinutes: 90,
-  language: 'somali',
   questions: [
-      { id: 'som-1', section: SectionType.MCQ, text: '1. Ereyga "Hoyo" waa noocee?', type: 'mcq', options: ['Magac', 'Ficil', 'Xiriiriye', 'Tilmaame'], correctAnswer: 'Magac', marks: 1, topic: 'Grammar', explanation: 'Hoyo waa magac.' }
+      { id: 'som-1', section: SectionType.MCQ, text: '1. Qeex magac?', type: 'mcq', options: ['Waa eray tilmaama shey', 'Waa ficil', 'Waa xiriiriye', 'Waa meel'], correctAnswer: 'Waa eray tilmaama shey', marks: 1, topic: 'Grammar', explanation: 'Magacu waa eray wax tilmaamaya.' }
   ]
 };
 
@@ -253,7 +178,20 @@ const ENGLISH_2025_EXAM: Exam = {
   subjectKey: SUBJECT_CONFIG.english.key,
   durationMinutes: 90,
   questions: [
-      { id: 'eng-1', section: SectionType.MCQ, text: '1. Choose the correct preposition: He is interested ___ learning English.', type: 'mcq', options: ['on', 'at', 'in', 'for'], correctAnswer: 'in', marks: 1, topic: 'Grammar', explanation: 'Interested in.' }
+      { id: 'eng-1', section: SectionType.MCQ, text: '1. Choose the correct verb: He ___ to school yesterday.', type: 'mcq', options: ['go', 'gone', 'went', 'going'], correctAnswer: 'went', marks: 1, topic: 'Grammar', explanation: 'Past tense of go is went.' }
+  ]
+};
+
+const ISLAMIC_STUDIES_2025_EXAM: Exam = {
+  id: 'isl-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.islamic.label,
+  subjectKey: SUBJECT_CONFIG.islamic.key,
+  durationMinutes: 90,
+  language: 'arabic',
+  direction: 'rtl',
+  questions: [
+      { id: 'isl-1', section: SectionType.MCQ, text: '1. كم عدد أركان الإسلام؟', type: 'mcq', options: ['3', '4', '5', '6'], correctAnswer: '5', marks: 1, topic: 'Pillars of Islam', explanation: 'أركان الإسلام خمسة.' }
   ]
 };
 
@@ -264,7 +202,64 @@ const BUSINESS_2025_EXAM: Exam = {
   subjectKey: SUBJECT_CONFIG.business.key,
   durationMinutes: 120,
   questions: [
-      { id: 'bus-1', section: SectionType.MCQ, text: '1. Which of the following is a factor of production?', type: 'mcq', options: ['Money', 'Capital', 'Profit', 'Market'], correctAnswer: 'Capital', marks: 1, topic: 'Economics', explanation: 'Factors of production are Land, Labor, Capital, and Enterprise.' }
+    // SECTION A: MCQ (1-40)
+    { id: 'bus-1', section: SectionType.MCQ, text: '1. The kind of business activity labeled in the given picture is:', type: 'mcq', options: ['Extraction', 'Processing', 'Manufacturing', 'Construction'], correctAnswer: 'Extraction', marks: 1, topic: 'Business Activity', explanation: 'Primary sector activity involving extraction of raw materials.', diagramUrl: 'https://shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-20-2026-11_03_45-PM-1-1.png' },
+    { id: 'bus-2', section: SectionType.MCQ, text: '2. The fundamental economic problem is that resources are limited but human wants are unlimited. This problem is known as:', type: 'mcq', options: ['Trade-off', 'Productivity', 'Demand', 'Scarcity'], correctAnswer: 'Scarcity', marks: 1, topic: 'Economics', explanation: 'Scarcity is the basic economic problem.' },
+    { id: 'bus-3', section: SectionType.MCQ, text: '3. Determine the total liability from the following: Capital 24,000, Stock 1,500, Debtors 2,000, Machinery 20,000, Cash 4,000.', type: 'mcq', options: ['3,500', '27,500', '51,500', '1,500'], correctAnswer: '3,500', marks: 1, topic: 'Accounting', explanation: 'Assets (27,500) - Capital (24,000) = Liability (3,500).' },
+    { id: 'bus-4', section: SectionType.MCQ, text: '4. The following are characteristics of an entrepreneur EXCEPT:', type: 'mcq', options: ['Optimistic', 'Resourceful', 'Advocacy', 'Motivated'], correctAnswer: 'Advocacy', marks: 1, topic: 'Entrepreneurship', explanation: 'Advocacy is not a core trait of an entrepreneur.' },
+    { id: 'bus-5', section: SectionType.MCQ, text: '5. The price of olive oil increased by 20%, leading to a 5% increase in quantity supplied. Calculate the price elasticity of supply.', type: 'mcq', options: ['1', '1.5', '0.25', '2.5'], correctAnswer: '0.25', marks: 1, topic: 'Economics', explanation: '5% / 20% = 0.25.' },
+    { id: 'bus-6', section: SectionType.MCQ, text: '6. Planning, organizing, commanding, coordinating, and controlling are functions of:', type: 'mcq', options: ['Commercial activities', 'Accounting activities', 'Financial activities', 'Managerial activities'], correctAnswer: 'Managerial activities', marks: 1, topic: 'Management', explanation: 'Henri Fayol\'s functions of management.' },
+    { id: 'bus-7', section: SectionType.MCQ, text: '7. How does a team make decisions in a business project?', type: 'mcq', options: ['By approval', 'By majority', 'Weighted', 'Unanimously'], correctAnswer: 'By majority', marks: 1, topic: 'Management', explanation: 'Majority vote is the standard method.' },
+    { id: 'bus-8', section: SectionType.MCQ, text: '8. Which of the following factors does NOT cause a rightward shift of the supply curve?', type: 'mcq', options: ['Consumer tastes', 'Number of sellers', 'Technology', 'Taxes and subsidies'], correctAnswer: 'Consumer tastes', marks: 1, topic: 'Economics', explanation: 'Consumer tastes affect Demand, not Supply.', diagramUrl: 'https://shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-20-2026-11_00_49-PM.png' },
+    { id: 'bus-9', section: SectionType.MCQ, text: '9. The following are characteristics of money EXCEPT:', type: 'mcq', options: ['Convenient', 'Durable', 'Scarce', 'Accepted'], correctAnswer: 'Convenient', marks: 1, topic: 'Money', explanation: '"Portability" is the technical term, not "Convenient".' },
+    { id: 'bus-10', section: SectionType.MCQ, text: '10. This figure is a well-known mail-handling equipment used in an office. It is called:', type: 'mcq', options: ['Envelope', 'A4 letter', 'Stapler', 'Scissors'], correctAnswer: 'Stapler', marks: 1, topic: 'Office Equipment', explanation: 'Staplers are used for fastening papers.' },
+    { id: 'bus-11', section: SectionType.MCQ, text: '11. Misuse of punctuation can affect communication. Which part of communication is affected?', type: 'mcq', options: ['Distractions', 'Cultural', 'Status', 'Language'], correctAnswer: 'Language', marks: 1, topic: 'Communication', explanation: 'Punctuation is a grammatical/language element.' },
+    { id: 'bus-12', section: SectionType.MCQ, text: '12. To run an effective filing system, you should:', type: 'mcq', options: ['Avoid saving unnecessary documents', 'Keep all files in a closed cabinet', 'Drink a lot of coffee when filing', 'Make sure all cables are hidden'], correctAnswer: 'Avoid saving unnecessary documents', marks: 1, topic: 'Office Management', explanation: 'Efficiency principle.' },
+    { id: 'bus-13', section: SectionType.MCQ, text: '13. The branch of economics that deals with government revenue and expenditure is:', type: 'mcq', options: ['Public issues', 'Public debts', 'Public finance', 'Public policy'], correctAnswer: 'Public finance', marks: 1, topic: 'Economics', explanation: 'Definition of Public Finance.' },
+    { id: 'bus-14', section: SectionType.MCQ, text: '14. The earliest form of business was barter trade. Which type of money was used?', type: 'mcq', options: ['Bank money', 'Paper money', 'Metallic money', 'Commodity money'], correctAnswer: 'Commodity money', marks: 1, topic: 'Money', explanation: 'Goods used as money (Commodity).' },
+    { id: 'bus-15', section: SectionType.MCQ, text: '15. International trade carried out between two countries is called:', type: 'mcq', options: ['Multilateral trade', 'Retail trade', 'Wholesale trade', 'Bilateral trade'], correctAnswer: 'Bilateral trade', marks: 1, topic: 'International Trade', explanation: 'Bi-lateral means two sides.' },
+    { id: 'bus-16', section: SectionType.MCQ, text: '16. Which of the following is NOT part of the electronic marketing mix?', type: 'mcq', options: ['E-product', 'E-pricing', 'E-promotion', 'E-packaging'], correctAnswer: 'E-packaging', marks: 1, topic: 'Marketing', explanation: 'Standard mix is Product, Price, Place, Promotion.' },
+    { id: 'bus-17', section: SectionType.MCQ, text: '17. Which of the following is NOT a major function of a warehouse?', type: 'mcq', options: ['Inventory manufacturing', 'Storage of goods', 'Grading and branding', 'Protection of goods'], correctAnswer: 'Inventory manufacturing', marks: 1, topic: 'Warehousing', explanation: 'Manufacturing is production, not warehousing.' },
+    { id: 'bus-18', section: SectionType.MCQ, text: '18. The electronic system through which buyers and sellers meet to exchange goods is known as:', type: 'mcq', options: ['Electronic business', 'Electronic market', 'E-commerce', 'Digital marketing'], correctAnswer: 'E-commerce', marks: 1, topic: 'Trade', explanation: 'Electronic Commerce.' },
+    { id: 'bus-19', section: SectionType.MCQ, text: '19. Another name for an Income Statement is:', type: 'mcq', options: ['Profit and Loss Statement', 'Profit and Revenue Statement', 'Cash Flow Statement', 'Balance Sheet Statement'], correctAnswer: 'Profit and Loss Statement', marks: 1, topic: 'Accounting', explanation: 'P&L Statement.' },
+    { id: 'bus-20', section: SectionType.MCQ, text: '20. Trade that takes place within the boundaries of a country is known as:', type: 'mcq', options: ['Home trade', 'International trade', 'Import trade', 'Wholesale trade'], correctAnswer: 'Home trade', marks: 1, topic: 'Trade', explanation: 'Domestic or Home trade.' },
+    { id: 'bus-21', section: SectionType.MCQ, text: '21. A start-up wants to enter the market with a limited budget. Which promotional method is most affordable?', type: 'mcq', options: ['National TV advertising', 'Hiring a celebrity', 'Social media marketing', 'Roadside advertising in rural areas'], correctAnswer: 'Social media marketing', marks: 1, topic: 'Marketing', explanation: 'Cost-effective for startups.' },
+    { id: 'bus-22', section: SectionType.MCQ, text: '22. A customer switches brands after a negative experience. This behavior indicates:', type: 'mcq', options: ['Cultural influence', 'Post-purchase behavior', 'Customer loyalty', 'Habitual buying'], correctAnswer: 'Post-purchase behavior', marks: 1, topic: 'Marketing', explanation: 'Evaluating after buying.' },
+    { id: 'bus-23', section: SectionType.MCQ, text: '23. When goods are transported by sea, which document is used?', type: 'mcq', options: ['Airway bill', 'Bill of lading', 'Price list', 'Debit note'], correctAnswer: 'Bill of lading', marks: 1, topic: 'Transport', explanation: 'Document of title for sea freight.' },
+    { id: 'bus-24', section: SectionType.MCQ, text: '24. A trader wants a loan to invest in a business. Which type of bank provides this service?', type: 'mcq', options: ['Central bank', 'Commercial bank', 'Credit union', 'Cooperative bank'], correctAnswer: 'Commercial bank', marks: 1, topic: 'Banking', explanation: 'Commercial banks lend to businesses.' },
+    { id: 'bus-25', section: SectionType.MCQ, text: '25. The medium of exchange used to measure the market value of goods and services is called:', type: 'mcq', options: ['Spending', 'Income', 'Insurance', 'Currency'], correctAnswer: 'Currency', marks: 1, topic: 'Money', explanation: 'Currency/Money is the measure of value.' },
+    { id: 'bus-26', section: SectionType.MCQ, text: '26. In which stage of marketing is the customer free to communicate at any time?', type: 'mcq', options: ['Social network marketing', 'Marketing department', 'Marketing company', 'Relationship marketing'], correctAnswer: 'Social network marketing', marks: 1, topic: 'Marketing', explanation: 'Social media allows 24/7 interaction.' },
+    { id: 'bus-27', section: SectionType.MCQ, text: '27. The following are objectives of fiscal policy EXCEPT:', type: 'mcq', options: ['Employment', 'Fair distribution of wealth', 'Economic development', 'Economic recession'], correctAnswer: 'Economic recession', marks: 1, topic: 'Economics', explanation: 'Recession is a problem to solve, not a goal.' },
+    { id: 'bus-28', section: SectionType.MCQ, text: '28. The most modern form of money used in business transactions today is:', type: 'mcq', options: ['Bank money', 'Plastic money', 'Metallic money', 'Commodity money'], correctAnswer: 'Plastic money', marks: 1, topic: 'Money', explanation: 'Credit/Debit cards (Plastic) or Digital.' },
+    { id: 'bus-29', section: SectionType.MCQ, text: '29. Income refers to:', type: 'mcq', options: ['Paying out money', 'Money earned from work or sales', 'Saving money for future use', 'Dividing money among people'], correctAnswer: 'Money earned from work or sales', marks: 1, topic: 'Economics', explanation: 'Definition of income.' },
+    { id: 'bus-30', section: SectionType.MCQ, text: '30. Which of the following is NOT a fully digital product?', type: 'mcq', options: ['Films', 'Consultancy services', 'Songs', 'Fast foods'], correctAnswer: 'Fast foods', marks: 1, topic: 'E-commerce', explanation: 'Physical goods.' },
+    { id: 'bus-31', section: SectionType.MCQ, text: '31. A successful market entry strategy that involves doing something new is called:', type: 'mcq', options: ['Market gap', 'Product offering', 'Being unique', 'Innovation'], correctAnswer: 'Innovation', marks: 1, topic: 'Entrepreneurship', explanation: 'Doing something new.' },
+    { id: 'bus-32', section: SectionType.MCQ, text: '32. Calculate the Net Income: Service Revenue $5,500, Expenses (Salary $1,200 + Supply $500 + Depreciation $350 + Misc $100).', type: 'mcq', options: ['6,650', '900', '2,350', '3,350'], correctAnswer: '3,350', marks: 1, topic: 'Accounting', explanation: '5500 - (1200+500+350+100) = 5500 - 2150 = 3350. (Option corrected to match calculation)' },
+    { id: 'bus-33', section: SectionType.MCQ, text: '33. Which type of control focuses on correcting errors after they occur?', type: 'mcq', options: ['Preventive control', 'Concurrent control', 'Feedback control', 'External control'], correctAnswer: 'Feedback control', marks: 1, topic: 'Management', explanation: 'Feedback control occurs after the activity.' },
+    { id: 'bus-34', section: SectionType.MCQ, text: '34. The first stage of managing or protecting against risk is:', type: 'mcq', options: ['Transferring the risk', 'Accepting the risk', 'Avoiding the risk', 'Reducing the risk'], correctAnswer: 'Avoiding the risk', marks: 1, topic: 'Insurance', explanation: 'Avoidance is often the first consideration.' },
+    { id: 'bus-35', section: SectionType.MCQ, text: '35. A business owned and managed by one person is known as:', type: 'mcq', options: ['Corporation', 'Partnership', 'Cooperative', 'Proprietorship'], correctAnswer: 'Proprietorship', marks: 1, topic: 'Business Units', explanation: 'Sole Proprietorship.' },
+    { id: 'bus-36', section: SectionType.MCQ, text: '36. The use of a one-year accounting period is known as:', type: 'mcq', options: ['Internal year', 'General period', 'Fiscal year', 'Fiscal policy'], correctAnswer: 'Fiscal year', marks: 1, topic: 'Accounting', explanation: 'Financial year.' },
+    { id: 'bus-37', section: SectionType.MCQ, text: '37. The most suitable mode of transport for perishable goods over long distances is:', type: 'mcq', options: ['Air transport', 'Road transport', 'Maritime transport', 'Rail transport'], correctAnswer: 'Air transport', marks: 1, topic: 'Transport', explanation: 'Fastest method.' },
+    { id: 'bus-38', section: SectionType.MCQ, text: '38. Warehouses owned by the government and rented to private firms are called:', type: 'mcq', options: ['Private warehouses', 'Public warehouses', 'Cooperative warehouses', 'Value-adding warehouses'], correctAnswer: 'Public warehouses', marks: 1, topic: 'Warehousing', explanation: 'Owned by public bodies for general use.' },
+    { id: 'bus-39', section: SectionType.MCQ, text: '39. International trade conducted among many countries is known as:', type: 'mcq', options: ['Multilateral trade', 'Retail trade', 'Wholesale trade', 'Bilateral trade'], correctAnswer: 'Multilateral trade', marks: 1, topic: 'International Trade', explanation: 'Multi = Many.' },
+    { id: 'bus-40', section: SectionType.MCQ, text: '40. A person who combines all factors of production is called:', type: 'mcq', options: ['Managerial elite', 'Entrepreneur', 'Government unit', 'Corporate stakeholder'], correctAnswer: 'Entrepreneur', marks: 1, topic: 'Factors of Production', explanation: 'The coordinator of land, labor, and capital.' },
+
+    // SECTION B: STRUCTURED QUESTIONS (15 Qs)
+    { id: 'bus-41', section: SectionType.SHORT_ANSWER, text: '41. Explain two characteristics of human wants.', type: 'text', correctAnswer: 'Unlimited, recurrent, competitive, complementary.', marks: 4, topic: 'Economics', explanation: 'Wants are insatiable and reoccur.' },
+    { id: 'bus-42', section: SectionType.SHORT_ANSWER, text: '42. Explain the importance of business studies to society.', type: 'text', correctAnswer: 'Provides goods/services, creates jobs, improves standard of living.', marks: 4, topic: 'Business Studies', explanation: 'Societal impact of business.' },
+    { id: 'bus-43', section: SectionType.SHORT_ANSWER, text: '43. Identify four typical users of accounting information.', type: 'text', correctAnswer: 'Owners, Managers, Government, Lenders/Creditors.', marks: 4, topic: 'Accounting', explanation: 'Stakeholders.' },
+    { id: 'bus-44', section: SectionType.SHORT_ANSWER, text: '44. Draw an equilibrium curve using the table below. (Find the Equilibrium Price and Quantity).\nPrice: 1, 2, 3, 4\nQty Demanded: 12, 9, 6, 3\nQty Supplied: 2, 4, 6, 8', type: 'text', correctAnswer: 'Equilibrium Price = 3, Equilibrium Quantity = 6.', marks: 4, topic: 'Economics', explanation: 'Where Qd = Qs (6).' },
+    { id: 'bus-45', section: SectionType.SHORT_ANSWER, text: '45. State four characteristics of a good business idea.', type: 'text', correctAnswer: 'Profitable, unique, solves a problem, feasible.', marks: 4, topic: 'Entrepreneurship', explanation: 'Viability of ideas.' },
+    { id: 'bus-46', section: SectionType.SHORT_ANSWER, text: '46. Highlight the four Ps of the marketing mix.', type: 'text', correctAnswer: 'Product, Price, Place, Promotion.', marks: 4, topic: 'Marketing', explanation: 'The 4 Ps model.' },
+    { id: 'bus-47', section: SectionType.SHORT_ANSWER, text: '47. Give two differences between a business idea and a business opportunity.', type: 'text', correctAnswer: 'Idea is a concept; Opportunity is a proven concept with market potential.', marks: 4, topic: 'Entrepreneurship', explanation: 'Concept vs Viability.' },
+    { id: 'bus-48', section: SectionType.SHORT_ANSWER, text: '48. Journalize the following adjustments of Air & Sea Travel Inc.:\ni. Depreciation on furniture $275\nii. Accrued income tax expense $540\niii. Prepaid rent expired $1,000\niv. Supplies used $300', type: 'text', correctAnswer: 'i. Dr Depr Exp / Cr Acc Depr. ii. Dr Tax Exp / Cr Tax Payable. iii. Dr Rent Exp / Cr Prepaid Rent. iv. Dr Supplies Exp / Cr Supplies.', marks: 4, topic: 'Accounting', explanation: 'Adjusting entries.' },
+    { id: 'bus-49', section: SectionType.SHORT_ANSWER, text: '49. List four disadvantages of a partitioned office.', type: 'text', correctAnswer: 'Costly to build, uses more space, hinders supervision, isolation.', marks: 4, topic: 'Office Management', explanation: 'Closed office cons.' },
+    { id: 'bus-50', section: SectionType.SHORT_ANSWER, text: '50. Give four services provided by commercial banks.', type: 'text', correctAnswer: 'Accepting deposits, lending money, safeguarding valuables, advice.', marks: 4, topic: 'Banking', explanation: 'Functions of banks.' },
+    { id: 'bus-51', section: SectionType.SHORT_ANSWER, text: '51. Enumerate four factors affecting communication.', type: 'text', correctAnswer: 'Language barrier, noise, attitude, medium used.', marks: 4, topic: 'Communication', explanation: 'Barriers to communication.' },
+    { id: 'bus-52', section: SectionType.SHORT_ANSWER, text: '52. Rearrange the following steps of the purchasing decision process:\n• Realizing the need\n• Search for information\n• Evaluate alternatives\n• Decision evaluation\n• Purchase decision', type: 'text', correctAnswer: '1. Realizing need, 2. Search info, 3. Evaluate alternatives, 4. Purchase decision, 5. Decision evaluation (Post-purchase).', marks: 4, topic: 'Marketing', explanation: 'Consumer decision process.' },
+    { id: 'bus-53', section: SectionType.SHORT_ANSWER, text: '53. Categorize the following insurance terms: i. Ahmed ii. Theft iii. So.Sh 6,000 iv. Tayo Insurance Ltd', type: 'text', correctAnswer: 'i. Insured, ii. Risk/Peril, iii. Premium, iv. Insurer.', marks: 4, topic: 'Insurance', explanation: 'Insurance terminology.' },
+    { id: 'bus-54', section: SectionType.SHORT_ANSWER, text: '54. Distinguish between private organizations and public organizations.', type: 'text', correctAnswer: 'Private: Owned by individuals for profit. Public: Owned by gov for service.', marks: 4, topic: 'Business Units', explanation: 'Ownership and motive.' },
+    { id: 'bus-55', section: SectionType.SHORT_ANSWER, text: '55. Compare strategic planning and tactical planning in terms of time.', type: 'text', correctAnswer: 'Strategic: Long-term (Years). Tactical: Medium/Short-term (Months).', marks: 4, topic: 'Management', explanation: 'Time horizons.' }
   ]
 };
 
