@@ -97,13 +97,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectAuthority, onNavigate
         {/* Mobile: Solid Blue BG, stacked below image. Desktop: Transparent, centered over image. */}
         <div className="relative z-30 w-full md:max-w-5xl md:mx-auto text-center px-6 flex flex-col items-center py-12 md:pt-10 md:h-full md:justify-center bg-blue-900 md:bg-transparent">
           
-          {/* Animated Logo Container */}
+          {/* Animated Logo Container with White Circle Background */}
           <div className="w-48 md:w-80 mb-8 md:mb-10 animate-fade-in-up flex justify-center">
-             <img 
-                src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
-                alt="Naajix Logo" 
-                className="max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500 rounded-full"
-            />
+             <div className="bg-white rounded-full p-4 md:p-8 shadow-2xl flex items-center justify-center aspect-square">
+                 <img 
+                    src="https://shaiyecompany.com/wp-content/uploads/2026/01/naajix-logo-5.png" 
+                    alt="Naajix Logo" 
+                    className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+                />
+             </div>
           </div>
 
           <div className="space-y-6 md:space-y-8 mb-10 md:mb-14">

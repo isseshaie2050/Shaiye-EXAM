@@ -89,8 +89,11 @@ export async function gradeBatch(
        - Break down the explanation into "Step 1", "Step 2", etc.
        - Show the formula used.
        - Explain the logic clearly so a student can understand HOW to solve it next time.
-    3. For non-calculation subjects, explain the context of the answer briefly.
-    4. Provide specific feedback for EVERY answer, even if correct or incorrect.
+    3. **CRITICAL FOR ALL SUBJECTS (Detailed Feedback):**
+       - **You MUST provide a detailed explanation of the CORRECT ANSWER regardless of whether the student's answer was right or wrong.**
+       - Explain the "WHY": Definitions, historical context, or reasoning behind the correct answer.
+       - Ensure the student learns from this feedback. Do not just say "Good job".
+    4. Provide specific feedback for EVERY answer.
     5. Return ONLY a JSON object with a "grades" array.`;
 
     const userContent = JSON.stringify(chunk.map(c => ({
