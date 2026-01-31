@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -26,6 +25,21 @@ const formatTime = (seconds: number) => {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const calculateGrade = (score: number, maxScore: number): string => {
+  if (maxScore === 0) return 'F';
+  const percentage = (score / maxScore) * 100;
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 85) return 'A';
+  if (percentage >= 80) return 'A-';
+  if (percentage >= 75) return 'B+';
+  if (percentage >= 70) return 'B';
+  if (percentage >= 65) return 'B-';
+  if (percentage >= 60) return 'C+';
+  if (percentage >= 50) return 'C';
+  if (percentage >= 40) return 'D';
+  return 'F';
 };
 
 // Component to render text with bold formatting by parsing **text**
