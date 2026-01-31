@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -817,6 +818,10 @@ const App: React.FC = () => {
        const question = activeExam.questions[currentQuestionIndex];
        const sectionPassage = activeExam.sectionPassages?.[question.section];
        
+       // Calculate if current question is answered
+       const currentAnswerEntry = answers.find(a => a.questionId === question.id);
+       const isCurrentQuestionAnswered = currentAnswerEntry && currentAnswerEntry.answer.trim().length > 0;
+
        // ANIMATED GRADING SCREEN
        if(isGrading) {
            return (
@@ -896,9 +901,21 @@ const App: React.FC = () => {
                    </div>
 
                    {currentQuestionIndex === activeExam.questions.length-1 ? (
-                       <button onClick={handleSubmit} className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-lg transition">Submit Exam</button>
+                       <button 
+                           onClick={handleSubmit} 
+                           disabled={!isCurrentQuestionAnswered}
+                           className={`px-6 py-2 font-bold rounded-lg shadow-lg transition ${!isCurrentQuestionAnswered ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                        >
+                            Submit Exam
+                        </button>
                    ) : (
-                       <button onClick={()=>setCurrentQuestionIndex(i=>Math.min(activeExam.questions.length-1,i+1))} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Next</button>
+                       <button 
+                           onClick={()=>setCurrentQuestionIndex(i=>Math.min(activeExam.questions.length-1,i+1))} 
+                           disabled={!isCurrentQuestionAnswered}
+                           className={`px-6 py-2 font-bold rounded-lg transition ${!isCurrentQuestionAnswered ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                        >
+                            Next
+                        </button>
                    )}
                </div>
            </div>
