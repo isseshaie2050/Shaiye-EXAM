@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -906,9 +907,9 @@ const App: React.FC = () => {
                         {question.diagramUrl && <ExamImage src={Array.isArray(question.diagramUrl) ? question.diagramUrl[0] : question.diagramUrl} alt="Diagram" />}
                         {question.type === 'mcq' ? (
                             <div className="space-y-3">
-                                {question.options?.map(opt => (
+                                {question.options?.map((opt, idx) => (
                                     <button 
-                                        key={opt} 
+                                        key={idx} // Using Index as key to tolerate duplicate options without crashing
                                         onClick={()=>handleAnswer(opt)} 
                                         className={`w-full p-4 border rounded-lg transition-all ${activeExam.direction === 'rtl' ? 'text-right' : 'text-left'} ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}
                                     >

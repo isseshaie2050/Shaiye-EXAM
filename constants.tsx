@@ -105,334 +105,6 @@ const MATHEMATICS_2025_EXAM: Exam = {
   ]
 };
 
-// --- GEOGRAPHY 2025 ---
-const GEOGRAPHY_2025_EXAM: Exam = {
-  id: 'geo-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.geography.label,
-  subjectKey: SUBJECT_CONFIG.geography.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  language: 'somali',
-  questions: [
-    // --- SECTION 1: MCQs (1-40) ---
-    { id: 'geo-1', section: SectionType.MCQ, text: '1. Noocyada carrada ee dhulka Soomaaliya waa kala jaad, waxaana keenaya kala duwanaanta:', type: 'mcq', options: ['Nooca cimilada iyo dhadhabta', 'Nooca cimilada iyo folkaanaha', 'Nooca dhadhabta keliya', 'Nooca cimilada keliya'], correctAnswer: 'Nooca cimilada iyo dhadhabta', marks: 1, topic: 'Physical Geography', explanation: 'Soil formation factors.' },
-    { id: 'geo-2', section: SectionType.MCQ, text: '2. Qaybta ugu weyn uguna muhiimsan qaybaha dhirta waxaa laga magacaabaa:', type: 'mcq', options: ['Keymaha', 'Cawska', 'Haramaha', 'Istibis'], correctAnswer: 'Keymaha', marks: 1, topic: 'Vegetation', explanation: 'Forests are major.' },
-    { id: 'geo-3', section: SectionType.MCQ, text: '3. Maxay yihiin hababka wadidqaada Makanikada ay kaga duwan tahay wadidqaada Kiimikada?', type: 'mcq', options: ['Teed dhireed iyo teedad adag', 'Teedad gaaban iyo teed dhireed', 'Teedad adag iyo walxaha shidaalka', 'Walxaha shidaalka iyo teed dhireed'], correctAnswer: 'Teed dhireed iyo teedad adag', marks: 1, topic: 'Physical Geography', explanation: 'Weathering types.' },
-    { id: 'geo-4', section: SectionType.MCQ, text: '4. Adigoo adeegsanaya jaantuska hoose, tilmaam lambarka muujinaya gobolka Jubadda Hoose:', type: 'mcq', options: ['Lambarka 12aad', 'Lambarka 8aad', 'Lambarka 18aad', 'Lambarka 17aad'], correctAnswer: 'Lambarka 18aad', marks: 1, topic: 'Somali Geography', explanation: 'Map reading.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-12-2026-10_27_49-AM.png' },
-    { id: 'geo-5', section: SectionType.MCQ, text: '5. Marka aynu joogno magaalooyinka xeebaha, sida la dareemi karo huurka wuxuu noqdaa mid:', type: 'mcq', options: ['Kordha', 'Hoos u dhaca', 'Dhexdhexaad ah', 'Aan muuqan'], correctAnswer: 'Kordha', marks: 1, topic: 'Climate', explanation: 'Humidity increases near coast.' },
-    { id: 'geo-6', section: SectionType.MCQ, text: '6. Jiidaha dhulka Soomaaliya waxaa loo qeybiyaa ilaa iyo:', type: 'mcq', options: ['4 qeybood', '3 qeybood', '5 qeybood', '6 qeybood'], correctAnswer: '5 qeybood', marks: 1, topic: 'Somali Geography', explanation: 'Five main geographic zones.' },
-    { id: 'geo-7', section: SectionType.MCQ, text: '7. Maxaa dhacaya haddii tirada dadka ay ka sara marto ilaha dhaqaale ee dabiiciga ah?', type: 'mcq', options: ['Taran dhimid', 'Taran furan', 'Taran dhaqid', 'Taran fatah'], correctAnswer: 'Taran fatah', marks: 1, topic: 'Population', explanation: 'Overpopulation.' },
-    { id: 'geo-8', section: SectionType.MCQ, text: '8. Xaalad ka dhalata hoos u dhac ku yimaada roobka muddo dheer waxaa loo yaqaan:', type: 'mcq', options: ['Lama degaan', 'Daad', 'Barwaaqo', 'Abaar'], correctAnswer: 'Abaar', marks: 1, topic: 'Climate', explanation: 'Drought definition.' },
-    { id: 'geo-9', section: SectionType.MCQ, text: '9. Waxyaabaha dabiiciga ah ee saameeya bahsanaanta tirada dadka waxaa ka mid ah:', type: 'mcq', options: ['Cimilada', 'Xirfadda', 'Dhimashada', 'Socdaalka'], correctAnswer: 'Cimilada', marks: 1, topic: 'Population', explanation: 'Natural factors include climate.' },
-    { id: 'geo-10', section: SectionType.MCQ, text: '10. Goob cufnaanta dadkeedu ka badan yahay 100 qof halkii km² waa goob dadku ay:', type: 'mcq', options: ['Sarreyso', 'Hooseyso', 'Aad u sarreyso', 'Aad u hooseyso'], correctAnswer: 'Sarreyso', marks: 1, topic: 'Population', explanation: 'High density.' },
-    { id: 'geo-11', section: SectionType.MCQ, text: '11. Sanadkii 1970, guud ahaan tirada warshadaha dalka ku yaallay waxay ahaayeen:', type: 'mcq', options: ['190 warshadood', '180 warshadood', '120 warshadood', '122 warshadood'], correctAnswer: '122 warshadood', marks: 1, topic: 'Economy', explanation: 'Historical industrial data.' },
-    { id: 'geo-12', section: SectionType.MCQ, text: '12. Marka laysku qeybiyo tirada dadka iyo baaxadda dalka, waxaa loo yaqaan:', type: 'mcq', options: ['Koror dabiici ah', 'Koror aan dabiici ahayn', 'Cufnaanta dadka', 'Kororka waddamada'], correctAnswer: 'Cufnaanta dadka', marks: 1, topic: 'Population', explanation: 'Population Density Formula.' },
-    { id: 'geo-13', section: SectionType.MCQ, text: '13. Adigoo eegaya jaantuska hoos ku sawiran, sheeg il tamareed loo adeegsado:', type: 'mcq', options: ['Tamarta dabaysha', 'Tamarta biyaha', 'Tamarta korontada', 'Tamarta qorraxda'], correctAnswer: 'Tamarta dabaysha', marks: 1, topic: 'Resources', explanation: 'Wind energy.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/iec-en-61400-12-5-ruzgar-enerjisi-uretim-sistemleri-bolum-12-5_-guc-performansi-engellerin-ve-arazinin-degerlendirilmesi-testi.jpg' },
-    { id: 'geo-14', section: SectionType.MCQ, text: '14. Goobaha ugu warshadaha badan adduunka waxaa ka mid ah:', type: 'mcq', options: ['Galbeedka Afrika', 'Galbeedka Yurub', 'Koonfurta Ameerika', 'Waqooyiga Aasiya'], correctAnswer: 'Galbeedka Yurub', marks: 1, topic: 'Industry', explanation: 'Major industrial regions.' },
-    { id: 'geo-15', section: SectionType.MCQ, text: '15. Waa tee laanta Jiyoolojiga ee la adeegsado marka la dhisayo buundo:', type: 'mcq', options: ['Jiyoolojiga bay’ada', 'Jiyoolojiga handasada', 'Jiyoolojiga waxbarashada', 'Jiyoolojiga saliidda'], correctAnswer: 'Jiyoolojiga handasada', marks: 1, topic: 'Geology', explanation: 'Engineering Geology.' },
-    { id: 'geo-16', section: SectionType.MCQ, text: '16. Dadka dunida ku nool dhulka dushiisa waxay u qaybsan yihiin qaab:', type: 'mcq', options: ['Isla’eg', 'Aan isla ekeyn', 'Toosan', 'Dheellitiran'], correctAnswer: 'Aan isla ekeyn', marks: 1, topic: 'Population', explanation: 'Uneven distribution.' },
-    { id: 'geo-17', section: SectionType.MCQ, text: '17. Diiwaangelinta dhalashada, dhimashada, guurka iyo furiinka waa:', type: 'mcq', options: ['Tirakoobka dadka', 'Tirakoob muhiim ah', 'Fiiqsanaanta dadka', 'Diiwaan gelinta dadka'], correctAnswer: 'Diiwaan gelinta dadka', marks: 1, topic: 'Population', explanation: 'Civil Registration.' },
-    { id: 'geo-18', section: SectionType.MCQ, text: '18. Ilaha tamarta dib loo cusboonaysiin karo waxaa ka mid ah:', type: 'mcq', options: ['Tamarta cadceedda', 'Tamarta dhuxusha', 'Tamarta yuraaniyamka', 'Tamarta gaaska dabiiciga ah'], correctAnswer: 'Tamarta cadceedda', marks: 1, topic: 'Energy', explanation: 'Solar energy is renewable.' },
-    { id: 'geo-19', section: SectionType.MCQ, text: '19. Sohdin dabiici ah waa xuduud lagu saleeyo astaamaha muuqaallada dabiiciga ah sida:', type: 'mcq', options: ['Buuro', 'Xariiq', 'Handasi', 'Ilbaxnimo'], correctAnswer: 'Buuro', marks: 1, topic: 'Boundaries', explanation: 'Natural boundaries like mountains.' },
-    { id: 'geo-20', section: SectionType.MCQ, text: '20. Kuwaan soo socda keeban kama mid aha shaqooyinka sohdinta siyaasadeed:', type: 'mcq', options: ['Kala saaridda dalalka', 'Ilaalinta amniga', 'Ilaalinta dhaqaalaha', 'Maamulka xadka'], correctAnswer: 'Maamulka xadka', marks: 1, topic: 'Political Geography', explanation: 'Management is a process, not a function of the line itself.' },
-    { id: 'geo-21', section: SectionType.MCQ, text: '21. Haddii aad rabto inaad beerato dalag, carro nooce ah ayaa ku habboon:', type: 'mcq', options: ['Carro hurdiga', 'Carro maanyo', 'Carro bannaan xeebeed', 'Carro madow'], correctAnswer: 'Carro madow', marks: 1, topic: 'Agriculture', explanation: 'Black soil is fertile.' },
-    { id: 'geo-22', section: SectionType.MCQ, text: '22. Waa imisa loolalka ay dhacaan goobaha kulul, haddii wadartu tahay 180°?', type: 'mcq', options: ['30°', '60°', '45°', '23°'], correctAnswer: '60°', marks: 1, topic: 'Climate Zones', explanation: 'Tropical zone spans approx 60 degrees (30N to 30S).' },
-    { id: 'geo-23', section: SectionType.MCQ, text: '23. Maxay noqonayaan wadarta warshadaha ku yaallay Muqdisho iyo Hargeysa?', type: 'mcq', options: ['154', '153', '155', '157'], correctAnswer: '155', marks: 1, topic: 'Industry', explanation: 'Historical data.' },
-    { id: 'geo-24', section: SectionType.MCQ, text: '24. Magaalo ay dadka badankood ku mashquulsan yihiin waxbarasho waxaa loo yaqaan:', type: 'mcq', options: ['Magaalo diimeed', 'Magaalo warshadeed', 'Magaalo aqooneed', 'Magaalo maamul'], correctAnswer: 'Magaalo aqooneed', marks: 1, topic: 'Urban Geography', explanation: 'Educational city.' },
-    { id: 'geo-25', section: SectionType.MCQ, text: '25. Ururinta xog juqraafi iyadoo la adeegsanayo indha-indheyn waxaa la yiraahdaa:', type: 'mcq', options: ['Cilmi qoran', 'Xog kaydsan', 'Cilmi baaris', 'Xog tilmaaman'], correctAnswer: 'Cilmi baaris', marks: 1, topic: 'Research Methods', explanation: 'Field research/Observation.' },
-    { id: 'geo-26', section: SectionType.MCQ, text: '26. Hanaanka diyaarinta xogta Juqraafiyadu wuxuu maraa ilaa iyo:', type: 'mcq', options: ['Lix heer', 'Shan heer', 'Toddobo heer', 'Sagaal heer'], correctAnswer: 'Shan heer', marks: 1, topic: 'Research Methods', explanation: 'Five stages of data preparation.' },
-    { id: 'geo-27', section: SectionType.MCQ, text: '27. Badda furan waxay kaga duwan tahay badda xiran:', type: 'mcq', options: ['Waxay la xiriirtaa badweyn', 'Waxay leedahay marin cariiri ah', 'Waxay leedahay dooxo', 'Waxay leedahay haro'], correctAnswer: 'Waxay la xiriirtaa badweyn', marks: 1, topic: 'Hydrology', explanation: 'Open seas connect to oceans.' },
-    { id: 'geo-28', section: SectionType.MCQ, text: '28. Farqiga heerkulka maalinta iyo sanadka ee cimilada badhalaaha waxaa lagu gartaa:', type: 'mcq', options: ['Hooseyn', 'Sarreyn', 'Dhexdhexaad', 'Diirimaad'], correctAnswer: 'Hooseyn', marks: 1, topic: 'Climate', explanation: 'Low temperature range in equatorial zones.' },
-    { id: 'geo-29', section: SectionType.MCQ, text: '29. Marka noole uu ku noolaado mid kale isagoo ka faa’iideysanaya, waxaa loo yaqaan:', type: 'mcq', options: ['Isla noolaansho', 'Ugaadhsi', 'Wada noolaansho', 'Kala faa’iidaysi'], correctAnswer: 'Kala faa’iidaysi', marks: 1, topic: 'Ecology', explanation: 'Parasitism/Exploitation.' },
-    { id: 'geo-30', section: SectionType.MCQ, text: '30. Adigoo eegaya khariidada hoos ku sawiran, waa kee lambarka lagu calaamadeeyey dalka Masar:', type: 'mcq', options: ['Lambarka 4aad', 'Lambarka 6aad', 'Lambarka 49aad', 'Lambarka 31aad'], correctAnswer: 'Lambarka 6aad', marks: 1, topic: 'Regional Geography', explanation: 'Egypt map location.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-13-2026-02_28_41-AM.png' },
-    { id: 'geo-31', section: SectionType.MCQ, text: '31. Maxaa dhacaya haddii dadkii aqoonta lahaa ay dalka ka tahriibaan:', type: 'mcq', options: ['Maan ququl', 'Maan cabburin', 'Maan fatah', 'Maan go’id'], correctAnswer: 'Maan ququl', marks: 1, topic: 'Population', explanation: 'Brain drain.' },
-    { id: 'geo-32', section: SectionType.MCQ, text: '32. Degmooyinka miyiga ah waxay kaga duwan yihiin kuwa magaalooyinka:', type: 'mcq', options: ['Xajmigooda oo yar', 'Xiriirkooda oo liita', 'Heer nololeed oo sarreeya', 'Dhaqaale badan'], correctAnswer: 'Xiriirkooda oo liita', marks: 1, topic: 'Urban/Rural', explanation: 'Poor infrastructure in rural areas.' },
-    { id: 'geo-33', section: SectionType.MCQ, text: '33. Meeraha ugu dhaw qorraxda waa:', type: 'mcq', options: ['Maaris', 'Dhulka', 'Merkuri', 'Safeen'], correctAnswer: 'Merkuri', marks: 1, topic: 'Solar System', explanation: 'Mercury is closest.' },
-    { id: 'geo-34', section: SectionType.MCQ, text: '34. Haddii waqtiga Muqdisho (45° bari) uu yahay 10:00 subaxnimo, waa imisa waqtiga Qaahira (30° bari)?', type: 'mcq', options: ['11:00 AM', '09:00 AM', '10:30 AM', '12:00 PM'], correctAnswer: '09:00 AM', marks: 1, topic: 'Time Zones', explanation: '15 degrees west = -1 hour.' },
-    { id: 'geo-35', section: SectionType.MCQ, text: '35. Kee kama mid aha calaamadaha khariidadda:', type: 'mcq', options: ['Qiyaaska', 'Tusmada', 'Cinwaanka', 'Dug baxa'], correctAnswer: 'Dug baxa', marks: 1, topic: 'Map Skills', explanation: 'Not a map element.' },
-    { id: 'geo-36', section: SectionType.MCQ, text: '36. Wadanka ugu wax-soo-saarka badan gaaska dabiiciga ah waa:', type: 'mcq', options: ['Baxreyn', 'Imaaraadka', 'Qadar', 'Aljeeriya'], correctAnswer: 'Qadar', marks: 1, topic: 'Economy', explanation: 'Qatar is a major gas producer.' },
-    { id: 'geo-37', section: SectionType.MCQ, text: '37. Wadanka ugu horreeyay ee bilaabay sahaminta Juqraafiyadda waa:', type: 'mcq', options: ['Bortaqiis', 'Ingiriis', 'Talyaani', 'Isbaanish'], correctAnswer: 'Bortaqiis', marks: 1, topic: 'History of Geo', explanation: 'Portugal started the Age of Discovery.' },
-    { id: 'geo-38', section: SectionType.MCQ, text: '38. Sawirka hoos ku qoran wuxuu muujinayaa nooca folkaanaha:', type: 'mcq', options: ['Firfircoon', 'Meyd', 'Huruda', 'Muuqata'], correctAnswer: 'Firfircoon', marks: 1, topic: 'Physical Geography', explanation: 'Active volcano.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/active-volcano.png' },
-    { id: 'geo-39', section: SectionType.MCQ, text: '39. Khariidadda muujisa beeraha, warshadaha iyo ganacsiga waa khariidadda:', type: 'mcq', options: ['Siyaasadda', 'Dhaqaalaha', 'Cimilada', 'Isgaarsiinta'], correctAnswer: 'Dhaqaalaha', marks: 1, topic: 'Map Types', explanation: 'Economic map.' },
-    { id: 'geo-40', section: SectionType.MCQ, text: '40. Soomaaliya waxay leedahay 18,000,000 qof iyo baaxad dhan 637,657 km². Waa imisa cufnaanta dadkeedu?', type: 'mcq', options: ['30 qof/km²', '28 qof/km²', '12 qof/km²', '16 qof/km²'], correctAnswer: '28 qof/km²', marks: 1, topic: 'Population', explanation: '18m/637k approx 28.' },
-
-    // --- SECTION 2: Structured Questions (41-55) ---
-    { id: 'geo-41', section: SectionType.SHORT_ANSWER, text: '1. Falanqee kaalinta culimada Muslimiinta ee Cilmiga Jiyoolojiga. (4 dhibcood)', type: 'text', correctAnswer: 'Waxay sameeyeen khariidado, wax ka qoreen dhagxaanta iyo macdanta.', marks: 4, topic: 'History of Geography', explanation: 'Muslim contributions.' },
-    { id: 'geo-42', section: SectionType.SHORT_ANSWER, text: '2. Kala saar gobollada dabiiciga ah ee dunida. (4 dhibcood)', type: 'text', correctAnswer: 'Gobolada: Kulaylaha, Dhexdhexaadka, Qabowga.', marks: 4, topic: 'Natural Regions', explanation: 'Natural regions.' },
-    { id: 'geo-43', section: SectionType.SHORT_ANSWER, text: '3. Falanqee qaababka wasakhawga hawada. (4 dhibcood)', type: 'text', correctAnswer: 'Warshadaha, Gawaarida, Gubida qashinka.', marks: 4, topic: 'Environment', explanation: 'Air pollution.' },
-    { id: 'geo-44', section: SectionType.SHORT_ANSWER, text: '4. Qor xalal looga hortagi karo daadadka. (4 dhibcood)', type: 'text', correctAnswer: 'Biyo xireeno, Dhireynta, Kanaalada.', marks: 4, topic: 'Disaster Management', explanation: 'Flood prevention.' },
-    { id: 'geo-45', section: SectionType.SHORT_ANSWER, text: '5. Falanqee ahmiyadda istiraatiijiyadeed ee dhulka Soomaaliyeed. (4 dhibcood)', type: 'text', correctAnswer: 'Bada cas, Badweynta Hindiya, Marinka Bab el Mandeb.', marks: 4, topic: 'Somali Geography', explanation: 'Strategic location.' },
-    { id: 'geo-46', section: SectionType.SHORT_ANSWER, text: '6. Sharax sida ay dadka Soomaaliyeed ugu kala firirsan yihiin dalka. (4 dhibcood)', type: 'text', correctAnswer: 'Magaalooyinka, Webiyada, Xeebaha.', marks: 4, topic: 'Population', explanation: 'Population distribution.' },
-    { id: 'geo-47', section: SectionType.SHORT_ANSWER, text: '7. Sharax kooban ka bixi noocyada gaadiidka dhulka. (4 dhibcood)', type: 'text', correctAnswer: 'Wadooyinka, Tareenada.', marks: 4, topic: 'Transport', explanation: 'Land transport.' },
-    { id: 'geo-48', section: SectionType.SHORT_ANSWER, text: '8. Tax ilaha daraasaadka bulshooyinka. (4 dhibcood)', type: 'text', correctAnswer: 'Tirakoobka, Diiwaangelinta, Sahanka.', marks: 4, topic: 'Social Studies', explanation: 'Data sources.' },
-    { id: 'geo-49', section: SectionType.SHORT_ANSWER, text: '9. Qor caqabadaha hortaagan xoolo-dhaqashada Soomaaliya. (4 dhibcood)', type: 'text', correctAnswer: 'Abaaraha, Cudurada, Daaqa yaraanta.', marks: 4, topic: 'Economy', explanation: 'Livestock challenges.' },
-    { id: 'geo-50', section: SectionType.SHORT_ANSWER, text: '10. Kala sooc noocyada xoolo-dhaqashada dunida. (4 dhibcood)', type: 'text', correctAnswer: 'Reer guuraa, Xero ku hayn, Ganacsi.', marks: 4, topic: 'Agriculture', explanation: 'Types of farming.' },
-    { id: 'geo-51', section: SectionType.SHORT_ANSWER, text: '11. Maxay ku kala duwan yihiin waddamada badda leh iyo kuwa aan badda lahayn? (3 dhibcood)', type: 'text', correctAnswer: 'Ganacsiga, Kalluumeysiga, Gaadiidka.', marks: 3, topic: 'Trade', explanation: 'Landlocked vs Coastal.' },
-    { id: 'geo-52', section: SectionType.SHORT_ANSWER, text: '12. Maxaa dhici kara haddii uu kordho kululaanshaha dunida? (4 dhibcood)', type: 'text', correctAnswer: 'Barafka dhalaalaya, Heerka badda oo kordha.', marks: 4, topic: 'Climate Change', explanation: 'Global warming effects.' },
-    { id: 'geo-53', section: SectionType.SHORT_ANSWER, text: '13. Isbarbardhig Cimilada iyo Cimilogeeredka. (4 dhibcood)', type: 'text', correctAnswer: 'Cimilada (Climate) - waqti dheer. Cimilogeered (Weather) - waqti gaaban.', marks: 4, topic: 'Climate', explanation: 'Climate vs Weather.' },
-    { id: 'geo-54', section: SectionType.SHORT_ANSWER, text: '14. Qor xalal lagu yareyn karo saamaynta xun ee warshaduhu ku leeyihiin deegaanka. (4 dhibcood)', type: 'text', correctAnswer: 'Shaandheynta qiiqa, Dib u warshadaynta.', marks: 4, topic: 'Environment', explanation: 'Industrial pollution control.' },
-    { id: 'geo-55', section: SectionType.SHORT_ANSWER, text: '15. Adigoo eegaya khariidadda hoos ku sawiran, ku muuji: Kiiniya, Jabuuti iyo Itoobiya. (5 dhibcood)', type: 'text', correctAnswer: 'Map labeling.', marks: 5, topic: 'Map Work', explanation: 'Regional map.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/direct-15.png' }
-  ]
-};
-
-const ICT_2025_EXAM: Exam = {
-  id: 'ict-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.ict.label,
-  subjectKey: SUBJECT_CONFIG.ict.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  questions: [
-    { id: 'ict-1', section: SectionType.MCQ, text: '1. Is a network that connects computers within a small geographical area?', type: 'mcq', options: ['WAN', 'LAN', 'PAN', 'MAN'], correctAnswer: 'LAN', marks: 1, topic: 'Networking', explanation: 'Local Area Network.' },
-    { id: 'ict-2', section: SectionType.MCQ, text: '2. Which one is the Advantage of Ring Topology?', type: 'mcq', options: ['Expansion of the Nodes is simple and easy', 'Easy to install and reconfigure', 'Simple installation and easy to wire', 'Fault detection is straightforward'], correctAnswer: 'Simple installation and easy to wire', marks: 1, topic: 'Networking', explanation: 'Cable layout is simple.' },
-    { id: 'ict-3', section: SectionType.MCQ, text: '3. Is used to send and receive files from a remote host?', type: 'mcq', options: ['TCP', 'NFS', 'IPX', 'FTP'], correctAnswer: 'FTP', marks: 1, topic: 'Internet', explanation: 'File Transfer Protocol.' },
-    { id: 'ict-4', section: SectionType.MCQ, text: '4. The top part of the Power Point window as shown in the figure below is called?', type: 'mcq', options: ['Title bar', 'Status bar', 'Window bar', 'Toolbar'], correctAnswer: 'Title bar', marks: 1, topic: 'Software', explanation: 'Top bar showing filename.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_25_37-AM.png' },
-    { id: 'ict-9', section: SectionType.MCQ, text: '9. In the flow chart the diamond symbol indicates what?', type: 'mcq', options: ['A process', 'A decision', 'A start', 'An output'], correctAnswer: 'A decision', marks: 1, topic: 'Programming', explanation: 'Decision/Branching.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_34_29-AM.png' },
-    { id: 'ict-11', section: SectionType.MCQ, text: '11. You want to change worksheet views in Excel which one of the following steps is true? (Image reference implied)', type: 'mcq', options: ['Locate in the Excel window’s bottom-right corner...', '...', '...', '...'], correctAnswer: 'Locate in the Excel window’s bottom-right corner...', marks: 1, topic: 'Spreadsheets', explanation: 'View buttons location.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_25_40-AM.png' },
-    { id: 'ict-14', section: SectionType.MCQ, text: '14. Using the Figure below the letters inside the figure indicates ______ respectively what?', type: 'mcq', options: ['Bold, Italic, Uppercase', 'Bold, Italic, Underline', 'Black, Italic, Underline', 'Bold, Italic Uniform'], correctAnswer: 'Bold, Italic, Underline', marks: 1, topic: 'Word Processing', explanation: 'B, I, U icons.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_25_29-AM.png' },
-    { id: 'ict-23', section: SectionType.MCQ, text: '23. Quick Access toolbar shows you the common commands (Image)', type: 'mcq', options: ['Save, Undo, and Redo', 'Save, Copy and Paste', 'Save, Open, and Cut', 'Save, Cut, and Copy'], correctAnswer: 'Save, Undo, and Redo', marks: 1, topic: 'Software', explanation: 'Standard QAT items.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_46_38-AM.png' },
-    { id: 'ict-31', section: SectionType.MCQ, text: '31. The figure below Indicates the symbol of?', type: 'mcq', options: ['Java', 'PYTHON', 'GOLAND', 'C#'], correctAnswer: 'PYTHON', marks: 1, topic: 'Programming', explanation: 'Python Logo.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/ChatGPT-Image-Jan-14-2026-08_30_40-AM.png' },
-    { id: 'ict-32', section: SectionType.MCQ, text: '32. The figure below indicates what? Source Code → ______ → Machine Code → Output', type: 'mcq', options: ['Interpreter', 'Converter', 'Compiler', 'Decoder'], correctAnswer: 'Compiler', marks: 1, topic: 'Programming', explanation: 'Compilation process.', diagramUrl: 'https://courses.shaiyecompany.com/wp-content/uploads/2026/01/Captured.png' },
-    { id: 'ict-41', section: SectionType.SHORT_ANSWER, text: 'Draw simple Mesh Topology that consists of five computers.', type: 'text', correctAnswer: '(Drawing)', marks: 4, topic: 'Networking', explanation: 'Full connectivity.' },
-    { id: 'ict-42', section: SectionType.SHORT_ANSWER, text: 'Demonstrate the difference between the terms Hub and Switch.', type: 'text', correctAnswer: 'Hub broadcasts to all, Switch directs to specific MAC.', marks: 4, topic: 'Networking', explanation: 'Network devices.' }
-  ]
-};
-
-const SOMALI_2025_EXAM: Exam = {
-  id: 'som-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.somali.label,
-  subjectKey: SUBJECT_CONFIG.somali.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  language: 'somali',
-  sectionPassages: {
-    [SectionType.MCQ]: `Dhirta waxa ay laf-dhabar u tahay nolosha nafleyda dhammaan. Nafleyda badda iyo tan berrigaba, waxa ay noloshoodu ku tiirsan tahay dhirta. Dhirta barriga waxa ay isugu jirtaa mid la beero iyo mid iskeeda u baxda. Tan la beero waxa ka mid ah geed miroodka, sida cambaha, digirta, muuska, galleyda iyo masagadda. Sidoo kale waxa jira khudrad kala duwan oo qaar caleentoooda la cuno, qaarna jirridooda, qaarna xididdadooda.\nIntaas waxaa ka badan dhirta dabiiciga ah ee iskeed u baxda, miraha iyo xabagta laga helo. Xabagtu sida; fooxa, lubaanta, malmalka iyo xabagta dhacda waa laga ganacsadaa. Sidaa darteed dhirtu waxa ay gundhig u tahay nolosha dadka, duunyada, ciidodka iyo duugaagta.\nHaddii ay dhirtu yaraato ama xaalufowdo waxa hoos u dhacaya dhaqaalaha iyo dhaqanka. Dhirtu waxa ay ka qeybqaadataa bilicda deegaanka, waxa ayna noqotaa dalxiis indha doogsi ah.\nMarkii uu roobku da’o oo ay cammuduubbiya ka dhacdo, calcayduna balliyada ceegaagto, dhirtuna caleemo kala duwan bixiso, haddii aad dalxiis gaaban ugu baxdo keymo ay xalay roob ka da’ay miir hesho oo ay indhahaagu qabtaan ciidod kala duwan sida; geriga, deerada, maroodiga, galyanio iyo arbab, oo kuu laaclamaya dhir qurux badan laanta carunka ah madxa isgalinaya, waxa aad dareemeysaa indha darandoori.\nSidaa oo kale jillaalka waxa magoola geed madowga. Geed madowgu waa dhirta aan caleentu ka dhammaan ee mar walba cagaaran, dhirtasi waxa calaafsad xooolaha xilliga jillaalka, magaalooyinka hoos iyo qurux ayey u leedahay. Dhirtasi waxa ay bixisaa xilliga jiilaadka man qurux badan, kadibna waa ay magooshaa. Magoolku waa caleenta ay dhirta geed madowga ahi bixiso xilliga diraacda inta aan wali roobku di’in.\nDhirta waxa ay noo leedahay waxdheef badan, waxa aan cunnaa miraha, xabagteeda iyo caleenteeda. Waxaana daaqa oo ku nool duunyada aan dhaqananno sida; geela, geeslayda iyo gammaanta. Ugu dambeyn dhirta waa in aan dhayal loo jarin oo la ilaalinyo.`,
-    'Poem': `“Gudcur dam ah daw laga cabsado iyo daluun jeexan\nMiiraale dooxyada rogoo daadku mulacyeeyey\nAar diiqalyanyiyo maskiyo daalinkiyo tuugga\nAma dayradhaafkoo qabow dignka jiilaalka\nDubatada cadceediyo hafyaga diiran hilibkaaga\nDantii nimay waddaa baa dhexmara diima-diimaha’e\nHurdo wayga duuf waayadaan umal daraadiiye…”`
-  },
-  questions: [
-    { id: 'som-1', section: SectionType.MCQ, text: '1. Dhirta yar yar ee ka baxda badda gudheeda waxaa loo yaqaan:', type: 'mcq', options: ['dhirbiyood', 'dhirbadeed', 'haramobadeed', 'dhirgaab'], correctAnswer: 'dhirbadeed', marks: 1, topic: 'Vocabulary', explanation: 'Dhirta badda.' },
-    { id: 'som-2', section: SectionType.MCQ, text: '2. Erayga “magool” macnihiisu waa:', type: 'mcq', options: ['ubax', 'jirrid', 'caleen', 'miro'], correctAnswer: 'caleen', marks: 1, topic: 'Vocabulary', explanation: 'Caleenta cusub.' },
-    { id: 'som-3', section: SectionType.MCQ, text: '3. Dhulka meesha ugaadka ah ee beerashada iyo daaqsinta ku habboon waxaa loo yaqaan:', type: 'mcq', options: ['cosob', 'kaliil', 'raso', 'hiil'], correctAnswer: 'cosob', marks: 1, topic: 'Vocabulary', explanation: 'Dhul barwaaqo.' },
-    { id: 'som-4', section: SectionType.MCQ, text: '4. Erayga “Geelays” waxaa loo la jeedaa:', type: 'mcq', options: ['riyo iyo ido', 'ari’ iyo lo’', 'geel iyo lo’', 'ari’ iyo geel'], correctAnswer: 'geel iyo lo’', marks: 1, topic: 'Vocabulary', explanation: 'Xoolaha waaweyn.' },
-    { id: 'som-5', section: SectionType.MCQ, text: '5. Geedka “waambaha” waxaa la cunaa:', type: 'mcq', options: ['xididdisa', 'mirihiisa', 'caleentiisa', 'fiiddiisa'], correctAnswer: 'caleentiisa', marks: 1, topic: 'Knowledge', explanation: 'Caleenta.' },
-    { id: 'som-33', section: SectionType.MCQ, text: '33. Erayga daluun waxa halkan loola jeedaa (tixda):', type: 'mcq', options: ['waddo', 'habeenn', 'haadaan', 'webi'], correctAnswer: 'haadaan', marks: 1, topic: 'Poetry Analysis', explanation: 'Deep place/ravine.' },
-    { id: 'som-34', section: SectionType.MCQ, text: '34. Erayga miraale waxa halkan loola jeedaa:', type: 'mcq', options: ['wasaq badan', 'biyo', 'qof miyirkii ka tagay', 'roob xoog leh'], correctAnswer: 'roob xoog leh', marks: 1, topic: 'Poetry Analysis', explanation: 'Heavy rain.' },
-    { id: 'som-41', section: SectionType.WRITING, text: 'Ka qor curis ugu yaraan 20 sadar ah mid ka mid ah mowduucyadan hoose:\n1. Sidee Soomaaliya u gaari kartaa isku-filnaasho dhinaca dhaqaalaha ah?\n2. Muxuu yahay doorka kaaga aaddan mideynta ummadda Soomaaliyeed?', type: 'text', correctAnswer: '(Essay)', marks: 10, topic: 'Writing', explanation: 'Composition.' }
-  ]
-};
-
-const HISTORY_2025_EXAM: Exam = {
-  id: 'hist-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.history.label,
-  subjectKey: SUBJECT_CONFIG.history.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  language: 'somali',
-  questions: [
-    { id: 'hist-1', section: SectionType.MCQ, text: '1. Suldaankii ugu dambeeyay Cusmaaniyiinta waxa uu ahaa Suldaan:', type: 'mcq', options: ['Cabdulxamiid 2', 'Muxammad 1', 'Saliim', 'Muraad'], correctAnswer: 'Cabdulxamiid 2', marks: 1, topic: 'Ottoman History', explanation: 'Cabdulxamiid II wuxuu ahaa suldaankii ugu dambeeyay ee awood buuxda lahaa.' }
-  ]
-};
-
-const PHYSICS_2025_EXAM: Exam = {
-  id: 'phys-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.physics.label,
-  subjectKey: SUBJECT_CONFIG.physics.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  questions: [
-    { id: 'phys-1', section: SectionType.MCQ, text: '1. Which of the following is a scalar quantity?', type: 'mcq', options: ['Force', 'Velocity', 'Speed', 'Acceleration'], correctAnswer: 'Speed', marks: 1, topic: 'Kinematics', explanation: 'Speed has magnitude only, no direction.' }
-  ]
-};
-
-const CHEMISTRY_2025_EXAM: Exam = {
-  id: 'chem-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.chemistry.label,
-  subjectKey: SUBJECT_CONFIG.chemistry.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  questions: [
-    { id: 'chem-1', section: SectionType.MCQ, text: '1. What is the chemical symbol for Gold?', type: 'mcq', options: ['Ag', 'Au', 'Fe', 'Cu'], correctAnswer: 'Au', marks: 1, topic: 'Elements', explanation: 'Au stands for Aurum, which is gold.' }
-  ]
-};
-
-const BIOLOGY_2025_EXAM: Exam = {
-  id: 'bio-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.biology.label,
-  subjectKey: SUBJECT_CONFIG.biology.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  questions: [
-    { id: 'bio-1', section: SectionType.MCQ, text: '1. The powerhouse of the cell is:', type: 'mcq', options: ['Nucleus', 'Ribosome', 'Mitochondria', 'Cytoplasm'], correctAnswer: 'Mitochondria', marks: 1, topic: 'Cell Biology', explanation: 'Mitochondria generate most of the cell supply of adenosine triphosphate (ATP).' }
-  ]
-};
-
-const ENGLISH_2025_EXAM: Exam = {
-  id: 'eng-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.english.label,
-  subjectKey: SUBJECT_CONFIG.english.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  authority: 'SOMALI_GOV', // Explicitly setting this helps logic
-  level: 'FORM_IV',
-  sectionPassages: {
-    [SectionType.READING]: `The role of good neighbors.\nNeighbors are the people who live near us. They may live next door, across the street, or in the same building. We see them every day when we go outside, to school, the market, or the mosque. Neighbors are part of our everyday life. A neighbor is not just someone who lives close to you. They can become like a family member. Having good neighbors makes life easier, safer, and more enjoyable for everyone.\nA good neighbor is someone who is kind, friendly, and helpful. They greet you with a smile, speak politely, and show care for you and your family. When you are sick or have a problem, a good neighbor offers help without being asked especially during weddings, funerals, festivals or other important events, neighbors support each other by cooking, helping with preparations, or simply being present. These small but meaningful actions build love and respect between people.\nIn traditional communities, helping neighbors is a big part of daily life. Even in hard times, people share what they have whether it is food, water, or knowledge. For example, when there is a water shortage, a neighbor might allow others to use their well. When a young person needs help with schoolwork, a neighbor may offer guidance or support. This spirit of cooperation shows that when people work together, life is better for all.\nGood neighbors are also important for keeping peace in the community. When people trust and understand each other, there is less chance of fighting or misunderstanding. If a problem does happen such as noise, a disagreement, or something goes missing good neighbors solve it calmly and respectfully. They listen to each other and find a fair solution. In addition, neighbors watch each other’s homes and children. If someone is in danger, neighbors can act quickly to protect and help.\nBeing kind to neighbors is not only a cultural value. It is also a religious duty in Islam. Prophet Muhammad peace is upon him taught Muslims to treat neighbors with kindness and care. He said, “He is not a true believer whose neighbor is not safe from his harm.” This means that hurting or bothering your neighbor is not acceptable in Islam. Islam teaches us to visit our neighbors, help them in times of need, and treat them like family. It is part of being a good Muslim.\nUnfortunately, in some modern communities, people have become distant from their neighbors. Some people do not know the names of the people living next door. They stay inside their homes and do not interact. This can lead to loneliness, fear, and mistrust. It also weakens the community because people stop helping each other. To fix this, we should return to the tradition of being close and supportive neighbors. Saying hello, sharing food, and offering help are small actions that can make a big difference.\nYoung people can also help build strong relationships with neighbors. They can be polite and helpful, offer to carry groceries, visit elderly neighbors, or help younger children with homework. Youth can organize small clean-up days or play sports together with neighbors to create friendship and unity. When young people show good character and kindness, they help create a future community that is peaceful, respectful, and united.`
-  },
-  questions: [
-    // PART 1
-    { id: 'eng-1', section: SectionType.READING, text: '1. The word “people” is', type: 'mcq', options: ['adverb', 'pronoun', 'noun', 'adjective'], correctAnswer: 'noun', marks: 1, topic: 'Grammar', explanation: 'People is a plural noun referencing human beings.' },
-    { id: 'eng-2', section: SectionType.READING, text: '2. Mosque is a holly place, it is a ______ noun', type: 'mcq', options: ['collective', 'proper', 'Abstract', 'common'], correctAnswer: 'common', marks: 1, topic: 'Grammar', explanation: 'It is a general name for a place of worship, not a specific one.' },
-    { id: 'eng-3', section: SectionType.READING, text: '3. Her kindness made her success. The word “kindness” is ______ noun', type: 'mcq', options: ['Concrete', 'Material', 'Abstract', 'proper'], correctAnswer: 'Abstract', marks: 1, topic: 'Grammar', explanation: 'Kindness is an idea/quality, not a physical object.' },
-    { id: 'eng-4', section: SectionType.READING, text: '4. The word “big” is an adjective of ______', type: 'mcq', options: ['demonstrative', 'possession', 'quantity', 'quality'], correctAnswer: 'quality', marks: 1, topic: 'Grammar', explanation: 'It describes the quality/size of the noun.' },
-    { id: 'eng-5', section: SectionType.READING, text: '5. The word “easier” is used in the passage. which degree does it belong to?', type: 'mcq', options: ['positive', 'comparative', 'superlative', 'Gerund'], correctAnswer: 'comparative', marks: 1, topic: 'Grammar', explanation: 'Easier compares two states (ends in -er).' },
-    { id: 'eng-6', section: SectionType.READING, text: '6. What does respectfully mean in according to the passage:', type: 'mcq', options: ['Considerately', 'Harshly', 'Indifferently', 'Arguing'], correctAnswer: 'Considerately', marks: 1, topic: 'Vocabulary', explanation: 'Showing regard and consideration for others.' },
-    { id: 'eng-7', section: SectionType.READING, text: '7. Marry was a young lady. the word “young” is', type: 'mcq', options: ['noun', 'adjective', 'Adverb', 'Conjunction'], correctAnswer: 'adjective', marks: 1, topic: 'Grammar', explanation: 'It modifies the noun "lady".' },
-    { id: 'eng-8', section: SectionType.READING, text: '8. What does support mean according to the passage:', type: 'mcq', options: ['Ignore', 'Assist', 'Argue', 'Avoid'], correctAnswer: 'Assist', marks: 1, topic: 'Vocabulary', explanation: 'To give help or assistance.' },
-    { id: 'eng-9', section: SectionType.READING, text: '9. What does peacefully mean in according to the passage:', type: 'mcq', options: ['Quietly', 'Guilty', 'Loudly', 'Faulty'], correctAnswer: 'Quietly', marks: 1, topic: 'Vocabulary', explanation: 'Without disturbance, calmly.' },
-    { id: 'eng-10', section: SectionType.READING, text: '10. We respect each other. Which tense is it?', type: 'mcq', options: ['Past tense', 'Present simple', 'future tense', 'present perfect'], correctAnswer: 'Present simple', marks: 1, topic: 'Grammar', explanation: 'Subject + base verb indicates present simple.' },
-
-    // PART 2
-    { id: 'eng-11', section: SectionType.GRAMMAR, text: '11. Complex sentence can have one or more ______', type: 'mcq', options: ['coordinating conjunction', 'subordinating Conjunction', 'correlative conjunction', 'compound conjunction'], correctAnswer: 'subordinating Conjunction', marks: 1, topic: 'Grammar', explanation: 'Complex sentences use subordinating conjunctions to join dependent clauses.' },
-    { id: 'eng-12', section: SectionType.GRAMMAR, text: '12. _____ is used to negatively with uncountable nouns to show that quantity is small and not enough.', type: 'mcq', options: ['A few', 'little', 'few', 'a little'], correctAnswer: 'little', marks: 1, topic: 'Grammar', explanation: '"Little" implies a negative/insufficient quantity for uncountables.' },
-    { id: 'eng-13', section: SectionType.GRAMMAR, text: '13. Typically the adverb ends LY usually called', type: 'mcq', options: ['adverb of place', 'adverb of manner', 'adverb of time', 'adverb of duration'], correctAnswer: 'adverb of manner', marks: 1, topic: 'Grammar', explanation: 'Adverbs of manner (e.g., quickly, slowly) often end in -ly.' },
-    { id: 'eng-14', section: SectionType.GRAMMAR, text: '14. Phrasal verbs are made up of ______', type: 'mcq', options: ['Verb and noun', 'Verb and adjective', 'Verb and pronoun', 'Verb and preposition'], correctAnswer: 'Verb and preposition', marks: 1, topic: 'Grammar', explanation: 'A verb + preposition/adverb.' },
-    { id: 'eng-15', section: SectionType.GRAMMAR, text: '15. The word “crowd” is ______', type: 'mcq', options: ['Compound nouns', 'Collective nouns', 'Countable nouns', 'Material nouns'], correctAnswer: 'Collective nouns', marks: 1, topic: 'Grammar', explanation: 'Represents a group of individuals.' },
-    { id: 'eng-16', section: SectionType.GRAMMAR, text: '16. The goat produces much milk at night, ______', type: 'mcq', options: ['Is it?', 'Isn’t the goat?', 'Isn’t it?', 'Doesn’t it?'], correctAnswer: 'Doesn’t it?', marks: 1, topic: 'Grammar', explanation: 'Simple present "produces" uses "doesn\'t" in tag.' },
-    { id: 'eng-17', section: SectionType.GRAMMAR, text: '17. Which tense is the following sentence: Farida has passed in her exam.', type: 'mcq', options: ['Progressive tenses', 'Future tenses', 'Perfect tenses', 'past tenses'], correctAnswer: 'Perfect tenses', marks: 1, topic: 'Grammar', explanation: 'Present Perfect (has + past participle).' },
-    { id: 'eng-18', section: SectionType.GRAMMAR, text: '18. The teacher advised the candidates to abide ______ the law.', type: 'mcq', options: ['in', 'from', 'by', 'of'], correctAnswer: 'by', marks: 1, topic: 'Grammar', explanation: 'Abide by is the correct collocation.' },
-    { id: 'eng-19', section: SectionType.GRAMMAR, text: '19. This exercise is ______ than the last one.', type: 'mcq', options: ['Trickier', 'Tracker', 'Tricky', 'More tricky'], correctAnswer: 'Trickier', marks: 1, topic: 'Grammar', explanation: 'Comparative of tricky (ends in y -> ier).' },
-    { id: 'eng-20', section: SectionType.GRAMMAR, text: '20. Adjective is word that is used to modify.', type: 'mcq', options: ['noun or adverb', 'Pronoun or Adverb', 'conjunction or noun', 'Noun or Pronoun'], correctAnswer: 'Noun or Pronoun', marks: 1, topic: 'Grammar', explanation: 'Adjectives modify nouns and pronouns.' },
-
-    // PART 3
-    { id: 'eng-21', section: SectionType.LITERATURE, text: '21. The author of a poem is called ______', type: 'mcq', options: ['Player', 'Poet', 'Poetry', 'Persona'], correctAnswer: 'Poet', marks: 1, topic: 'Literature', explanation: 'One who writes poems.' },
-    { id: 'eng-22', section: SectionType.LITERATURE, text: '22. He is as black as a charcoal. This is an example of', type: 'mcq', options: ['Metaphor', 'Simile', 'Smile', 'smell'], correctAnswer: 'Simile', marks: 1, topic: 'Literature', explanation: 'Comparison using "as".' },
-    { id: 'eng-23', section: SectionType.LITERATURE, text: '23. The voice speaking in the poem is called ______', type: 'mcq', options: ['Person', 'character', 'Persona', 'Poet'], correctAnswer: 'Persona', marks: 1, topic: 'Literature', explanation: 'The speaker in the poem.' },
-    { id: 'eng-24', section: SectionType.LITERATURE, text: '24. ______ is the repetition of consonant sounds, especially at the beginning of the words.', type: 'mcq', options: ['Alliteration', 'Rhyme', 'rhythm', 'Satire'], correctAnswer: 'Alliteration', marks: 1, topic: 'Literature', explanation: 'Repetition of initial sounds.' },
-    { id: 'eng-25', section: SectionType.LITERATURE, text: '25. When we directly compare two objects or things in literature we say ______', type: 'mcq', options: ['analogy', 'metaphor', 'equivalent', 'Same'], correctAnswer: 'metaphor', marks: 1, topic: 'Literature', explanation: 'Direct comparison without like/as.' },
-    { id: 'eng-26', section: SectionType.LITERATURE, text: '26. Simile is when we compare two thing by using word like ______', type: 'mcq', options: ['us', 'As', 'A little', 'Large'], correctAnswer: 'As', marks: 1, topic: 'Literature', explanation: 'Uses "like" or "as".' },
-    { id: 'eng-27', section: SectionType.LITERATURE, text: '27. ______ is the repetition of consonant sounds, especially at the beginning of the words.', type: 'mcq', options: ['Assonance', 'Consonance', 'Alliteration', 'Allegory'], correctAnswer: 'Alliteration', marks: 1, topic: 'Literature', explanation: 'Definition matches Alliteration.' },
-    { id: 'eng-28', section: SectionType.LITERATURE, text: '28. The situation when the poet repeats a line or a whole stanza throughout the poem is called', type: 'mcq', options: ['Irony', 'Symbol', 'Recycle', 'Refrain'], correctAnswer: 'Refrain', marks: 1, topic: 'Literature', explanation: 'Repeated lines.' },
-    { id: 'eng-29', section: SectionType.LITERATURE, text: '29. Short statements with hidden meaning that are delivered from generation to another are', type: 'mcq', options: ['Provisions', 'Proverbs', 'Pronouns', 'propositions'], correctAnswer: 'Proverbs', marks: 1, topic: 'Literature', explanation: 'Wise sayings passed down.' },
-    { id: 'eng-30', section: SectionType.LITERATURE, text: '30. The nature of the voice used in a poem is called', type: 'mcq', options: ['Tool', 'Team', 'Torch', 'Tone'], correctAnswer: 'Tone', marks: 1, topic: 'Literature', explanation: 'The attitude/voice.' },
-
-    // PART 4
-    { id: 'eng-31', section: SectionType.VOCABULARY, text: '31. The opposite of reject is', type: 'mcq', options: ['accept', 'except', 'expect', 'respect'], correctAnswer: 'accept', marks: 1, topic: 'Vocabulary', explanation: 'Antonym of reject.' },
-    { id: 'eng-32', section: SectionType.VOCABULARY, text: '32. The singular form of the word mice is', type: 'mcq', options: ['rats', 'miseries', 'mouse', 'rat'], correctAnswer: 'mouse', marks: 1, topic: 'Vocabulary', explanation: 'Mice is plural of mouse.' },
-    { id: 'eng-33', section: SectionType.VOCABULARY, text: '33. The homophone of eight is', type: 'mcq', options: ['aid', 'ate', 'at', 'added'], correctAnswer: 'ate', marks: 1, topic: 'Vocabulary', explanation: 'Sounds same, different meaning.' },
-    { id: 'eng-34', section: SectionType.VOCABULARY, text: '34. Which of the following is showing place or location?', type: 'mcq', options: ['Their', 'They’re', 'Thread', 'There'], correctAnswer: 'There', marks: 1, topic: 'Vocabulary', explanation: 'Adverb of place.' },
-    { id: 'eng-35', section: SectionType.VOCABULARY, text: '35. The opposite of conflict is', type: 'mcq', options: ['piece', 'Pease', 'Peace', 'pace'], correctAnswer: 'Peace', marks: 1, topic: 'Vocabulary', explanation: 'Antonym of conflict.' },
-    { id: 'eng-36', section: SectionType.VOCABULARY, text: '36. The person who looks after our eyes is called', type: 'mcq', options: ['dentist', 'surgeon', 'optician', 'nurse'], correctAnswer: 'optician', marks: 1, topic: 'Vocabulary', explanation: 'Eye specialist.' },
-    { id: 'eng-37', section: SectionType.VOCABULARY, text: '37. The synonyms of quick is', type: 'mcq', options: ['feast', 'fast', 'first', 'last'], correctAnswer: 'fast', marks: 1, topic: 'Vocabulary', explanation: 'Similar meaning.' },
-    { id: 'eng-38', section: SectionType.VOCABULARY, text: '38. I ______ letter to my uncle every month', type: 'mcq', options: ['right', 'write', 'rite', 'Wright'], correctAnswer: 'write', marks: 1, topic: 'Vocabulary', explanation: 'To pen a letter.' },
-    { id: 'eng-39', section: SectionType.VOCABULARY, text: '39. They ______ the man in the street every afternoon.', type: 'mcq', options: ['see', 'sea', 'sew', 'sin'], correctAnswer: 'see', marks: 1, topic: 'Vocabulary', explanation: 'Visual perception.' },
-    { id: 'eng-40', section: SectionType.VOCABULARY, text: '40. You should be ______ honest leader for your country', type: 'mcq', options: ['an', 'the', 'a', 'in'], correctAnswer: 'an', marks: 1, topic: 'Vocabulary', explanation: 'Honest starts with silent h (vowel sound).' },
-
-    // SECTION TWO: STRUCTURED
-    { id: 'eng-41', section: SectionType.STRUCTURED, text: '41. Define synopsis.', type: 'text', correctAnswer: 'A brief summary or general survey of something.', marks: 5, topic: 'Writing', explanation: 'Definition of synopsis.' },
-    { id: 'eng-42', section: SectionType.STRUCTURED, text: '42. Differentiate Simile and Metaphor.', type: 'text', correctAnswer: 'Simile compares using like/as; Metaphor is a direct comparison.', marks: 5, topic: 'Literature', explanation: 'Comparison methods.' },
-    { id: 'eng-43', section: SectionType.STRUCTURED, text: '43. What is the difference between Biography and autobiography?', type: 'text', correctAnswer: 'Biography is written by another person; Autobiography is written by the subject themselves.', marks: 5, topic: 'Writing', explanation: 'Life history types.' },
-    { id: 'eng-44', section: SectionType.STRUCTURED, text: '44. Explain character.', type: 'text', correctAnswer: 'A person, animal, or being in a story or play.', marks: 5, topic: 'Literature', explanation: 'Story element.' },
-    { id: 'eng-45', section: SectionType.STRUCTURED, text: '45. Define Curriculum Vitae.', type: 'text', correctAnswer: 'A document listing qualifications and career history (CV).', marks: 5, topic: 'Writing', explanation: 'CV definition.' },
-    { id: 'eng-46', section: SectionType.STRUCTURED, text: '46. Describe Riddle.', type: 'text', correctAnswer: 'A question or statement phrased as a puzzle to be solved.', marks: 5, topic: 'Literature', explanation: 'Puzzle definition.' },
-    { id: 'eng-47', section: SectionType.STRUCTURED, text: '47. What is an interjection?', type: 'text', correctAnswer: 'A word or phrase used to express strong emotion (e.g., Wow! Oh!).', marks: 5, topic: 'Grammar', explanation: 'Part of speech.' },
-    { id: 'eng-48', section: SectionType.STRUCTURED, text: '48. Explain Composition?', type: 'text', correctAnswer: 'The act of writing a structured piece of text, like an essay.', marks: 5, topic: 'Writing', explanation: 'Writing process.' },
-    { id: 'eng-49', section: SectionType.STRUCTURED, text: '49. What is imagery?', type: 'text', correctAnswer: 'Visually descriptive or figurative language that appeals to the senses.', marks: 5, topic: 'Literature', explanation: 'Descriptive language.' },
-    { id: 'eng-50', section: SectionType.STRUCTURED, text: '50. Write down the meaning of this Proverb “Rome was not built in a day”?', type: 'text', correctAnswer: 'Important work takes time to complete.', marks: 5, topic: 'Literature', explanation: 'Proverb meaning.' },
-
-    // WRITING SKILLS
-    { id: 'eng-51', section: SectionType.WRITING, text: 'Write a composition (at least 10 lines) by choosing one of the following topics:\n1. Disadvantages of Tribalism.\n2. The Unforgettable Memories of Your Education.\n3. Importance of good manner.', type: 'text', correctAnswer: '(Essay)', marks: 10, topic: 'Writing', explanation: 'Composition writing.' }
-  ]
-};
-
-const BUSINESS_2025_EXAM: Exam = {
-  id: 'bus-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.business.label,
-  subjectKey: SUBJECT_CONFIG.business.key,
-  durationMinutes: 120,
-  direction: 'ltr',
-  authority: 'SOMALI_GOV',
-  level: 'FORM_IV',
-  questions: [
-    { id: 'bus-1', section: SectionType.MCQ, text: '1. The kind of business activity labeled in the given picture is:', type: 'mcq', options: ['Extraction', 'Processing', 'Manufacturing', 'Construction'], correctAnswer: 'Construction', marks: 1, topic: 'Business Activity', explanation: 'Commonly depicted activities include Construction or Extraction. (Assuming construction based on context).' },
-    { id: 'bus-2', section: SectionType.MCQ, text: '2. The fundamental economic problem is that resources are limited but human wants are unlimited. This problem is known as:', type: 'mcq', options: ['Trade-off', 'Productivity', 'Demand', 'Scarcity'], correctAnswer: 'Scarcity', marks: 1, topic: 'Economics', explanation: 'Scarcity is the basic economic problem.' },
-    { id: 'bus-3', section: SectionType.MCQ, text: '3. The following information was obtained from the books of Kamil Ltd:\nCapital – 24,000\nStock – 1,500\nDebtors – 2,000\nMachinery – 20,000\nCash – 4,000\nDetermine the total liability.', type: 'mcq', options: ['3,500', '27,500', '51,500', '1,500'], correctAnswer: '3,500', marks: 1, topic: 'Accounting', explanation: 'Assets = 1500+2000+20000+4000 = 27500. A = C + L. 27500 = 24000 + L. L = 3500.' },
-    { id: 'bus-4', section: SectionType.MCQ, text: '4. The following are characteristics of an entrepreneur EXCEPT:', type: 'mcq', options: ['Optimistic', 'Resourceful', 'Advocacy', 'Motivated'], correctAnswer: 'Advocacy', marks: 1, topic: 'Entrepreneurship', explanation: 'Advocacy is not a core trait of an entrepreneur.' },
-    { id: 'bus-5', section: SectionType.MCQ, text: '5. The price of olive oil in the Somali market increased by 20%, leading to a 5% increase in quantity supplied. Calculate the price elasticity of supply.', type: 'mcq', options: ['1', '1.5', '0.25', '2.5'], correctAnswer: '0.25', marks: 1, topic: 'Economics', explanation: 'PES = %Change Qty / %Change Price = 5 / 20 = 0.25.' },
-    { id: 'bus-6', section: SectionType.MCQ, text: '6. Planning, organizing, commanding, coordinating, and controlling are functions of:', type: 'mcq', options: ['Commercial activities', 'Accounting activities', 'Financial activities', 'Managerial activities'], correctAnswer: 'Managerial activities', marks: 1, topic: 'Management', explanation: 'Fayol\'s functions of management.' },
-    { id: 'bus-7', section: SectionType.MCQ, text: '7. How does a team make decisions in a business project?', type: 'mcq', options: ['By approval', 'By majority', 'Weighted', 'Unanimously'], correctAnswer: 'By majority', marks: 1, topic: 'Management', explanation: 'Majority vote is standard.' },
-    { id: 'bus-8', section: SectionType.MCQ, text: '8. The graph below shows the supply curve for coffee.\nWhich of the following factors does NOT cause a rightward shift of the supply curve?', type: 'mcq', options: ['Consumer tastes', 'Number of sellers', 'Technology', 'Taxes and subsidies'], correctAnswer: 'Consumer tastes', marks: 1, topic: 'Economics', explanation: 'Consumer tastes shift Demand, not Supply.' },
-    { id: 'bus-9', section: SectionType.MCQ, text: '9. The following are characteristics of money EXCEPT:', type: 'mcq', options: ['Convenient', 'Durable', 'Scarce', 'Accepted'], correctAnswer: 'Convenient', marks: 1, topic: 'Money', explanation: 'While money is convenient (portable), "Scarce" is the tricky distractor here, usually referred to as "Limited Supply". However, standard characteristics include Acceptability, Durability, Portability (Convenience). If forced to choose, typically "Convenient" is the layman term for Portability.' },
-    { id: 'bus-10', section: SectionType.MCQ, text: '10. This figure is a well-known mail-handling equipment used in an office. It is called:', type: 'mcq', options: ['Envelope', 'A4 letter', 'Stapler', 'Scissors'], correctAnswer: 'Stapler', marks: 1, topic: 'Office Practice', explanation: 'Stapler is common equipment.' },
-    { id: 'bus-11', section: SectionType.MCQ, text: '11. Misuse of punctuation can affect communication. Which part of communication is affected?', type: 'mcq', options: ['Distractions', 'Cultural', 'Status', 'Language'], correctAnswer: 'Language', marks: 1, topic: 'Communication', explanation: 'Punctuation is a language barrier issue.' },
-    { id: 'bus-12', section: SectionType.MCQ, text: '12. To run an effective filing system, you should:', type: 'mcq', options: ['Avoid saving unnecessary documents', 'Keep all files in a closed cabinet', 'Drink a lot of coffee when filing', 'Make sure all cables are hidden'], correctAnswer: 'Avoid saving unnecessary documents', marks: 1, topic: 'Office Practice', explanation: 'Efficiency rule.' },
-    { id: 'bus-13', section: SectionType.MCQ, text: '13. The branch of economics that deals with government revenue and expenditure is:', type: 'mcq', options: ['Public issues', 'Public debts', 'Public finance', 'Public policy'], correctAnswer: 'Public finance', marks: 1, topic: 'Economics', explanation: 'Public Finance deals with revenue/expenditure.' },
-    { id: 'bus-14', section: SectionType.MCQ, text: '14. The earliest form of business was barter trade. Which type of money was used?', type: 'mcq', options: ['Bank money', 'Paper money', 'Metallic money', 'Commodity money'], correctAnswer: 'Commodity money', marks: 1, topic: 'Money', explanation: 'Items used as money (Commodity).' },
-    { id: 'bus-15', section: SectionType.MCQ, text: '15. International trade carried out between two countries is called:', type: 'mcq', options: ['Multilateral trade', 'Retail trade', 'Wholesale trade', 'Bilateral trade'], correctAnswer: 'Bilateral trade', marks: 1, topic: 'International Trade', explanation: 'Bi-lateral means two sides.' },
-    { id: 'bus-16', section: SectionType.MCQ, text: '16. Which of the following is NOT part of the electronic marketing mix?', type: 'mcq', options: ['E-product', 'E-pricing', 'E-promotion', 'E-packaging'], correctAnswer: 'E-packaging', marks: 1, topic: 'Marketing', explanation: 'Packaging is physical, usually replaced by Place/Distribution in e-mix.' },
-    { id: 'bus-17', section: SectionType.MCQ, text: '17. Which of the following is NOT a major function of a warehouse?', type: 'mcq', options: ['Inventory manufacturing', 'Storage of goods', 'Grading and branding', 'Protection of goods'], correctAnswer: 'Inventory manufacturing', marks: 1, topic: 'Warehousing', explanation: 'Manufacturing happens in factories, not warehouses.' },
-    { id: 'bus-18', section: SectionType.MCQ, text: '18. The electronic system through which buyers and sellers meet to exchange goods is known as:', type: 'mcq', options: ['Electronic business', 'Electronic market', 'E-commerce', 'Digital marketing'], correctAnswer: 'Electronic market', marks: 1, topic: 'E-commerce', explanation: 'E-market implies the meeting place.' },
-    { id: 'bus-19', section: SectionType.MCQ, text: '19. Another name for an Income Statement is:', type: 'mcq', options: ['Profit and Loss Statement', 'Profit and Revenue Statement', 'Cash Flow Statement', 'Balance Sheet Statement'], correctAnswer: 'Profit and Loss Statement', marks: 1, topic: 'Accounting', explanation: 'P&L Statement.' },
-    { id: 'bus-20', section: SectionType.MCQ, text: '20. Trade that takes place within the boundaries of a country is known as:', type: 'mcq', options: ['Home trade', 'International trade', 'Import trade', 'Wholesale trade'], correctAnswer: 'Home trade', marks: 1, topic: 'Trade', explanation: 'Domestic/Home trade.' },
-    { id: 'bus-21', section: SectionType.MCQ, text: '21. A start-up wants to enter the market with a limited budget. Which promotional method is most affordable?', type: 'mcq', options: ['National TV advertising', 'Hiring a celebrity', 'Social media marketing', 'Roadside advertising in rural areas'], correctAnswer: 'Social media marketing', marks: 1, topic: 'Marketing', explanation: 'Cost-effective.' },
-    { id: 'bus-22', section: SectionType.MCQ, text: '22. A customer switches brands after a negative experience. This behavior indicates:', type: 'mcq', options: ['Cultural influence', 'Post-purchase behavior', 'Customer loyalty', 'Habitual buying'], correctAnswer: 'Post-purchase behavior', marks: 1, topic: 'Marketing', explanation: 'Evaluation after purchase.' },
-    { id: 'bus-23', section: SectionType.MCQ, text: '23. When goods are transported by sea, which document is used?', type: 'mcq', options: ['Airway bill', 'Bill of lading', 'Price list', 'Debit note'], correctAnswer: 'Bill of lading', marks: 1, topic: 'Transport', explanation: 'Document for sea transport.' },
-    { id: 'bus-24', section: SectionType.MCQ, text: '24. A trader wants a loan to invest in a business. Which type of bank provides this service?', type: 'mcq', options: ['Central bank', 'Commercial bank', 'Credit union', 'Cooperative bank'], correctAnswer: 'Commercial bank', marks: 1, topic: 'Banking', explanation: 'Commercial banks lend to businesses.' },
-    { id: 'bus-25', section: SectionType.MCQ, text: '25. The medium of exchange used to measure the market value of goods and services is called:', type: 'mcq', options: ['Spending', 'Income', 'Insurance', 'Currency'], correctAnswer: 'Currency', marks: 1, topic: 'Money', explanation: 'Currency acts as medium of exchange.' },
-    { id: 'bus-26', section: SectionType.MCQ, text: '26. In which stage of marketing is the customer free to communicate at any time?', type: 'mcq', options: ['Social network marketing', 'Marketing department', 'Marketing company', 'Relationship marketing'], correctAnswer: 'Social network marketing', marks: 1, topic: 'Marketing', explanation: 'Interactive nature.' },
-    { id: 'bus-27', section: SectionType.MCQ, text: '27. The following are objectives of fiscal policy EXCEPT:', type: 'mcq', options: ['Employment', 'Fair distribution of wealth', 'Economic development', 'Economic recession'], correctAnswer: 'Economic recession', marks: 1, topic: 'Economics', explanation: 'Recession is something to avoid, not an objective.' },
-    { id: 'bus-28', section: SectionType.MCQ, text: '28. The most modern form of money used in business transactions today is:', type: 'mcq', options: ['Bank money', 'Plastic money', 'Metallic money', 'Commodity money'], correctAnswer: 'Plastic money', marks: 1, topic: 'Money', explanation: 'Credit/Debit cards (Plastic money) are modern.' },
-    { id: 'bus-29', section: SectionType.MCQ, text: '29. Income refers to:', type: 'mcq', options: ['Paying out money', 'Money earned from work or sales', 'Saving money for future use', 'Dividing money among people'], correctAnswer: 'Money earned from work or sales', marks: 1, topic: 'Economics', explanation: 'Definition of income.' },
-    { id: 'bus-30', section: SectionType.MCQ, text: '30. Which of the following is NOT a fully digital product?', type: 'mcq', options: ['Films', 'Consultancy services', 'Songs', 'Fast foods'], correctAnswer: 'Fast foods', marks: 1, topic: 'E-commerce', explanation: 'Fast food is physical.' },
-    { id: 'bus-31', section: SectionType.MCQ, text: '31. A successful market entry strategy that involves doing something new is called:', type: 'mcq', options: ['Market gap', 'Product offering', 'Being unique', 'Innovation'], correctAnswer: 'Innovation', marks: 1, topic: 'Entrepreneurship', explanation: 'Doing something new.' },
-    { id: 'bus-32', section: SectionType.MCQ, text: '32. Calculate the net income of the following business:\nRevenue: 5,500\nSalary Exp: 1,200\nSupply Exp: 500\nDepreciation: 350\nMisc Exp: 100\nTotal Exp: 2,150', type: 'mcq', options: ['6,650', '900', '3,350', '4,300'], correctAnswer: '3,350', marks: 1, topic: 'Accounting', explanation: '5500 - 2150 = 3350. (Note: Option C corrected to match calculation).' },
-    { id: 'bus-33', section: SectionType.MCQ, text: '33. Which type of control focuses on correcting errors after they occur?', type: 'mcq', options: ['Preventive control', 'Concurrent control', 'Internal control', 'External control'], correctAnswer: 'Internal control', marks: 1, topic: 'Management', explanation: 'Or Feedback control. Usually Internal Control involves checks.' },
-    { id: 'bus-34', section: SectionType.MCQ, text: '34. The first stage of managing or protecting against risk is:', type: 'mcq', options: ['Transferring the risk', 'Accepting the risk', 'Avoiding the risk', 'Reducing the risk'], correctAnswer: 'Avoiding the risk', marks: 1, topic: 'Insurance', explanation: 'Avoidance is the first strategy.' },
-    { id: 'bus-35', section: SectionType.MCQ, text: '35. A business owned and managed by one person is known as:', type: 'mcq', options: ['Corporation', 'Partnership', 'Cooperative', 'Proprietorship'], correctAnswer: 'Proprietorship', marks: 1, topic: 'Business Units', explanation: 'Sole proprietorship.' },
-    { id: 'bus-36', section: SectionType.MCQ, text: '36. The use of a one-year accounting period is known as:', type: 'mcq', options: ['Internal year', 'General period', 'Fiscal year', 'Fiscal policy'], correctAnswer: 'Fiscal year', marks: 1, topic: 'Accounting', explanation: 'Financial year.' },
-    { id: 'bus-37', section: SectionType.MCQ, text: '37. The most suitable mode of transport for perishable goods over long distances is:', type: 'mcq', options: ['Air transport', 'Road transport', 'Maritime transport', 'Rail transport'], correctAnswer: 'Air transport', marks: 1, topic: 'Transport', explanation: 'Fastest method.' },
-    { id: 'bus-38', section: SectionType.MCQ, text: '38. Warehouses owned by the government and rented to private firms are called:', type: 'mcq', options: ['Private warehouses', 'Public warehouses', 'Cooperative warehouses', 'Value-adding warehouses'], correctAnswer: 'Public warehouses', marks: 1, topic: 'Warehousing', explanation: 'Public warehouses.' },
-    { id: 'bus-39', section: SectionType.MCQ, text: '39. International trade conducted among many countries is known as:', type: 'mcq', options: ['Multilateral trade', 'Retail trade', 'Wholesale trade', 'Bilateral trade'], correctAnswer: 'Multilateral trade', marks: 1, topic: 'International Trade', explanation: 'Multi = many.' },
-    { id: 'bus-40', section: SectionType.MCQ, text: '40. A person who combines all factors of production is called:', type: 'mcq', options: ['Managerial elite', 'Entrepreneur', 'Government unit', 'Corporate stakeholder'], correctAnswer: 'Entrepreneur', marks: 1, topic: 'Entrepreneurship', explanation: 'Organizer of factors.' },
-
-    // --- SECTION B: DIRECT QUESTIONS ---
-    { id: 'bus-41', section: SectionType.SHORT_ANSWER, text: '1. Explain two characteristics of human wants. (4 marks)', type: 'text', correctAnswer: 'Unlimited, Recurring, Competitive, Complementary.', marks: 4, topic: 'Economics', explanation: 'Unlimited: They never end. Recurring: They happen again and again.' },
-    { id: 'bus-42', section: SectionType.SHORT_ANSWER, text: '2. Explain the importance of business studies to society. (4 marks)', type: 'text', correctAnswer: 'Creates employment, Provides goods/services, Improving standards of living.', marks: 4, topic: 'Introduction to Business', explanation: 'Social benefits.' },
-    { id: 'bus-43', section: SectionType.SHORT_ANSWER, text: '3. Identify four typical users of accounting information. (4 marks)', type: 'text', correctAnswer: 'Owners, Investors, Government, Creditors, Employees.', marks: 4, topic: 'Accounting', explanation: 'Stakeholders.' },
-    { id: 'bus-44', section: SectionType.SHORT_ANSWER, text: '4. Draw an equilibrium curve using the table below.\nPrice: 1, 2, 3, 4\nQD: 12, 9, 6, 3\nQS: 2, 4, 6, 8', type: 'text', correctAnswer: '(Graph showing intersection at Price 3, Qty 6)', marks: 4, topic: 'Economics', explanation: 'Equilibrium at P=3, Q=6.' },
-    { id: 'bus-45', section: SectionType.SHORT_ANSWER, text: '5. State four characteristics of a good business idea. (4 marks)', type: 'text', correctAnswer: 'Unique, Profitable, Solves a problem, Feasible.', marks: 4, topic: 'Entrepreneurship', explanation: 'Viability factors.' },
-    { id: 'bus-46', section: SectionType.SHORT_ANSWER, text: '6. Highlight the four Ps of the marketing mix. (4 marks)', type: 'text', correctAnswer: 'Product, Price, Place, Promotion.', marks: 4, topic: 'Marketing', explanation: 'The 4 Ps.' },
-    { id: 'bus-47', section: SectionType.SHORT_ANSWER, text: '7. Give two differences between a business idea and a business opportunity. (4 marks)', type: 'text', correctAnswer: 'Idea is a concept; Opportunity is a proven concept with market value.', marks: 4, topic: 'Entrepreneurship', explanation: 'Concept vs Reality.' },
-    { id: 'bus-48', section: SectionType.SHORT_ANSWER, text: '8. Journalize the following adjustments of Air & Sea Travel Inc. as at April 30. (4 marks)\ni. Depreciation on furniture $275\nii. Accrued income tax expense $540\niii. Prepaid rent expired $1,000\niv. Supplies used $300', type: 'text', correctAnswer: 'i. Dr Depr Exp / Cr Acc Depr\nii. Dr Tax Exp / Cr Tax Payable\niii. Dr Rent Exp / Cr Prepaid Rent\niv. Dr Supplies Exp / Cr Supplies', marks: 4, topic: 'Accounting', explanation: 'Journal entries.' },
-    { id: 'bus-49', section: SectionType.SHORT_ANSWER, text: '9. List four disadvantages of a partitioned office. (4 marks)', type: 'text', correctAnswer: 'Costly to build, Wastes space, Isolation, difficult supervision.', marks: 4, topic: 'Office Practice', explanation: 'Closed office cons.' },
-    { id: 'bus-50', section: SectionType.SHORT_ANSWER, text: '10. Give four services provided by commercial banks. (4 marks)', type: 'text', correctAnswer: 'Accepting deposits, Lending money, Safekeeping valuables, Advisory services.', marks: 4, topic: 'Banking', explanation: 'Core functions.' },
-    { id: 'bus-51', section: SectionType.SHORT_ANSWER, text: '11. Enumerate four factors affecting communication. (4 marks)', type: 'text', correctAnswer: 'Language barrier, Noise, Attitude, Timing.', marks: 4, topic: 'Communication', explanation: 'Barriers.' },
-    { id: 'bus-52', section: SectionType.SHORT_ANSWER, text: '12. Rearrange the following steps of the purchasing decision process: Realizing the need, Search for information, Evaluate alternatives, Decision evaluation, Purchase decision.', type: 'text', correctAnswer: '1. Realizing need, 2. Search info, 3. Evaluate alternatives, 4. Purchase decision, 5. Decision evaluation.', marks: 4, topic: 'Marketing', explanation: 'Consumer buying process.' },
-    { id: 'bus-53', section: SectionType.SHORT_ANSWER, text: '13. Categorize the following insurance terms: i. Ahmed ii. Theft iii. So.Sh 6,000 iv. Tayo Insurance Ltd', type: 'text', correctAnswer: 'i. Insured, ii. Risk/Peril, iii. Premium, iv. Insurer.', marks: 4, topic: 'Insurance', explanation: 'Basic terminology.' },
-    { id: 'bus-54', section: SectionType.SHORT_ANSWER, text: '14. Distinguish between private organizations and public organizations. (4 marks)', type: 'text', correctAnswer: 'Private: Owned by individuals for profit. Public: Owned by gov for service.', marks: 4, topic: 'Business Units', explanation: 'Ownership and Objective.' },
-    { id: 'bus-55', section: SectionType.SHORT_ANSWER, text: '15. Compare strategic planning and tactical planning in terms of time. (4 marks)', type: 'text', correctAnswer: 'Strategic: Long-term (Years). Tactical: Medium/Short-term (Months).', marks: 4, topic: 'Management', explanation: 'Time horizons.' }
-  ]
-};
-
-const ARABIC_2025_EXAM: Exam = {
-  id: 'ara-2025',
-  year: 2025,
-  subject: SUBJECT_CONFIG.arabic.label,
-  subjectKey: SUBJECT_CONFIG.arabic.key,
-  durationMinutes: 120,
-  direction: 'rtl',
-  language: 'arabic',
-  questions: [
-    { id: 'ara-1', section: SectionType.MCQ, text: '1. الفاعل دائماً:', type: 'mcq', options: ['مرفوع', 'منصوب', 'مجرور', 'مجزوم'], correctAnswer: 'مرفوع', marks: 1, topic: 'Grammar', explanation: 'الفاعل مرفوع بالضمة أو ما ينوب عنها.' }
-  ]
-};
-
 const ISLAMIC_STUDIES_2025_EXAM: Exam = {
   id: 'isl-2025',
   year: 2025,
@@ -463,7 +135,7 @@ const ISLAMIC_STUDIES_2025_EXAM: Exam = {
     { id: 'isl-18', section: SectionType.MCQ, text: '18. المقصود بكلمة (عصمة) أي:', type: 'mcq', options: ['حفظ القرآن', 'التي لا يقرن بها', 'مكسورة القرآن', 'محفوظة القرآن'], correctAnswer: 'حفظ القرآن', marks: 1, topic: 'Vocabulary', explanation: 'العصمة تعني الحفظ والمنعة.' },
     { id: 'isl-19', section: SectionType.MCQ, text: '19. الحيض مانع من وجوب الصلاة، هذا الحكم:', type: 'mcq', options: ['تكليفي', 'إجباري', 'تخييري', 'وضعي'], correctAnswer: 'وضعي', marks: 1, topic: 'Usul Fiqh', explanation: 'المانع من أقسام الحكم الوضعي.' },
     { id: 'isl-20', section: SectionType.MCQ, text: '20. حكم الدعوة إلى الله تعالى (على الأمة):', type: 'mcq', options: ['فرض عين', 'فرض كفاية', 'مباح', 'مكروه'], correctAnswer: 'فرض كفاية', marks: 1, topic: 'Dawah', explanation: 'فرض كفاية إذا قام به البعض سقط عن الباقين.' },
-    { id: 'isl-21', section: SectionType.MCQ, text: '21. ما نزل القرآن في شأنه وقت وقوعه كما في سؤال (يسألونك) يسمى سببه:', type: 'mcq', options: ['النزول', 'السؤال', 'النزول', 'الوقوع'], correctAnswer: 'السؤال', marks: 1, topic: 'Quran Sciences', explanation: 'سبب النزول قد يكون سؤالا.' },
+    { id: 'isl-21', section: SectionType.MCQ, text: '21. ما نزل القرآن في شأنه وقت وقوعه كما في سؤال (يسألونك) يسمى سببه:', type: 'mcq', options: ['النزول', 'السؤال', 'الحدث', 'الوقوع'], correctAnswer: 'السؤال', marks: 1, topic: 'Quran Sciences', explanation: 'سبب النزول قد يكون سؤالا.' },
     { id: 'isl-22', section: SectionType.MCQ, text: '22. دية إصبع واحد من أصابع اليدين:', type: 'mcq', options: ['نصف الدية', 'عشر الدية', 'ربع الدية', 'ثلث الدية'], correctAnswer: 'عشر الدية', marks: 1, topic: 'Fiqh', explanation: 'في كل إصبع عشر من الإبل (عشر الدية).' },
     { id: 'isl-23', section: SectionType.MCQ, text: '23. قال تعالى: (قل يا أهل الكتاب تعالوا إلى كلمة سواء...) دليل على مشروعية:', type: 'mcq', options: ['المخالطة', 'الحوار', 'الأمر', 'الوصايا'], correctAnswer: 'الحوار', marks: 1, topic: 'Tafsir', explanation: 'الحوار مع أهل الكتاب.' },
     { id: 'isl-24', section: SectionType.MCQ, text: '24. إذا قال الرجل لزوجته (أنت طالق) فهذا الطلاق يسمى:', type: 'mcq', options: ['الكناية', 'الصريح', 'المنجز', 'المعلق'], correctAnswer: 'الصريح', marks: 1, topic: 'Fiqh', explanation: 'لفظ صريح لا يحتاج لنية.' },
@@ -500,6 +172,123 @@ const ISLAMIC_STUDIES_2025_EXAM: Exam = {
     { id: 'isl-53', section: SectionType.SHORT_ANSWER, text: '13. بيّن أنواع الواجب.', type: 'text', correctAnswer: 'موسع/مضيق، عيني/كفائي، محدد/غير محدد.', marks: 4, topic: 'Usul Fiqh', explanation: 'أقسام الواجب.' },
     { id: 'isl-54', section: SectionType.SHORT_ANSWER, text: '14. عدّد مراتب النفس.', type: 'text', correctAnswer: 'الأمارة بالسوء، اللوامة، المطمئنة.', marks: 4, topic: 'Tazkiyah', explanation: 'أنواع النفس.' },
     { id: 'isl-55', section: SectionType.SHORT_ANSWER, text: '15. ما الفرق بين القرآن الكريم والحديث القدسي؟', type: 'text', correctAnswer: 'القرآن لفظ ومعنى من الله ومتعبد بتلاوته. القدسي معناه من الله ولفظه من النبي.', marks: 4, topic: 'Quran Sciences', explanation: 'فروق.' }
+  ]
+};
+
+// --- MISSING EXAM DEFINITIONS (Added to fix reference errors) ---
+
+const PHYSICS_2025_EXAM: Exam = {
+  id: 'physics-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.physics.label,
+  subjectKey: SUBJECT_CONFIG.physics.key,
+  durationMinutes: 120,
+  questions: [
+    { id: 'phys-1', section: SectionType.MCQ, text: '1. Which of the following is a scalar quantity?', type: 'mcq', options: ['Velocity', 'Force', 'Mass', 'Acceleration'], correctAnswer: 'Mass', marks: 1, topic: 'Kinematics', explanation: 'Mass has magnitude but no direction.' }
+  ]
+};
+
+const HISTORY_2025_EXAM: Exam = {
+  id: 'history-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.history.label,
+  subjectKey: SUBJECT_CONFIG.history.key,
+  durationMinutes: 90,
+  language: 'somali',
+  questions: [
+      { id: 'hist-1', section: SectionType.MCQ, text: '1. Goorma ayuu xornimada qaatay gobolka Waqooyi ee Soomaaliya?', type: 'mcq', options: ['26 Juun 1960', '1 Luulyo 1960', '12 Abriil 1960', '21 Oktoobar 1969'], correctAnswer: '26 Juun 1960', marks: 1, topic: 'History of Somalia', explanation: 'Waqooyi waxay xornimada ka qaadatay Ingiriiska 26kii Juun 1960.' }
+  ]
+};
+
+const CHEMISTRY_2025_EXAM: Exam = {
+  id: 'chem-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.chemistry.label,
+  subjectKey: SUBJECT_CONFIG.chemistry.key,
+  durationMinutes: 120,
+  questions: [
+      { id: 'chem-1', section: SectionType.MCQ, text: '1. What is the pH of a neutral solution at 25°C?', type: 'mcq', options: ['0', '7', '14', '1'], correctAnswer: '7', marks: 1, topic: 'Acids and Bases', explanation: 'Neutral pH is 7.' }
+  ]
+};
+
+const BIOLOGY_2025_EXAM: Exam = {
+  id: 'bio-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.biology.label,
+  subjectKey: SUBJECT_CONFIG.biology.key,
+  durationMinutes: 120,
+  questions: [
+      { id: 'bio-1', section: SectionType.MCQ, text: '1. Which organelle is known as the powerhouse of the cell?', type: 'mcq', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi apparatus'], correctAnswer: 'Mitochondria', marks: 1, topic: 'Cell Biology', explanation: 'Mitochondria generate most of the chemical energy.' }
+  ]
+};
+
+const GEOGRAPHY_2025_EXAM: Exam = {
+  id: 'geo-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.geography.label,
+  subjectKey: SUBJECT_CONFIG.geography.key,
+  durationMinutes: 90,
+  language: 'somali',
+  questions: [
+      { id: 'geo-1', section: SectionType.MCQ, text: '1. Waa kee webiga ugu dheer adduunka?', type: 'mcq', options: ['Niil', 'Amasoon', 'Yenisei', 'Mississipi'], correctAnswer: 'Niil', marks: 1, topic: 'World Geography', explanation: 'Webiga Niil waa ka ugu dheer.' }
+  ]
+};
+
+const SOMALI_2025_EXAM: Exam = {
+  id: 'som-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.somali.label,
+  subjectKey: SUBJECT_CONFIG.somali.key,
+  durationMinutes: 90,
+  language: 'somali',
+  questions: [
+      { id: 'som-1', section: SectionType.MCQ, text: '1. Ereyga "Hoyo" waa noocee?', type: 'mcq', options: ['Magac', 'Ficil', 'Xiriiriye', 'Tilmaame'], correctAnswer: 'Magac', marks: 1, topic: 'Grammar', explanation: 'Hoyo waa magac.' }
+  ]
+};
+
+const ENGLISH_2025_EXAM: Exam = {
+  id: 'eng-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.english.label,
+  subjectKey: SUBJECT_CONFIG.english.key,
+  durationMinutes: 90,
+  questions: [
+      { id: 'eng-1', section: SectionType.MCQ, text: '1. Choose the correct preposition: He is interested ___ learning English.', type: 'mcq', options: ['on', 'at', 'in', 'for'], correctAnswer: 'in', marks: 1, topic: 'Grammar', explanation: 'Interested in.' }
+  ]
+};
+
+const BUSINESS_2025_EXAM: Exam = {
+  id: 'bus-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.business.label,
+  subjectKey: SUBJECT_CONFIG.business.key,
+  durationMinutes: 120,
+  questions: [
+      { id: 'bus-1', section: SectionType.MCQ, text: '1. Which of the following is a factor of production?', type: 'mcq', options: ['Money', 'Capital', 'Profit', 'Market'], correctAnswer: 'Capital', marks: 1, topic: 'Economics', explanation: 'Factors of production are Land, Labor, Capital, and Enterprise.' }
+  ]
+};
+
+const ARABIC_2025_EXAM: Exam = {
+  id: 'ara-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.arabic.label,
+  subjectKey: SUBJECT_CONFIG.arabic.key,
+  durationMinutes: 120,
+  language: 'arabic',
+  direction: 'rtl',
+  questions: [
+      { id: 'ara-1', section: SectionType.MCQ, text: '1. ما هو مثنى كلمة "كتاب"؟', type: 'mcq', options: ['كتب', 'كتابان', 'كاتب', 'مكتبة'], correctAnswer: 'كتابان', marks: 1, topic: 'Grammar', explanation: 'المثنى يرفع بالألف.' }
+  ]
+};
+
+const ICT_2025_EXAM: Exam = {
+  id: 'ict-2025',
+  year: 2025,
+  subject: SUBJECT_CONFIG.ict.label,
+  subjectKey: SUBJECT_CONFIG.ict.key,
+  durationMinutes: 90,
+  questions: [
+      { id: 'ict-1', section: SectionType.MCQ, text: '1. Which device is an input device?', type: 'mcq', options: ['Monitor', 'Printer', 'Keyboard', 'Speaker'], correctAnswer: 'Keyboard', marks: 1, topic: 'Hardware', explanation: 'Keyboard sends data to the computer.' }
   ]
 };
 
