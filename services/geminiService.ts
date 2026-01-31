@@ -22,7 +22,9 @@ function gradeLocally(question: Question, userAnswer: string): { score: number, 
     
     // 1. Exact Match (Full marks)
     if (normUser === normCorrect) {
-        return { score: question.marks, feedback: "✅ **Correct**\n(Exact Match)" };
+        let fb = "✅ **Correct**\n(Exact Match)";
+        if (question.explanation) fb += `\n\n**Explanation:** ${question.explanation}`;
+        return { score: question.marks, feedback: fb };
     }
 
     // 2. Keyword Matching (Partial Grading)
@@ -50,6 +52,11 @@ function gradeLocally(question: Question, userAnswer: string): { score: number, 
     } else if (matchRatio >= 0.4) {
         score = Math.max(1, Math.floor(question.marks / 2));
         feedback = `⚠️ **Partially Correct**\n(Found key concepts)`;
+    }
+
+    // Always append the official explanation so the student knows WHY
+    if (question.explanation) {
+        feedback += `\n\n**Correct Explanation:** ${question.explanation}`;
     }
 
     return { 
@@ -84,17 +91,19 @@ export async function gradeBatch(
     
     Grading Rules:
     1. 0 for incorrect, partial marks for partial correctness, max marks for correct.
-    2. **CRITICAL FOR CALCULATION SUBJECTS (Math, Physics, Chemistry, Business, Biology):** 
+    2. **CRITICAL FOR ALL SUBJECTS (Detailed Feedback):**
+       - **You MUST provide a detailed explanation of the CORRECT ANSWER regardless of whether the student's answer was right or wrong.**
+       - Explain the "WHY": Definitions, historical context, or reasoning behind the correct answer.
+       - Ensure the student learns from this feedback. Do not just say "Good job" or "Correct".
+       - **MINIMUM LENGTH:** The explanation must be at least 2 sentences long.
+    3. **FEEDBACK FORMAT:** Start with the grade status (Correct/Incorrect/Partial), then provide a new paragraph with a detailed explanation.
+    4. **CRITICAL FOR CALCULATION SUBJECTS (Math, Physics, Chemistry, Business, Biology):** 
        - You MUST provide a **Step-by-Step Solution**. 
        - Break down the explanation into "Step 1", "Step 2", etc.
        - Show the formula used.
        - Explain the logic clearly so a student can understand HOW to solve it next time.
-    3. **CRITICAL FOR ALL SUBJECTS (Detailed Feedback):**
-       - **You MUST provide a detailed explanation of the CORRECT ANSWER regardless of whether the student's answer was right or wrong.**
-       - Explain the "WHY": Definitions, historical context, or reasoning behind the correct answer.
-       - Ensure the student learns from this feedback. Do not just say "Good job".
-    4. Provide specific feedback for EVERY answer.
-    5. Return ONLY a JSON object with a "grades" array.`;
+    5. Provide specific feedback for EVERY answer.
+    6. Return ONLY a JSON object with a "grades" array.`;
 
     const userContent = JSON.stringify(chunk.map(c => ({
         id: c.question.id,
