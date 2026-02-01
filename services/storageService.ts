@@ -1,7 +1,7 @@
 
 import { ExamResult, Student, SubscriptionPlan, ExamAuthority, UserRole } from '../types';
 import { auth, db } from './firebase'; // Import db from centralized file
-import { doc, getDoc, setDoc, onSnapshot, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, collection, getDocs, updateDoc, query, where, DocumentSnapshot, QuerySnapshot } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -18,6 +18,17 @@ import {
 // Super Admin Email
 const VIP_EMAIL = "isseshaie2050@gmail.com";
 
+// --- HELPER: TIMEOUT WRAPPER ---
+// Ensures Firestore calls don't hang the app indefinitely
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("Timeout")), ms);
+        promise
+            .then(value => { clearTimeout(timer); resolve(value); })
+            .catch(reason => { clearTimeout(timer); reject(reason); });
+    });
+};
+
 // --- DEVICE IDENTITY ---
 const getDeviceId = (): string => {
     let id = localStorage.getItem('naajix_device_id');
@@ -32,40 +43,57 @@ const getDeviceId = (): string => {
 // This ensures the user document exists and has the correct plan
 const syncUserToFirestore = async (user: User, additionalData?: Partial<Student>): Promise<Student> => {
     const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-
     let studentData: Student;
-
-    // Check if this is the VIP user
     const isVip = user.email?.toLowerCase() === VIP_EMAIL.toLowerCase();
 
-    if (userSnap.exists()) {
-        // User exists, merge data
-        const data = userSnap.data() as Student;
-        
-        // Force upgrade if VIP matches
-        if (isVip && (data.subscriptionPlan !== 'PREMIUM')) {
-            await updateDoc(userRef, { subscriptionPlan: 'PREMIUM' }); 
-            data.subscriptionPlan = 'PREMIUM';
-        }
+    try {
+        // Attempt to fetch user profile with a 2.5s timeout. 
+        // If offline/slow, we fallback to constructing the object from Auth data.
+        const userSnap = await withTimeout<DocumentSnapshot>(getDoc(userRef), 2500);
 
-        studentData = { ...data, id: user.uid };
-    } else {
-        // Create new user profile
+        if (userSnap.exists()) {
+            // User exists, merge data
+            const data = userSnap.data() as Student;
+            
+            // Force upgrade if VIP matches
+            if (isVip && (data.subscriptionPlan !== 'PREMIUM')) {
+                // Fire and forget update to avoid blocking
+                updateDoc(userRef, { subscriptionPlan: 'PREMIUM' }).catch(console.error); 
+                data.subscriptionPlan = 'PREMIUM';
+            }
+
+            studentData = { ...data, id: user.uid };
+        } else {
+            // Create new user profile
+            studentData = {
+                id: user.uid,
+                fullName: user.displayName || 'Student',
+                email: user.email || '',
+                phone: additionalData?.phone || '', 
+                school: additionalData?.school || 'Not Specified',
+                level: additionalData?.level || 'FORM_IV',
+                registeredAt: new Date().toISOString(),
+                authProvider: user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+                subscriptionPlan: isVip ? 'PREMIUM' : 'FREE', 
+                subscriptionStatus: 'active'
+            };
+            await setDoc(userRef, studentData);
+        }
+    } catch (e) {
+        console.warn("Firestore sync failed/timed out (Offline Mode). Using Auth profile.");
+        // Fallback: Construct a temporary student object from Auth data
         studentData = {
             id: user.uid,
             fullName: user.displayName || 'Student',
             email: user.email || '',
-            phone: additionalData?.phone || '', 
-            school: additionalData?.school || 'Not Specified',
-            level: additionalData?.level || 'FORM_IV',
+            phone: '',
+            school: 'Offline Mode',
+            level: 'FORM_IV',
             registeredAt: new Date().toISOString(),
-            authProvider: user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
-            // Auto-set Premium for VIP
-            subscriptionPlan: isVip ? 'PREMIUM' : 'FREE', 
+            authProvider: 'email',
+            subscriptionPlan: isVip ? 'PREMIUM' : 'FREE',
             subscriptionStatus: 'active'
         };
-        await setDoc(userRef, studentData);
     }
     
     return studentData;
@@ -91,7 +119,7 @@ export const validateCurrentSession = async (): Promise<{ user: Student | null, 
       return { user: null, role: null };
     }
 
-    // Fetch full profile from Firestore
+    // Fetch full profile from Firestore (with timeout protection)
     const student = await syncUserToFirestore(currentUser);
     
     // Determine Role
@@ -125,18 +153,19 @@ export const logoutUser = async () => {
 export const checkDeviceConflict = async (userId: string): Promise<boolean> => {
     try {
         const sessionRef = doc(db, 'sessions', userId);
-        const sessionSnap = await getDoc(sessionRef);
+        // Timeout check for session conflict
+        const sessionSnap = await withTimeout<DocumentSnapshot>(getDoc(sessionRef), 2000);
         
         if (sessionSnap.exists()) {
             const data = sessionSnap.data();
             const currentDeviceId = getDeviceId();
-            if (data.deviceId && data.deviceId !== currentDeviceId) {
+            if (data && data.deviceId && data.deviceId !== currentDeviceId) {
                 return true; 
             }
         }
         return false;
     } catch (error) {
-        console.error("Error checking session:", error);
+        console.warn("Session check skipped (Offline/Timeout)");
         return false;
     }
 };
@@ -165,6 +194,8 @@ export const subscribeToSessionUpdates = (userId: string, onConflict: () => void
                 onConflict();
             }
         }
+    }, (error) => {
+        console.log("Session sync paused (Offline)");
     });
 };
 
@@ -278,21 +309,21 @@ export const upgradeStudentSubscription = updateStudentPlan;
 
 export const getAllStudents = async (): Promise<Student[]> => {
     try {
-        const querySnapshot = await getDocs(collection(db, "users"));
+        const querySnapshot = await withTimeout<QuerySnapshot>(getDocs(collection(db, "users")), 4000);
         const students: Student[] = [];
         querySnapshot.forEach((doc) => {
             students.push(doc.data() as Student);
         });
         return students;
     } catch (e) {
-        console.error("Error getting students", e);
+        console.warn("Could not fetch all students (Offline/Timeout)");
         return [];
     }
 };
 
 export const getAllExamResults = async (): Promise<ExamResult[]> => {
     try {
-        const querySnapshot = await getDocs(collection(db, "results"));
+        const querySnapshot = await withTimeout<QuerySnapshot>(getDocs(collection(db, "results")), 4000);
         const results: ExamResult[] = [];
         querySnapshot.forEach((doc) => {
             results.push(doc.data() as ExamResult);
@@ -306,7 +337,8 @@ export const getAllExamResults = async (): Promise<ExamResult[]> => {
 export const saveExamResult = async (result: ExamResult): Promise<void> => {
     try {
         const resRef = doc(db, 'results', result.id);
-        await setDoc(resRef, result);
+        // Fire and forget, relying on persistence
+        setDoc(resRef, result).catch(e => console.warn("Result save queued (offline)"));
     } catch (e) {
         console.error("Error saving result", e);
     }
@@ -315,14 +347,14 @@ export const saveExamResult = async (result: ExamResult): Promise<void> => {
 export const getStudentExamHistory = async (studentId: string): Promise<ExamResult[]> => {
     try {
         const q = query(collection(db, "results"), where("studentId", "==", studentId));
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await withTimeout<QuerySnapshot>(getDocs(q), 3000);
         const results: ExamResult[] = [];
         querySnapshot.forEach((doc) => {
             results.push(doc.data() as ExamResult);
         });
         return results.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (e) {
-        console.error("Error fetching history", e);
+        console.warn("History fetch skipped (Offline)");
         return [];
     }
 };
