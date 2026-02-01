@@ -785,7 +785,7 @@ const App: React.FC = () => {
                                 {item.score} / {item.question.marks} Marks
                             </span>
                         </div>
-                        <p className="mb-4 text-slate-900 font-medium text-lg leading-relaxed"><FormattedText text={item.question.text} /></p>
+                        <p className="mb-4 text-slate-900 font-medium text-xl leading-relaxed"><FormattedText text={item.question.text} /></p>
                         
                         <div className="grid md:grid-cols-2 gap-4 text-sm mb-4">
                             <div className="bg-gray-50 p-4 rounded border border-gray-100">
@@ -804,7 +804,7 @@ const App: React.FC = () => {
                          {item.question.explanation && (
                             <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-100">
                                 <span className="block text-xs font-bold text-yellow-700 uppercase mb-1">Solution / Explanation</span>
-                                <div className="text-slate-700 text-sm">{item.question.explanation}</div>
+                                <div className="text-slate-700 text-base">{item.question.explanation}</div>
                             </div>
                         )}
 
@@ -819,7 +819,7 @@ const App: React.FC = () => {
                                     AI-powered feedback analyzing the accuracy and clarity of your response.
                                 </p>
                                 {/* Use FormattedText here to render bold markdown properly */}
-                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                <div className="text-slate-700 whitespace-pre-wrap leading-relaxed text-base">
                                     <FormattedText text={item.feedback} />
                                 </div>
                             </div>
@@ -858,6 +858,13 @@ const App: React.FC = () => {
        // Calculate if current question is answered
        const currentAnswerEntry = answers.find(a => a.questionId === question.id);
        const isCurrentQuestionAnswered = currentAnswerEntry && currentAnswerEntry.answer.trim().length > 0;
+
+       // Define dynamic font styles for readability
+       const isArabic = activeExam.language === 'arabic';
+       const questionClass = isArabic ? 'text-3xl leading-[1.8]' : 'text-2xl leading-relaxed';
+       const passageClass = isArabic ? 'text-2xl leading-[2]' : 'text-lg leading-relaxed';
+       const optionClass = isArabic ? 'text-2xl' : 'text-xl';
+       const metadataClass = isArabic ? 'text-lg' : 'text-sm';
 
        // ANIMATED GRADING SCREEN
        if(isGrading) {
@@ -898,30 +905,30 @@ const App: React.FC = () => {
                         
                         {/* Persistent Reading Passage Display */}
                         {sectionPassage && (
-                            <div className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-inner overflow-y-auto max-h-[300px]">
+                            <div className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg shadow-inner overflow-y-auto max-h-[400px]">
                                 <div className="text-xs font-bold text-blue-500 uppercase mb-2 tracking-wide flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                                     Reading Passage
                                 </div>
-                                <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap font-serif">
+                                <div className={`text-slate-800 ${passageClass} whitespace-pre-wrap font-serif`}>
                                     <FormattedText text={sectionPassage} />
                                 </div>
                             </div>
                         )}
 
                         <div className="flex justify-between items-center mb-6">
-                             <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Question {currentQuestionIndex+1} of {activeExam.questions.length}</span>
-                             <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{question.marks} Marks</span>
+                             <span className={`${metadataClass} font-bold text-gray-400 uppercase tracking-wider`}>Question {currentQuestionIndex+1} of {activeExam.questions.length}</span>
+                             <span className={`${metadataClass} font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded`}>{question.marks} Marks</span>
                         </div>
-                        <h2 className="text-xl mb-6 font-bold leading-relaxed text-slate-800"><FormattedText text={question.text} /></h2>
+                        <h2 className={`${questionClass} mb-8 font-bold text-slate-800`}><FormattedText text={question.text} /></h2>
                         {question.diagramUrl && <ExamImage src={Array.isArray(question.diagramUrl) ? question.diagramUrl[0] : question.diagramUrl} alt="Diagram" />}
                         {question.type === 'mcq' ? (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {question.options?.map((opt, idx) => (
                                     <button 
                                         key={idx} // Using Index as key to tolerate duplicate options without crashing
                                         onClick={()=>handleAnswer(opt)} 
-                                        className={`w-full p-4 border rounded-lg transition-all ${activeExam.direction === 'rtl' ? 'text-right' : 'text-left'} ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}
+                                        className={`w-full p-5 border rounded-lg transition-all ${activeExam.direction === 'rtl' ? 'text-right' : 'text-left'} ${optionClass} ${answers.find(a=>a.questionId===question.id)?.answer === opt ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500 shadow-sm' : 'hover:bg-gray-50 border-gray-200'}`}
                                     >
                                         {opt}
                                     </button>
@@ -929,7 +936,7 @@ const App: React.FC = () => {
                             </div>
                         ) : (
                             <textarea 
-                                className="w-full border p-4 rounded-lg h-48 focus:ring-2 focus:ring-blue-500 outline-none text-lg" 
+                                className={`w-full border p-4 rounded-lg h-64 focus:ring-2 focus:ring-blue-500 outline-none ${optionClass}`} 
                                 onChange={e=>handleAnswer(e.target.value)} 
                                 value={answers.find(a=>a.questionId===question.id)?.answer || ''} 
                                 placeholder="Type your answer here..."
