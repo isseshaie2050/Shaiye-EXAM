@@ -7,11 +7,36 @@ import { db } from './firebase'; // Import initialized db
 // Local cache to keep 'getExam' synchronous for UI rendering performance
 let DYNAMIC_CACHE: Record<string, Exam> = {};
 
+// Timeout wrapper to prevent long hangs on slow/offline connections
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error("Timeout"));
+        }, ms);
+
+        promise
+            .then(value => {
+                clearTimeout(timer);
+                resolve(value);
+            })
+            .catch(reason => {
+                clearTimeout(timer);
+                reject(reason);
+            });
+    });
+};
+
 export const fetchDynamicExams = async () => {
     try {
-        const querySnapshot = await getDocs(collection(db, "exams"));
+        // Attempt to fetch with a 3-second timeout. 
+        // If Firebase is unreachable (e.g., 10s wait), we fail fast to let the app load.
+        const querySnapshot: any = await withTimeout(
+            getDocs(collection(db, "exams")),
+            3000
+        );
+
         DYNAMIC_CACHE = {}; // Clear cache before refilling
-        querySnapshot.forEach((doc) => {
+        querySnapshot.forEach((doc: any) => {
             const exam = doc.data() as Exam;
             // Ensure compatibility with local structure
             const key = `${exam.year}_${exam.subjectKey}`;
@@ -19,8 +44,13 @@ export const fetchDynamicExams = async () => {
         });
         console.log("Loaded exams from Firebase:", Object.keys(DYNAMIC_CACHE));
     } catch (e: any) {
-        if (e.code === 'permission-denied') {
+        // Graceful error handling for offline/guest/timeout scenarios
+        if (e.message === "Timeout") {
+             console.warn("Firebase connection timed out. Operating in offline mode with static exams.");
+        } else if (e.code === 'permission-denied') {
              console.log("Guest user: Using static exams only (Cloud exams require login).");
+        } else if (e.code === 'unavailable' || e.message?.includes('offline')) {
+             console.warn("Firebase unavailable (offline). Using static exams.");
         } else {
              console.error("Error fetching exams from Firebase:", e);
         }
