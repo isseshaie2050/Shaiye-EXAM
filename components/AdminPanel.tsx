@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { Exam, Student, SubscriptionPlan, EducationLevel } from '../types';
+import { Exam, Student, SubscriptionPlan, EducationLevel, Question, SectionType, ExamAuthority } from '../types';
 import { getAllExams, saveDynamicExam } from '../services/examService';
 import { getAllStudents, getAllExamResults, updateStudentPlan, adminCreateUser } from '../services/storageService';
+import { SUBJECT_CONFIG } from '../constants';
 
 interface Props {
   onLogout: () => void;
@@ -20,7 +20,214 @@ const Icons = {
   Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
   Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
   Check: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
-  Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+  Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>,
+  Cloud: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+};
+
+// --- HELPER COMPONENTS ---
+
+const SidebarItem: React.FC<{ icon: React.ReactNode; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
+  <div onClick={onClick} className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${active ? 'bg-blue-800 text-white border-r-4 border-green-400' : 'text-blue-300 hover:text-white hover:bg-blue-800/50'}`}>
+    {icon}
+    <span className="font-bold text-sm">{label}</span>
+  </div>
+);
+
+const StatsCard: React.FC<{ title: string; value: number | string; color: string; trend: string }> = ({ title, value, color, trend }) => {
+    const getColor = (c: string) => {
+        switch(c) {
+            case 'blue': return 'bg-blue-50 text-blue-600';
+            case 'purple': return 'bg-purple-50 text-purple-600';
+            case 'indigo': return 'bg-indigo-50 text-indigo-600';
+            case 'green': return 'bg-green-50 text-green-600';
+            case 'red': return 'bg-red-50 text-red-600';
+            case 'yellow': return 'bg-yellow-50 text-yellow-600';
+            default: return 'bg-gray-50 text-gray-600';
+        }
+    };
+    return (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</div>
+                    <div className="text-3xl font-black text-slate-800">{value}</div>
+                </div>
+                <div className={`p-2 rounded-lg ${getColor(color)}`}>
+                    <div className="w-4 h-4 rounded-full bg-current opacity-50"></div>
+                </div>
+            </div>
+            <div className="text-xs font-medium text-slate-400">{trend}</div>
+        </div>
+    );
+};
+
+const Badge: React.FC<{ label: string; color: string }> = ({ label, color }) => {
+    const getColor = (c: string) => {
+        switch(c) {
+            case 'green': return 'bg-green-100 text-green-700';
+            case 'red': return 'bg-red-100 text-red-700';
+            case 'yellow': return 'bg-yellow-100 text-yellow-700';
+            case 'blue': return 'bg-blue-100 text-blue-700';
+            default: return 'bg-gray-100 text-gray-700';
+        }
+    };
+    return (
+        <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${getColor(color)}`}>
+            {label}
+        </span>
+    );
+};
+
+const CreateExamForm: React.FC<{ onExamCreated: () => void }> = ({ onExamCreated }) => {
+    const [step, setStep] = useState(1);
+    const [authority, setAuthority] = useState<ExamAuthority>('SOMALI_GOV');
+    const [level, setLevel] = useState<EducationLevel>('FORM_IV');
+    const [year, setYear] = useState(2026);
+    const [subjectKey, setSubjectKey] = useState('physics');
+    const [duration, setDuration] = useState(90);
+    const [questions, setQuestions] = useState<Question[]>([]);
+
+    const [qText, setQText] = useState('');
+    const [qType, setQType] = useState<'mcq' | 'text'>('mcq');
+    const [qAnswer, setQAnswer] = useState('');
+    const [qMarks, setQMarks] = useState(1);
+    const [qOptions, setQOptions] = useState<string[]>(['', '', '', '']);
+
+    const handleAddQuestion = () => {
+        if (!qText || !qAnswer) return;
+        const newQ: Question = {
+            id: `q-${Date.now()}`,
+            section: SectionType.MCQ, // Default to MCQ section for simplicity
+            text: qText,
+            type: qType,
+            options: qType === 'mcq' ? qOptions.filter(o => o.trim() !== '') : undefined,
+            correctAnswer: qAnswer,
+            marks: qMarks,
+            explanation: '',
+            topic: 'General'
+        };
+        setQuestions([...questions, newQ]);
+        setQText(''); setQAnswer(''); setQOptions(['', '', '', '']);
+    };
+
+    const handleSave = async () => {
+        if (questions.length === 0) return;
+        const subject = SUBJECT_CONFIG[subjectKey];
+        const newExam: Exam = {
+            id: `${year}-${subjectKey}-${Date.now()}`,
+            year,
+            subject: subject.label,
+            subjectKey,
+            language: subject.language,
+            durationMinutes: duration,
+            questions,
+            authority,
+            level,
+            isCustom: true
+        };
+        await saveDynamicExam(newExam);
+        onExamCreated();
+        setStep(1); setQuestions([]);
+    };
+
+    if (step === 1) {
+        return (
+            <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm space-y-4">
+                <h3 className="font-bold text-slate-700 border-b pb-2">Step 1: Exam Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Authority</label>
+                        <select className="w-full p-2 border rounded" value={authority} onChange={(e) => setAuthority(e.target.value as ExamAuthority)}>
+                            <option value="SOMALI_GOV">Somali Gov</option>
+                            <option value="PUNTLAND">Puntland</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Level</label>
+                        <select className="w-full p-2 border rounded" value={level} onChange={(e) => setLevel(e.target.value as EducationLevel)}>
+                            <option value="FORM_IV">Form IV</option>
+                            <option value="STD_8">Standard 8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Year</label>
+                        <input type="number" className="w-full p-2 border rounded" value={year} onChange={(e) => setYear(Number(e.target.value))} />
+                    </div>
+                    <div>
+                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Subject</label>
+                         <select className="w-full p-2 border rounded" value={subjectKey} onChange={(e) => setSubjectKey(e.target.value)}>
+                            {Object.values(SUBJECT_CONFIG).map(s => (
+                                <option key={s.key} value={s.key}>{s.label}</option>
+                            ))}
+                         </select>
+                    </div>
+                     <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Duration (Min)</label>
+                        <input type="number" className="w-full p-2 border rounded" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
+                    </div>
+                </div>
+                <button onClick={() => setStep(2)} className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700">Next: Questions</button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm space-y-4">
+             <div className="flex justify-between items-center border-b pb-2">
+                 <h3 className="font-bold text-slate-700">Step 2: Questions ({questions.length})</h3>
+                 <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700 text-sm">Save Exam</button>
+             </div>
+             
+             <div className="bg-slate-50 p-4 rounded border border-slate-200 space-y-3">
+                 <div>
+                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Question Text</label>
+                     <textarea className="w-full p-2 border rounded" value={qText} onChange={(e) => setQText(e.target.value)} rows={2} />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+                        <select className="w-full p-2 border rounded" value={qType} onChange={(e) => setQType(e.target.value as any)}>
+                            <option value="mcq">MCQ</option>
+                            <option value="text">Short Answer</option>
+                        </select>
+                     </div>
+                     <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Marks</label>
+                        <input type="number" className="w-full p-2 border rounded" value={qMarks} onChange={(e) => setQMarks(Number(e.target.value))} />
+                     </div>
+                 </div>
+                 {qType === 'mcq' && (
+                     <div>
+                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Options</label>
+                         <div className="grid grid-cols-2 gap-2">
+                            {qOptions.map((opt, i) => (
+                                <input key={i} className="p-2 border rounded text-sm" placeholder={`Option ${i+1}`} value={opt} onChange={(e) => {
+                                    const n = [...qOptions]; n[i] = e.target.value; setQOptions(n);
+                                }} />
+                            ))}
+                         </div>
+                     </div>
+                 )}
+                 <div>
+                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Correct Answer</label>
+                     <input className="w-full p-2 border rounded" value={qAnswer} onChange={(e) => setQAnswer(e.target.value)} placeholder="Exact answer match" />
+                 </div>
+                 <button onClick={handleAddQuestion} className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Add Question</button>
+             </div>
+             
+             {questions.length > 0 && (
+                 <div className="max-h-40 overflow-y-auto space-y-1">
+                     {questions.map((q, i) => (
+                         <div key={i} className="text-xs p-2 bg-gray-100 rounded border border-gray-200">
+                             <strong>{i+1}.</strong> {q.text.substring(0, 50)}... ({q.marks} marks)
+                         </div>
+                     ))}
+                 </div>
+             )}
+             
+             <button onClick={() => setStep(1)} className="text-sm text-slate-500 underline">Back</button>
+        </div>
+    );
 };
 
 const AdminPanel: React.FC<Props> = ({ onLogout }) => {
@@ -117,6 +324,25 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
       link.setAttribute("download", "naajix_results_report.csv");
       document.body.appendChild(link);
       link.click();
+  };
+
+  const handleSyncToCloud = async () => {
+      if (!confirm("This will upload all static exams (e.g. History 2025) to Firebase if they don't exist. Continue?")) return;
+      setAutoSaveStatus('saving');
+      
+      let count = 0;
+      for (const exam of allExams) {
+          // We upload all exams to ensure the latest versions are in the cloud
+          try {
+              await saveDynamicExam(exam);
+              count++;
+          } catch (e) {
+              console.error("Failed to sync exam:", exam.id);
+          }
+      }
+      
+      alert(`Synced ${count} exams to Cloud Database.`);
+      setRefreshTrigger(prev => prev + 1);
   };
 
   // Filter Logic
@@ -394,9 +620,14 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
                 <div className="space-y-6">
                      <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold text-slate-800">Exam Management</h2>
-                        <button onClick={() => setActiveTab('exams')} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition flex items-center gap-2 text-sm font-bold">
-                            <Icons.Plus /> Create New Exam
-                        </button>
+                        <div className="flex gap-2">
+                            <button onClick={handleSyncToCloud} className="bg-purple-600 text-white px-4 py-2 rounded shadow hover:bg-purple-700 transition flex items-center gap-2 text-sm font-bold">
+                                <Icons.Cloud /> Sync Static to Cloud
+                            </button>
+                            <button onClick={() => setActiveTab('exams')} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition flex items-center gap-2 text-sm font-bold">
+                                <Icons.Plus /> Create New Exam
+                            </button>
+                        </div>
                     </div>
                     <CreateExamForm onExamCreated={() => setRefreshTrigger(prev => prev + 1)} />
                     
@@ -537,116 +768,41 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address</label>
-                            <input className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" type="email" value={newUser.email} onChange={e=>setNewUser({...newUser, email: e.target.value})} required />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">School</label>
-                            <input className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" value={newUser.school} onChange={e=>setNewUser({...newUser, school: e.target.value})} />
+                            <input className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" value={newUser.email} onChange={e=>setNewUser({...newUser, email: e.target.value})} required />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">School</label>
+                                <input className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" value={newUser.school} onChange={e=>setNewUser({...newUser, school: e.target.value})} />
+                            </div>
+                            <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Level</label>
-                                <select className="w-full p-2 border border-slate-300 rounded bg-white" value={newUser.level} onChange={e=>setNewUser({...newUser, level: e.target.value as any})}>
+                                <select className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" value={newUser.level} onChange={e=>setNewUser({...newUser, level: e.target.value as EducationLevel})}>
                                     <option value="FORM_IV">Form IV</option>
                                     <option value="STD_8">Standard 8</option>
                                 </select>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Plan</label>
-                                <select className="w-full p-2 border border-slate-300 rounded bg-white" value={newUser.subscriptionPlan} onChange={e=>setNewUser({...newUser, subscriptionPlan: e.target.value as any})}>
-                                    <option value="FREE">Free</option>
-                                    <option value="BASIC">Basic</option>
-                                    <option value="PREMIUM">Premium</option>
-                                </select>
-                            </div>
                         </div>
-                        <div className="flex gap-3 justify-end mt-6">
-                            <button type="button" onClick={()=>setShowAddUserModal(false)} className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded">Cancel</button>
-                            <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Save User</button>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Plan</label>
+                            <select className="w-full p-2 border border-slate-300 rounded focus:border-blue-500 outline-none" value={newUser.subscriptionPlan} onChange={e=>setNewUser({...newUser, subscriptionPlan: e.target.value as SubscriptionPlan})}>
+                                <option value="FREE">Free</option>
+                                <option value="BASIC">Basic</option>
+                                <option value="PREMIUM">Premium</option>
+                            </select>
+                        </div>
+                        
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button type="button" onClick={() => setShowAddUserModal(false)} className="px-4 py-2 text-slate-500 font-bold">Cancel</button>
+                            <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Add User</button>
                         </div>
                     </form>
                 </div>
             </div>
-        )}
+      )}
+
     </div>
   );
-};
-
-// --- SUB-COMPONENTS ---
-
-const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active: boolean, onClick: () => void }> = ({ icon, label, active, onClick }) => (
-    <button 
-        onClick={onClick}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium ${active ? 'bg-blue-800 text-white shadow-md' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'}`}
-    >
-        <span className={active ? 'text-blue-200' : 'text-blue-400'}>{icon}</span>
-        {label}
-    </button>
-);
-
-const StatsCard: React.FC<{ title: string, value: string | number, color: string, trend: string }> = ({ title, value, color, trend }) => (
-    <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm relative overflow-hidden">
-        <div className={`absolute top-0 right-0 w-20 h-20 bg-${color}-50 rounded-bl-full -mr-4 -mt-4 transition-transform hover:scale-110`}></div>
-        <div className="relative z-10">
-            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</div>
-            <div className={`text-3xl font-black text-${color}-900`}>{value}</div>
-            <div className={`text-xs font-medium text-${color}-600 mt-2`}>{trend}</div>
-        </div>
-    </div>
-);
-
-const Badge: React.FC<{ label: string, color: string }> = ({ label, color }) => (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-${color}-100 text-${color}-800 border border-${color}-200`}>
-        {label}
-    </span>
-);
-
-const CreateExamForm: React.FC<{ onExamCreated: () => void }> = ({ onExamCreated }) => {
-    const [jsonInput, setJsonInput] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleJsonUpload = async () => {
-        if (!jsonInput) return;
-        setLoading(true);
-        try {
-            const examData = JSON.parse(jsonInput);
-            if (!examData.id || !examData.year || !examData.subjectKey || !examData.questions) {
-                alert("Invalid Exam JSON format. Must contain id, year, subjectKey, and questions.");
-                setLoading(false);
-                return;
-            }
-            await saveDynamicExam(examData);
-            alert(`Exam '${examData.subject}' (${examData.year}) saved to Cloud!`);
-            setJsonInput('');
-            onExamCreated();
-        } catch (e) {
-            alert("Error parsing JSON.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-lg mb-4 text-slate-700">Quick Exam Upload</h3>
-            <p className="text-sm text-slate-500 mb-4">Paste the JSON configuration for the new exam below.</p>
-            <textarea 
-                className="w-full h-40 p-4 border border-slate-300 rounded font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50 mb-4"
-                placeholder='{ "id": "bio-2025", "year": 2025, "subject": "Biology", ... }'
-                value={jsonInput}
-                onChange={e => setJsonInput(e.target.value)}
-            />
-            <div className="flex justify-end">
-                <button 
-                    onClick={handleJsonUpload} 
-                    disabled={loading}
-                    className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700 shadow disabled:opacity-50 transition text-sm"
-                >
-                    {loading ? 'Processing...' : 'Upload Exam JSON'}
-                </button>
-            </div>
-        </div>
-    );
 };
 
 export default AdminPanel;
