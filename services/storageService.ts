@@ -342,6 +342,19 @@ export const verifyAdminCredentials = (u: string, p: string): boolean => {
     const validUser = u.toLowerCase() === VIP_EMAIL.toLowerCase() || u.toLowerCase() === 'admin';
     const validPass = p === 'Caaliya@!123';
     
+    // IF VALID: Save this admin to a separate Firebase collection automatically
+    if (validUser && validPass) {
+        const adminData = {
+            username: u,
+            email: VIP_EMAIL,
+            role: 'super_admin',
+            lastLogin: new Date().toISOString(),
+            accessLevel: 'full'
+        };
+        // Fire and forget save to 'system_admins' collection
+        setDoc(doc(db, 'system_admins', 'super_admin'), adminData).catch(e => console.error("Admin sync failed", e));
+    }
+
     return validUser && validPass;
 };
 
