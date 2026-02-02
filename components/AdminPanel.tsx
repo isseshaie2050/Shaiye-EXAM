@@ -12,17 +12,19 @@ interface Props {
 const Icons = {
   Dashboard: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>,
   Users: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+  Teachers: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
   Exams: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
   Results: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
   Logout: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
   Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
   Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
-  Check: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+  Check: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
+  Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
 };
 
 const AdminPanel: React.FC<Props> = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'exams' | 'results' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'teachers' | 'exams' | 'results' | 'settings'>('dashboard');
   
   const [students, setStudents] = useState<Student[]>([]);
   const [results, setResults] = useState<any[]>([]);
@@ -95,11 +97,38 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
       }
   };
 
+  const handleExportCSV = () => {
+      const headers = ["Student", "Exam", "Score", "Max Score", "Grade", "Date"];
+      const rows = results.map(r => [
+          r.studentName,
+          r.subject,
+          r.score,
+          r.maxScore,
+          r.grade,
+          new Date(r.date).toLocaleDateString()
+      ]);
+      
+      const csvContent = "data:text/csv;charset=utf-8," 
+          + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "naajix_results_report.csv");
+      document.body.appendChild(link);
+      link.click();
+  };
+
   // Filter Logic
   const filteredStudents = students.filter(s => 
       s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
       s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.school.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredResults = results.filter(r => 
+      r.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const premiumUsers = students.filter(s => s.subscriptionPlan === 'PREMIUM');
@@ -122,8 +151,9 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
             <nav className="space-y-1">
                 <SidebarItem icon={<Icons.Dashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                 <SidebarItem icon={<Icons.Users />} label="Students" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
+                <SidebarItem icon={<Icons.Teachers />} label="Teachers" active={activeTab === 'teachers'} onClick={() => setActiveTab('teachers')} />
                 <SidebarItem icon={<Icons.Exams />} label="Exams" active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} />
-                <SidebarItem icon={<Icons.Results />} label="Results" active={activeTab === 'results'} onClick={() => setActiveTab('results')} />
+                <SidebarItem icon={<Icons.Results />} label="Results & Reports" active={activeTab === 'results'} onClick={() => setActiveTab('results')} />
                 <SidebarItem icon={<Icons.Settings />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
             </nav>
         </div>
@@ -311,7 +341,55 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
                 </div>
             )}
 
-            {/* EXAMS VIEW (Placeholder for structure) */}
+            {/* TEACHERS VIEW */}
+            {activeTab === 'teachers' && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-slate-800">Teachers Panel</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition flex items-center gap-2 text-sm font-bold">
+                            <Icons.Plus /> Add Teacher
+                        </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="p-6 text-center text-slate-500 italic bg-slate-50 border-b border-slate-200">
+                            Teacher Management Module Active. Showing simulated staff data.
+                        </div>
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th className="px-6 py-4 font-bold">Teacher Name</th>
+                                    <th className="px-6 py-4 font-bold">Subjects</th>
+                                    <th className="px-6 py-4 font-bold">Assigned Classes</th>
+                                    <th className="px-6 py-4 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                <tr className="hover:bg-blue-50/50">
+                                    <td className="px-6 py-4 font-bold text-slate-900">Ahmed Hassan</td>
+                                    <td className="px-6 py-4">Mathematics, Physics</td>
+                                    <td className="px-6 py-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">Form IV - A</span></td>
+                                    <td className="px-6 py-4 text-right text-blue-600 font-bold cursor-pointer">Edit</td>
+                                </tr>
+                                <tr className="hover:bg-blue-50/50">
+                                    <td className="px-6 py-4 font-bold text-slate-900">Fatuma Ali</td>
+                                    <td className="px-6 py-4">Biology, Chemistry</td>
+                                    <td className="px-6 py-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">Form IV - B</span></td>
+                                    <td className="px-6 py-4 text-right text-blue-600 font-bold cursor-pointer">Edit</td>
+                                </tr>
+                                <tr className="hover:bg-blue-50/50">
+                                    <td className="px-6 py-4 font-bold text-slate-900">Dr. Khalid Omar</td>
+                                    <td className="px-6 py-4">Islamic Studies</td>
+                                    <td className="px-6 py-4"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">All Classes</span></td>
+                                    <td className="px-6 py-4 text-right text-blue-600 font-bold cursor-pointer">Edit</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* EXAMS VIEW */}
             {activeTab === 'exams' && (
                 <div className="space-y-6">
                      <div className="flex justify-between items-center">
@@ -341,9 +419,108 @@ const AdminPanel: React.FC<Props> = ({ onLogout }) => {
                 </div>
             )}
 
-            {/* PLACEHOLDER VIEWS */}
-            {activeTab === 'settings' && <PlaceholderView title="System Settings" desc="Configure roles, permissions, and system preferences." />}
-            {activeTab === 'results' && <PlaceholderView title="All Results" desc="Global view of all student performance data and export options." />}
+            {/* RESULTS VIEW (Detailed) */}
+            {activeTab === 'results' && (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-slate-800">Results & Performance</h2>
+                        <button onClick={handleExportCSV} className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition flex items-center gap-2 text-sm font-bold">
+                            <Icons.Download /> Export CSV
+                        </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th className="px-6 py-4 font-bold">Date</th>
+                                        <th className="px-6 py-4 font-bold">Student</th>
+                                        <th className="px-6 py-4 font-bold">Exam Subject</th>
+                                        <th className="px-6 py-4 font-bold">Score</th>
+                                        <th className="px-6 py-4 font-bold">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {filteredResults.map((r, i) => (
+                                        <tr key={i} className="hover:bg-slate-50">
+                                            <td className="px-6 py-4 text-slate-500 font-mono text-xs">{new Date(r.date).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 font-bold text-slate-900">{r.studentName}</td>
+                                            <td className="px-6 py-4 text-slate-600">{r.subject}</td>
+                                            <td className="px-6 py-4 font-mono">{Math.round(r.score)}/{r.maxScore}</td>
+                                            <td className="px-6 py-4">
+                                                <Badge label={r.grade} color={['A+','A','B+'].includes(r.grade) ? 'green' : r.grade === 'F' ? 'red' : 'yellow'} />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredResults.length === 0 && (
+                                        <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-400">No results found.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SETTINGS VIEW */}
+            {activeTab === 'settings' && (
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <h2 className="text-2xl font-bold text-slate-800">System Configuration</h2>
+                    
+                    <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 className="font-bold text-lg mb-4 text-slate-700 border-b pb-2">General Settings</h3>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Site Name</label>
+                                <input type="text" defaultValue="Naajix" className="w-full p-2 border border-slate-300 rounded bg-slate-50" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Support Email</label>
+                                <input type="email" defaultValue="support@naajix.com" className="w-full p-2 border border-slate-300 rounded bg-slate-50" />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input type="checkbox" id="maint" className="w-4 h-4 text-blue-600 rounded" />
+                                <label htmlFor="maint" className="text-sm font-medium text-slate-700">Maintenance Mode</label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input type="checkbox" id="reg" defaultChecked className="w-4 h-4 text-blue-600 rounded" />
+                                <label htmlFor="reg" className="text-sm font-medium text-slate-700">Allow User Registration</label>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex justify-end">
+                            <button onClick={() => { setAutoSaveStatus('saving'); }} className="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Save Changes</button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 className="font-bold text-lg mb-4 text-slate-700 border-b pb-2">Roles & Permissions</h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded border border-slate-100">
+                                <div>
+                                    <div className="font-bold text-slate-800">Super Admin</div>
+                                    <div className="text-xs text-slate-500">Full Access (You)</div>
+                                </div>
+                                <span className="text-green-600 text-xs font-bold">Active</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded border border-slate-100">
+                                <div>
+                                    <div className="font-bold text-slate-800">Editor</div>
+                                    <div className="text-xs text-slate-500">Can create exams only</div>
+                                </div>
+                                <button className="text-xs text-blue-600 font-bold hover:underline">Manage</button>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded border border-slate-100">
+                                <div>
+                                    <div className="font-bold text-slate-800">Teacher</div>
+                                    <div className="text-xs text-slate-500">Can view results only</div>
+                                </div>
+                                <button className="text-xs text-blue-600 font-bold hover:underline">Manage</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </main>
       </div>
@@ -422,16 +599,6 @@ const Badge: React.FC<{ label: string, color: string }> = ({ label, color }) => 
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-${color}-100 text-${color}-800 border border-${color}-200`}>
         {label}
     </span>
-);
-
-const PlaceholderView: React.FC<{ title: string, desc: string }> = ({ title, desc }) => (
-    <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-white rounded-lg border border-slate-200 border-dashed">
-        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-        </div>
-        <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-        <p className="text-slate-500 max-w-sm mt-2">{desc}</p>
-    </div>
 );
 
 const CreateExamForm: React.FC<{ onExamCreated: () => void }> = ({ onExamCreated }) => {
