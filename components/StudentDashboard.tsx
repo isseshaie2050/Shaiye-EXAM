@@ -65,9 +65,16 @@ const StudentDashboard: React.FC<Props> = ({ onBack, onLogout }) => {
   const handleUpgrade = async (plan: SubscriptionPlan, authority?: ExamAuthority) => {
       if (!confirm(`Are you sure you want to upgrade to ${plan}? This is a simulation.`)) return;
       
-      const updated = await upgradeStudentSubscription(student.id, plan, authority);
-      if (updated) {
-          setStudent(updated);
+      const success = await upgradeStudentSubscription(student.id, plan, authority);
+      if (success) {
+          const updatedStudent: Student = {
+              ...student,
+              subscriptionPlan: plan,
+              basicAuthority: authority,
+              subscriptionStartDate: new Date().toISOString(),
+              subscriptionEndDate: new Date(Date.now() + 365*24*60*60*1000).toISOString()
+          };
+          setStudent(updatedStudent);
           setShowUpgradeModal(false);
           alert(`Successfully subscribed to ${plan} plan!`);
       } else {
