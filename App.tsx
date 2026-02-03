@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, UserAnswer, Exam, ExamResult, ExamAuthority, EducationLevel, Student, UserRole, Question, SectionType } from './types';
 import { ACADEMIC_YEARS, SUBJECT_CONFIG, EXAM_HIERARCHY } from './constants';
@@ -406,7 +405,7 @@ const App: React.FC = () => {
                       {isLast ? (
                           <button 
                               onClick={handleSubmitExam}
-                              className="px-6 py-2 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition"
+                              className="px-8 py-2 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition transform hover:-translate-y-0.5"
                           >
                               Submit Exam
                           </button>
@@ -415,7 +414,7 @@ const App: React.FC = () => {
                               onClick={() => setCurrentQuestionIndex(prev => Math.min(activeExam.questions.length - 1, prev + 1))}
                               className="px-6 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
                           >
-                              Next
+                              Next Question
                           </button>
                       )}
                   </div>
@@ -424,85 +423,65 @@ const App: React.FC = () => {
       );
   }
 
-  // --- RESULTS VIEW ---
-  
-  if (view === AppState.RESULTS && results) {
+  if (view === AppState.RESULTS && results && activeExam) {
       return (
           <div className="min-h-screen bg-gray-50 p-6 font-sans">
-              <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-                  <div className="bg-blue-900 p-8 text-center text-white">
-                      <h2 className="text-3xl font-black mb-2">Exam Results</h2>
-                      <div className="text-blue-200 font-bold text-lg">{activeExam?.subject} ({activeExam?.year})</div>
+              <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+                  <div className="bg-blue-900 text-white p-8 text-center">
+                      <h2 className="text-3xl font-black mb-2">{activeExam.subject} Results</h2>
+                      <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                          <span className="text-xl font-bold">{Math.round(results.score)} / {results.maxScore}</span>
+                          <span className="h-4 w-px bg-white/30"></span>
+                          <span className={`text-xl font-black ${['F','D'].includes(results.grade) ? 'text-red-300' : 'text-green-300'}`}>Grade {results.grade}</span>
+                      </div>
                   </div>
-                  
+
                   <div className="p-8">
-                      <div className="flex flex-col md:flex-row justify-center gap-8 mb-10">
-                           <div className="text-center">
-                               <div className="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Score</div>
-                               <div className="text-5xl font-black text-slate-800">{Math.round(results.score)} <span className="text-2xl text-slate-400">/ {results.maxScore}</span></div>
-                           </div>
-                           <div className="text-center">
-                               <div className="text-sm text-slate-500 uppercase font-bold tracking-wider mb-1">Grade</div>
-                               <div className={`text-5xl font-black ${['A+','A','A-','B+'].includes(results.grade) ? 'text-green-500' : results.grade === 'F' ? 'text-red-500' : 'text-blue-500'}`}>
-                                   {results.grade}
-                               </div>
-                           </div>
-                      </div>
-                      
-                      {/* Breakdown */}
-                      <div className="mb-8">
-                          <h3 className="font-bold text-slate-700 border-b pb-2 mb-4">Section Breakdown</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {Object.entries(results.sectionScores).map(([section, stats], idx) => (
-                                  <div key={idx} className="bg-gray-50 p-4 rounded border border-gray-100 flex justify-between items-center">
-                                      <span className="text-sm font-bold text-slate-600">{section}</span>
-                                      <span className="text-sm font-mono font-bold text-slate-800">{Math.round(stats.score)}/{stats.total}</span>
+                      {/* Section Breakdown */}
+                      <div className="grid md:grid-cols-2 gap-6 mb-8">
+                          {Object.entries(results.sectionScores).map(([section, data]: [string, {score: number, total: number}], idx) => (
+                              <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-1">{section}</h4>
+                                  <div className="flex items-end justify-between">
+                                      <span className="text-xl font-bold text-slate-800">{data.score} / {data.total}</span>
+                                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                          <div className="h-full bg-blue-600" style={{ width: `${(data.score/data.total)*100}%` }}></div>
+                                      </div>
                                   </div>
-                              ))}
-                          </div>
+                              </div>
+                          ))}
                       </div>
 
-                      {/* Feedback List */}
-                      <div>
-                          <h3 className="font-bold text-slate-700 border-b pb-2 mb-4">Detailed Feedback</h3>
-                          <div className="space-y-6">
-                              {results.feedback.map((item, idx) => (
-                                  <div key={idx} className={`p-6 rounded-lg border-l-4 ${item.score === item.maxMarks ? 'bg-green-50 border-green-500' : item.score === 0 ? 'bg-red-50 border-red-500' : 'bg-yellow-50 border-yellow-500'}`}>
-                                      <div className="flex justify-between items-start mb-2">
-                                          <div className="font-bold text-slate-700 text-sm">Question {idx + 1}</div>
-                                          <div className="text-xs font-bold uppercase tracking-wide opacity-70">
-                                              {item.score}/{item.maxMarks} Marks
-                                          </div>
+                      <h3 className="font-bold text-xl text-slate-800 mb-6 border-b pb-2">Detailed Feedback</h3>
+                      <div className="space-y-6">
+                          {results.feedback.map((item, idx) => (
+                              <div key={idx} className={`p-6 rounded-xl border-l-4 ${item.score === item.maxMarks ? 'border-green-500 bg-green-50/50' : item.score === 0 ? 'border-red-500 bg-red-50/50' : 'border-yellow-500 bg-yellow-50/50'}`}>
+                                  <div className="flex justify-between items-start mb-3">
+                                      <h4 className="font-bold text-slate-800 flex-1">Q{idx+1}: {item.text}</h4>
+                                      <span className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm border border-gray-100 ml-3 shrink-0">
+                                          {item.score} / {item.maxMarks}
+                                      </span>
+                                  </div>
+                                  
+                                  <div className="mb-4 text-sm">
+                                      <div className="text-xs font-bold text-slate-400 uppercase mb-1">Your Answer</div>
+                                      <div className="text-slate-700 font-medium bg-white p-3 rounded border border-gray-100">
+                                          {item.userAnswer}
                                       </div>
-                                      <div className="text-lg font-medium text-slate-800 mb-3" dir={activeExam?.direction || 'ltr'}>{item.text}</div>
-                                      
-                                      <div className="grid md:grid-cols-2 gap-4 mb-4">
-                                          <div className="bg-white p-3 rounded border border-gray-200">
-                                              <div className="text-xs font-bold text-slate-400 uppercase mb-1">Your Answer</div>
-                                              <div className="text-slate-800 text-sm whitespace-pre-wrap" dir={activeExam?.direction || 'ltr'}>{item.userAnswer}</div>
-                                          </div>
-                                          {item.correctAnswer && (
-                                               <div className="bg-white p-3 rounded border border-gray-200">
-                                                  <div className="text-xs font-bold text-slate-400 uppercase mb-1">Correct Answer</div>
-                                                  <div className="text-slate-800 text-sm whitespace-pre-wrap" dir={activeExam?.direction || 'ltr'}>{item.correctAnswer}</div>
-                                              </div>
-                                          )}
-                                      </div>
+                                  </div>
 
-                                      <div className="bg-white/50 p-4 rounded text-sm text-slate-700 leading-relaxed border border-gray-100" dir={activeExam?.direction || 'ltr'}>
-                                          <strong className="block text-slate-900 mb-1">Feedback:</strong>
+                                  <div className="text-sm">
+                                      <div className="text-xs font-bold text-slate-400 uppercase mb-1">Feedback</div>
+                                      <div className="text-slate-600 leading-relaxed bg-white/50 p-3 rounded">
                                           <FormattedText text={item.feedback} />
                                       </div>
                                   </div>
-                              ))}
-                          </div>
+                              </div>
+                          ))}
                       </div>
 
                       <div className="mt-10 flex justify-center gap-4">
-                          <button onClick={() => setView(AppState.DASHBOARD)} className="px-8 py-3 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-lg">
-                              Go to Dashboard
-                          </button>
-                          <button onClick={() => setView(AppState.HOME)} className="px-8 py-3 bg-gray-100 text-slate-600 font-bold rounded-lg hover:bg-gray-200 transition">
+                          <button onClick={() => { setView(AppState.HOME); setResults(null); }} className="px-8 py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition">
                               Back to Home
                           </button>
                       </div>
@@ -512,83 +491,76 @@ const App: React.FC = () => {
       );
   }
 
-  // --- DEFAULT VIEW (HOME & SELECTION MODALS) ---
+  // --- DEFAULT VIEW: HOME & SELECTIONS ---
+
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-900">
-        <LandingPage 
-            onSelectAuthority={handleSelectAuthority} 
-            onNavigate={(v) => setView(v)}
-            student={currentStudent}
-        />
-        
-        {/* Level Selection Modal */}
-        {view === AppState.LEVEL_SELECT && (
-             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full animate-fade-in-up">
-                    <h2 className="text-2xl font-black text-slate-900 mb-6 text-center">Select Education Level</h2>
-                    <div className="grid gap-4">
-                        <button onClick={() => handleLevelSelect('FORM_IV')} className="p-6 border-2 border-slate-100 rounded-xl hover:bg-blue-50 hover:border-blue-500 transition group text-left">
-                            <div className="text-lg font-bold text-slate-800 group-hover:text-blue-700">Form IV (Secondary)</div>
-                            <div className="text-sm text-slate-500">High School Final Year</div>
-                        </button>
-                        <button onClick={() => handleLevelSelect('STD_8')} className="p-6 border-2 border-slate-100 rounded-xl hover:bg-green-50 hover:border-green-500 transition group text-left">
-                            <div className="text-lg font-bold text-slate-800 group-hover:text-green-700">Standard 8 (Primary)</div>
-                            <div className="text-sm text-slate-500">Middle School Final Year</div>
-                        </button>
-                    </div>
-                    <button onClick={() => setView(AppState.HOME)} className="mt-8 text-slate-400 hover:text-slate-600 font-bold text-sm w-full text-center">Cancel</button>
-                </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 font-sans">
+        {view === AppState.HOME && (
+            <LandingPage 
+                onSelectAuthority={handleSelectAuthority}
+                onNavigate={setView}
+                student={currentStudent}
+            />
         )}
 
-        {/* Subject Selection Modal */}
-        {view === AppState.SUBJECT_SELECT && selectedAuthority && selectedLevel && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fade-in-up">
-                    <h2 className="text-2xl font-black text-slate-900 mb-2 text-center">Select Subject</h2>
-                    <p className="text-center text-slate-500 mb-8">{selectedAuthority.replace('_', ' ')} • {selectedLevel.replace('_', ' ')}</p>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {EXAM_HIERARCHY[selectedAuthority][selectedLevel].map(subjectKey => (
-                            <button 
-                                key={subjectKey}
-                                onClick={() => handleSubjectSelect(subjectKey)} 
-                                className="p-4 border-2 border-slate-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-500 transition font-bold text-slate-700 hover:text-indigo-700 capitalize flex flex-col items-center gap-2 text-center"
-                            >
-                                {/* Simple icons based on subject key */}
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${['math','physics','chemistry'].includes(subjectKey) ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
-                                    {subjectKey[0].toUpperCase()}
-                                </div>
-                                {SUBJECT_CONFIG[subjectKey]?.label || subjectKey}
-                            </button>
-                        ))}
+        {(view === AppState.LEVEL_SELECT || view === AppState.SUBJECT_SELECT || view === AppState.YEAR_SELECT) && (
+            <div className="max-w-4xl mx-auto p-6 pt-12">
+                <button onClick={() => setView(AppState.HOME)} className="mb-8 text-blue-600 font-bold hover:underline">← Back to Home</button>
+                
+                {view === AppState.LEVEL_SELECT && (
+                    <div className="animate-fade-in-up">
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Select Level</h2>
+                        <p className="text-slate-500 mb-8">Which grade level are you preparing for?</p>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {['FORM_IV', 'STD_8'].map((lvl) => (
+                                <button key={lvl} onClick={() => handleLevelSelect(lvl as EducationLevel)} className="p-8 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition text-left group">
+                                    <div className="text-2xl font-black text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">
+                                        {lvl === 'FORM_IV' ? 'Form Four' : 'Standard Eight'}
+                                    </div>
+                                    <p className="text-slate-500 text-sm">
+                                        {lvl === 'FORM_IV' ? 'Secondary School Leaving Certificate' : 'Middle School Leaving Certificate'}
+                                    </p>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <button onClick={() => setView(AppState.LEVEL_SELECT)} className="mt-8 text-slate-400 hover:text-slate-600 font-bold text-sm w-full text-center">Back</button>
-                </div>
-            </div>
-        )}
+                )}
 
-        {/* Year Selection Modal */}
-        {view === AppState.YEAR_SELECT && (
-             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full animate-fade-in-up">
-                    <h2 className="text-2xl font-black text-slate-900 mb-6 text-center">Select Exam Year</h2>
-                    <div className="grid gap-3">
-                        {selectedSubjectKey && selectedAuthority && selectedLevel && getAvailableYears(selectedSubjectKey, selectedAuthority, selectedLevel).map(year => (
-                             <button 
-                                key={year}
-                                onClick={() => handleYearSelect(year)} 
-                                className="p-4 border-2 border-slate-100 rounded-xl hover:bg-blue-50 hover:border-blue-500 transition font-black text-lg text-slate-700 hover:text-blue-700 text-center"
-                            >
-                                {year}
-                            </button>
-                        ))}
-                        {(!selectedSubjectKey || !selectedAuthority || !selectedLevel || getAvailableYears(selectedSubjectKey!, selectedAuthority!, selectedLevel!).length === 0) && (
-                            <div className="text-center text-slate-500 py-4">No exams available for this selection.</div>
+                {view === AppState.SUBJECT_SELECT && selectedAuthority && selectedLevel && (
+                    <div className="animate-fade-in-up">
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Choose Subject</h2>
+                        <p className="text-slate-500 mb-8">Select a subject to practice.</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {EXAM_HIERARCHY[selectedAuthority][selectedLevel].map((key) => (
+                                <button key={key} onClick={() => handleSubjectSelect(key)} className="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition text-center group">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                        <span className="font-bold text-lg">{SUBJECT_CONFIG[key].label[0]}</span>
+                                    </div>
+                                    <div className="font-bold text-slate-800">{SUBJECT_CONFIG[key].label}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {view === AppState.YEAR_SELECT && selectedSubjectKey && selectedAuthority && selectedLevel && (
+                    <div className="animate-fade-in-up">
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Select Year</h2>
+                        <p className="text-slate-500 mb-8">Choose an exam year.</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {getAvailableYears(selectedSubjectKey, selectedAuthority, selectedLevel).map((year) => (
+                                <button key={year} onClick={() => handleYearSelect(year)} className="p-6 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition font-black text-xl text-slate-800 hover:text-blue-600">
+                                    {year}
+                                </button>
+                            ))}
+                        </div>
+                        {getAvailableYears(selectedSubjectKey, selectedAuthority, selectedLevel).length === 0 && (
+                            <div className="text-center p-12 bg-white rounded-xl border border-dashed border-gray-300 text-slate-400">
+                                No exams available for this selection yet.
+                            </div>
                         )}
                     </div>
-                    <button onClick={() => setView(AppState.SUBJECT_SELECT)} className="mt-8 text-slate-400 hover:text-slate-600 font-bold text-sm w-full text-center">Back</button>
-                </div>
+                )}
             </div>
         )}
     </div>
