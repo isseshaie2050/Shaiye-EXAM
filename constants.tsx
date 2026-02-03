@@ -46,7 +46,9 @@ const PHYSICS_2025_EXAM: Exam = {
   language: 'english',
   authority: 'SOMALI_GOV',
   level: 'FORM_IV',
-  questions: []
+  questions: [
+      { id: 'phy-1', section: SectionType.MCQ, text: '1. The SI unit of force is:', type: 'mcq', options: ['Joule', 'Newton', 'Watt', 'Pascal'], correctAnswer: 'Newton', marks: 1, topic: 'Forces', explanation: 'Newton is the SI unit of force.' }
+  ]
 };
 
 const MATHEMATICS_2025_EXAM: Exam = {
@@ -58,6 +60,10 @@ const MATHEMATICS_2025_EXAM: Exam = {
   direction: 'ltr',
   questions: [
     { id: 'math-1', section: SectionType.MCQ, text: '1. The imaginary part of the complex number Z = -5 + 6i is:', type: 'mcq', options: ['-5', '-6', '1', '6'], correctAnswer: '6', marks: 1, topic: 'Complex Numbers', explanation: 'In a complex number a + bi, b is the imaginary part.' },
+    { id: 'math-2', section: SectionType.MCQ, text: '2. Solve for x: 2x + 5 = 15', type: 'mcq', options: ['5', '10', '2.5', '7.5'], correctAnswer: '5', marks: 1, topic: 'Algebra', explanation: '2x = 10, so x = 5.' },
+    { id: 'math-3', section: SectionType.MCQ, text: '3. The derivative of sin(x) is:', type: 'mcq', options: ['cos(x)', '-cos(x)', 'tan(x)', 'sec(x)'], correctAnswer: 'cos(x)', marks: 1, topic: 'Calculus', explanation: 'Standard derivative.' },
+    { id: 'math-4', section: SectionType.MCQ, text: '4. Calculate the area of a circle with radius 7cm (π=22/7).', type: 'mcq', options: ['154 cm²', '44 cm²', '22 cm²', '100 cm²'], correctAnswer: '154 cm²', marks: 1, topic: 'Geometry', explanation: 'Area = πr² = (22/7)*7*7 = 154.' },
+    { id: 'math-5', section: SectionType.CALCULATION, text: '5. Find the inverse of the matrix A = [[2, 1], [3, 2]].', type: 'text', correctAnswer: '[[2, -1], [-3, 2]]', marks: 5, topic: 'Matrices', explanation: 'Det(A) = 4-3=1. Swap diagonal, negate off-diagonal.' }
   ]
 };
 
@@ -71,37 +77,18 @@ const CHEMISTRY_2025_EXAM: Exam = {
     authority: 'SOMALI_GOV',
     level: 'FORM_IV',
     questions: [
-      // PART 1: MCQ
-      { id: 'ch-1', section: SectionType.MCQ, text: '1. Which of the following is a mixture?', type: 'mcq', options: ['Air', 'Water', 'Sodium Chloride', 'Iron'], correctAnswer: 'Air', marks: 1, topic: 'Matter', explanation: 'Air is a mixture of gases, whereas water and NaCl are compounds, and Iron is an element.' },
-      { id: 'ch-2', section: SectionType.MCQ, text: '2. The atomic number of an element is determined by the number of:', type: 'mcq', options: ['Neutrons', 'Protons', 'Electrons', 'Nucleons'], correctAnswer: 'Protons', marks: 1, topic: 'Atomic Structure', explanation: 'Atomic number (Z) is the number of protons in the nucleus.' },
-      { id: 'ch-3', section: SectionType.MCQ, text: '3. Isotopes are atoms of the same element that have different numbers of:', type: 'mcq', options: ['Protons', 'Electrons', 'Neutrons', 'Shells'], correctAnswer: 'Neutrons', marks: 1, topic: 'Atomic Structure', explanation: 'Isotopes share the same proton number but differ in neutron number.' },
-      { id: 'ch-4', section: SectionType.MCQ, text: '4. Which bond is formed by the transfer of electrons from a metal to a non-metal?', type: 'mcq', options: ['Covalent', 'Ionic', 'Metallic', 'Hydrogen'], correctAnswer: 'Ionic', marks: 1, topic: 'Bonding', explanation: 'Ionic bonds involve electron transfer.' },
-      { id: 'ch-5', section: SectionType.MCQ, text: '5. The pH of a strong acid is likely to be:', type: 'mcq', options: ['1', '7', '9', '14'], correctAnswer: '1', marks: 1, topic: 'Acids and Bases', explanation: 'Strong acids have low pH values (0-2).' },
-      { id: 'ch-6', section: SectionType.MCQ, text: '6. What is the mass of 0.5 moles of CaCO3? (Ca=40, C=12, O=16)', type: 'mcq', options: ['100g', '50g', '20g', '40g'], correctAnswer: '50g', marks: 1, topic: 'Stoichiometry', explanation: 'Molar Mass = 40+12+(16*3) = 100g/mol. Mass = 0.5 * 100 = 50g.' },
-      { id: 'ch-7', section: SectionType.MCQ, text: '7. In the periodic table, elements in Group VII are known as:', type: 'mcq', options: ['Alkali Metals', 'Alkaline Earth Metals', 'Halogens', 'Noble Gases'], correctAnswer: 'Halogens', marks: 1, topic: 'Periodic Table', explanation: 'Group VII elements are called Halogens.' },
-      { id: 'ch-8', section: SectionType.MCQ, text: '8. Which gas is produced when magnesium reacts with hydrochloric acid?', type: 'mcq', options: ['Oxygen', 'Chlorine', 'Hydrogen', 'Carbon Dioxide'], correctAnswer: 'Hydrogen', marks: 1, topic: 'Reactions', explanation: 'Metal + Acid -> Salt + Hydrogen.' },
-      { id: 'ch-9', section: SectionType.MCQ, text: '9. The general formula for Alkanes is:', type: 'mcq', options: ['CnH2n', 'CnH2n+2', 'CnH2n-2', 'CnH2n+1OH'], correctAnswer: 'CnH2n+2', marks: 1, topic: 'Organic Chemistry', explanation: 'Alkanes are saturated hydrocarbons with formula CnH2n+2.' },
-      { id: 'ch-10', section: SectionType.MCQ, text: '10. Which method is best for separating water and ethanol?', type: 'mcq', options: ['Filtration', 'Distillation', 'Evaporation', 'Decantation'], correctAnswer: 'Distillation', marks: 1, topic: 'Separation Techniques', explanation: 'Fractional distillation separates liquids with different boiling points.' },
-      { id: 'ch-11', section: SectionType.MCQ, text: '11. Oxidation is defined as:', type: 'mcq', options: ['Gain of electrons', 'Loss of electrons', 'Gain of hydrogen', 'Loss of oxygen'], correctAnswer: 'Loss of electrons', marks: 1, topic: 'Redox', explanation: 'OIL RIG: Oxidation Is Loss of electrons.' },
-      { id: 'ch-12', section: SectionType.MCQ, text: '12. Which catalyst is used in the Contact Process for making sulfuric acid?', type: 'mcq', options: ['Iron', 'Nickel', 'Vanadium(V) Oxide', 'Platinum'], correctAnswer: 'Vanadium(V) Oxide', marks: 1, topic: 'Industrial Processes', explanation: 'V2O5 is the catalyst for the Contact Process.' },
-      { id: 'ch-13', section: SectionType.MCQ, text: '13. Hardness in water is caused by ions of:', type: 'mcq', options: ['Sodium and Potassium', 'Calcium and Magnesium', 'Iron and Copper', 'Lead and Zinc'], correctAnswer: 'Calcium and Magnesium', marks: 1, topic: 'Water', explanation: 'Ca2+ and Mg2+ ions cause hardness.' },
-      { id: 'ch-14', section: SectionType.MCQ, text: '14. The main ore of Iron is:', type: 'mcq', options: ['Bauxite', 'Haematite', 'Galena', 'Cinnabar'], correctAnswer: 'Haematite', marks: 1, topic: 'Metals', explanation: 'Haematite (Fe2O3) is the primary iron ore.' },
-      { id: 'ch-15', section: SectionType.MCQ, text: '15. Which organic compound reacts with sodium to produce hydrogen gas?', type: 'mcq', options: ['Ethanol', 'Ethene', 'Ethane', 'Ethyl ethanoate'], correctAnswer: 'Ethanol', marks: 1, topic: 'Organic Chemistry', explanation: 'Alcohols react with sodium metal to release hydrogen.' },
-      { id: 'ch-16', section: SectionType.MCQ, text: '16. According to Boyle’s Law, at constant temperature:', type: 'mcq', options: ['V ∝ T', 'V ∝ 1/P', 'P ∝ T', 'V ∝ P'], correctAnswer: 'V ∝ 1/P', marks: 1, topic: 'Gas Laws', explanation: 'Volume is inversely proportional to Pressure.' },
-      { id: 'ch-17', section: SectionType.MCQ, text: '17. A solution with pH 13 is:', type: 'mcq', options: ['Strongly Acidic', 'Weakly Acidic', 'Neutral', 'Strongly Alkaline'], correctAnswer: 'Strongly Alkaline', marks: 1, topic: 'Acids and Bases', explanation: 'pH > 7 is alkaline; 13 is very strong.' },
-      { id: 'ch-18', section: SectionType.MCQ, text: '18. Which element is used to galvanize iron to prevent rusting?', type: 'mcq', options: ['Copper', 'Tin', 'Zinc', 'Silver'], correctAnswer: 'Zinc', marks: 1, topic: 'Metals', explanation: 'Galvanization uses Zinc.' },
-      { id: 'ch-19', section: SectionType.MCQ, text: '19. The functional group -COOH belongs to:', type: 'mcq', options: ['Alcohols', 'Carboxylic Acids', 'Esters', 'Alkenes'], correctAnswer: 'Carboxylic Acids', marks: 1, topic: 'Organic Chemistry', explanation: '-COOH is the carboxyl group.' },
-      { id: 'ch-20', section: SectionType.MCQ, text: '20. Exothermic reactions:', type: 'mcq', options: ['Absorb heat', 'Release heat', 'Have positive ΔH', 'Occur only in solution'], correctAnswer: 'Release heat', marks: 1, topic: 'Thermochemistry', explanation: 'Exothermic reactions release energy to the surroundings.' },
-
-      // PART 2: SHORT ANSWER
-      { id: 'ch-21', section: SectionType.SHORT_ANSWER, text: '21. Define the term "Allotropy" and name two allotropes of Carbon.', type: 'text', correctAnswer: 'Allotropy is the existence of an element in two or more different structural forms in the same physical state. Allotropes of Carbon: Diamond and Graphite.', marks: 4, topic: 'Non-metals', explanation: 'Different physical forms of the same element.' },
-      { id: 'ch-22', section: SectionType.SHORT_ANSWER, text: '22. Explain why ionic compounds conduct electricity when molten but not when solid.', type: 'text', correctAnswer: 'In solid state, ions are held in fixed positions by strong electrostatic forces and cannot move. In molten state, the lattice breaks down, allowing ions to move freely and carry charge.', marks: 4, topic: 'Bonding', explanation: 'Conductivity requires mobile charge carriers (ions).' },
-      { id: 'ch-23', section: SectionType.SHORT_ANSWER, text: '23. Balance the following equation: N₂ + H₂ → NH₃', type: 'text', correctAnswer: 'N₂ + 3H₂ → 2NH₃', marks: 2, topic: 'Stoichiometry', explanation: 'Nitrogen: 2 on both sides. Hydrogen: 6 on both sides.' },
-      { id: 'ch-24', section: SectionType.SHORT_ANSWER, text: '24. State Le Chatelier’s Principle.', type: 'text', correctAnswer: 'If a system in dynamic equilibrium is subjected to a change in conditions (concentration, pressure, temperature), the position of equilibrium moves to counteract the change.', marks: 4, topic: 'Equilibrium', explanation: 'System opposes change.' },
-      
-      // PART 3: CALCULATION
-      { id: 'ch-25', section: SectionType.CALCULATION, text: '25. Calculate the molarity of a solution formed by dissolving 4 grams of NaOH in 500 cm³ of water. (Na=23, O=16, H=1)', type: 'text', correctAnswer: '0.2 M', marks: 5, topic: 'Stoichiometry', explanation: '1. Molar Mass NaOH = 23+16+1 = 40g/mol. \n2. Moles = 4g / 40g/mol = 0.1 mol. \n3. Volume = 0.5 dm³. \n4. Molarity = 0.1 / 0.5 = 0.2 mol/dm³.' },
-      { id: 'ch-26', section: SectionType.CALCULATION, text: '26. A hydrocarbon contains 85.7% Carbon and 14.3% Hydrogen by mass. Its molecular mass is 28. Determine its molecular formula. (C=12, H=1)', type: 'text', correctAnswer: 'C₂H₄', marks: 5, topic: 'Organic Chemistry', explanation: '1. Moles C: 85.7/12 = 7.14. Moles H: 14.3/1 = 14.3. \n2. Ratio C:H = 1:2. Empirical = CH₂. \n3. Mass(CH₂) = 14. \n4. n = 28/14 = 2. \n5. Formula = C₂H₄ (Ethene).' }
+      { id: 'ch-1', section: SectionType.MCQ, text: '1. Which of the following is a mixture?', type: 'mcq', options: ['Air', 'Water', 'Sodium Chloride', 'Iron'], correctAnswer: 'Air', marks: 1, topic: 'Matter', explanation: 'Air is a mixture of gases.' },
+      { id: 'ch-2', section: SectionType.MCQ, text: '2. The atomic number of an element is determined by the number of:', type: 'mcq', options: ['Neutrons', 'Protons', 'Electrons', 'Nucleons'], correctAnswer: 'Protons', marks: 1, topic: 'Atomic Structure', explanation: 'Atomic number (Z) is the number of protons.' },
+      { id: 'ch-3', section: SectionType.MCQ, text: '3. Isotopes are atoms of the same element that have different numbers of:', type: 'mcq', options: ['Protons', 'Electrons', 'Neutrons', 'Shells'], correctAnswer: 'Neutrons', marks: 1, topic: 'Atomic Structure', explanation: 'Isotopes differ in neutrons.' },
+      { id: 'ch-4', section: SectionType.MCQ, text: '4. Which bond is formed by the transfer of electrons?', type: 'mcq', options: ['Covalent', 'Ionic', 'Metallic', 'Hydrogen'], correctAnswer: 'Ionic', marks: 1, topic: 'Bonding', explanation: 'Ionic bonds involve electron transfer.' },
+      { id: 'ch-5', section: SectionType.MCQ, text: '5. The pH of a strong acid is:', type: 'mcq', options: ['1', '7', '9', '14'], correctAnswer: '1', marks: 1, topic: 'Acids', explanation: 'Strong acids have low pH.' },
+      { id: 'ch-6', section: SectionType.MCQ, text: '6. Mass of 0.5 moles of CaCO3 (Ca=40, C=12, O=16)?', type: 'mcq', options: ['100g', '50g', '20g', '40g'], correctAnswer: '50g', marks: 1, topic: 'Stoichiometry', explanation: '100g/mol * 0.5 = 50g.' },
+      { id: 'ch-7', section: SectionType.MCQ, text: '7. Group VII elements are called:', type: 'mcq', options: ['Alkali Metals', 'Alkaline Earth', 'Halogens', 'Noble Gases'], correctAnswer: 'Halogens', marks: 1, topic: 'Periodic Table', explanation: 'Group 7 are Halogens.' },
+      { id: 'ch-8', section: SectionType.MCQ, text: '8. Gas produced when Mg reacts with HCl?', type: 'mcq', options: ['Oxygen', 'Chlorine', 'Hydrogen', 'CO2'], correctAnswer: 'Hydrogen', marks: 1, topic: 'Reactions', explanation: 'Metal + Acid -> Hydrogen.' },
+      { id: 'ch-9', section: SectionType.MCQ, text: '9. General formula for Alkanes:', type: 'mcq', options: ['CnH2n', 'CnH2n+2', 'CnH2n-2', 'CnH2n+1OH'], correctAnswer: 'CnH2n+2', marks: 1, topic: 'Organic', explanation: 'Saturated hydrocarbons.' },
+      { id: 'ch-10', section: SectionType.MCQ, text: '10. Separation method for ethanol and water:', type: 'mcq', options: ['Filtration', 'Distillation', 'Evaporation', 'Decantation'], correctAnswer: 'Distillation', marks: 1, topic: 'Separation', explanation: 'Based on boiling points.' },
+      { id: 'ch-21', section: SectionType.SHORT_ANSWER, text: '21. Define Allotropy and name two allotropes of Carbon.', type: 'text', correctAnswer: 'Existence of element in different forms. Diamond, Graphite.', marks: 4, topic: 'Non-metals', explanation: 'Structural variation.' },
+      { id: 'ch-25', section: SectionType.CALCULATION, text: '25. Calculate Molarity of 4g NaOH in 500cm³ water.', type: 'text', correctAnswer: '0.2 M', marks: 5, topic: 'Stoichiometry', explanation: '0.1 mol / 0.5 L = 0.2 M.' }
     ]
 };
 
@@ -111,7 +98,12 @@ const BIOLOGY_2025_EXAM: Exam = {
     subject: SUBJECT_CONFIG.biology.label,
     subjectKey: SUBJECT_CONFIG.biology.key,
     durationMinutes: 90,
-    questions: []
+    questions: [
+        { id: 'bio-1', section: SectionType.MCQ, text: '1. The powerhouse of the cell is:', type: 'mcq', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi Body'], correctAnswer: 'Mitochondria', marks: 1, topic: 'Cell Biology', explanation: 'Site of respiration.' },
+        { id: 'bio-2', section: SectionType.MCQ, text: '2. Which vitamin is produced by skin upon sun exposure?', type: 'mcq', options: ['Vitamin A', 'Vitamin C', 'Vitamin D', 'Vitamin K'], correctAnswer: 'Vitamin D', marks: 1, topic: 'Nutrition', explanation: 'UV light synthesizes Vitamin D.' },
+        { id: 'bio-3', section: SectionType.MCQ, text: '3. The process of water loss from leaves is:', type: 'mcq', options: ['Respiration', 'Transpiration', 'Photosynthesis', 'Absorption'], correctAnswer: 'Transpiration', marks: 1, topic: 'Plants', explanation: 'Evaporation from stomata.' },
+        { id: 'bio-4', section: SectionType.SHORT_ANSWER, text: '4. State three differences between Arteries and Veins.', type: 'text', correctAnswer: 'Arteries: Thick walls, no valves, carry blood away. Veins: Thin walls, valves, carry blood to heart.', marks: 3, topic: 'Transport', explanation: 'Structural differences.' }
+    ]
 };
 
 const GEOGRAPHY_2025_EXAM: Exam = {
@@ -121,7 +113,11 @@ const GEOGRAPHY_2025_EXAM: Exam = {
     subjectKey: SUBJECT_CONFIG.geography.key,
     durationMinutes: 90,
     language: 'somali',
-    questions: []
+    questions: [
+        { id: 'geo-1', section: SectionType.MCQ, text: '1. Webiga Shabelle wuxuu ku dhammaadaa:', type: 'mcq', options: ['Badweynta Hindiya', 'Dhulka', 'Webiga Jubba', 'Badda Cas'], correctAnswer: 'Dhulka', marks: 1, topic: 'Somali Geography', explanation: 'Webiga Shabelle ma gaaro badda, wuxuu ku dhamaadaa ciidda.' },
+        { id: 'geo-2', section: SectionType.MCQ, text: '2. Magaalo madaxda gobolka Bari waa:', type: 'mcq', options: ['Garowe', 'Bosaso', 'Qardho', 'Galkacyo'], correctAnswer: 'Bosaso', marks: 1, topic: 'Somali Geography', explanation: 'Bosaso waa xarunta ganacsiga iyo gobolka Bari.' },
+        { id: 'geo-3', section: SectionType.SHORT_ANSWER, text: '3. Sheeg saddex astaamood oo lagu garto cimilada saxaraha.', type: 'text', correctAnswer: 'Roob yar, kulayl badan maalintii, qabow habeenkii.', marks: 3, topic: 'Climate', explanation: 'Astaamaha cimilada qalalan.' }
+    ]
 };
 
 const SOMALI_2025_EXAM: Exam = {
@@ -132,7 +128,9 @@ const SOMALI_2025_EXAM: Exam = {
   durationMinutes: 90,
   language: 'somali',
   authority: 'SOMALI_GOV',
-  questions: []
+  questions: [
+      { id: 'som-1', section: SectionType.MCQ, text: '1. Hooriska gabaygu waa:', type: 'mcq', options: ['Qaybta hore', 'Qaybta dhexe', 'Qaybta dambe', 'Hordhaca'], correctAnswer: 'Qaybta dambe', marks: 1, topic: 'Suugaan', explanation: 'Hoorisku waa qaybta dambe ee tuduca.' }
+  ]
 };
 
 const ENGLISH_2025_EXAM: Exam = {
@@ -141,7 +139,11 @@ const ENGLISH_2025_EXAM: Exam = {
     subject: SUBJECT_CONFIG.english.label,
     subjectKey: SUBJECT_CONFIG.english.key,
     durationMinutes: 90,
-    questions: []
+    questions: [
+        { id: 'eng-1', section: SectionType.MCQ, text: '1. She _____ to the market yesterday.', type: 'mcq', options: ['go', 'gone', 'went', 'going'], correctAnswer: 'went', marks: 1, topic: 'Grammar', explanation: 'Past tense of go is went.' },
+        { id: 'eng-2', section: SectionType.MCQ, text: '2. The plural of "child" is:', type: 'mcq', options: ['childs', 'children', 'childrens', 'childes'], correctAnswer: 'children', marks: 1, topic: 'Grammar', explanation: 'Irregular plural.' },
+        { id: 'eng-3', section: SectionType.ESSAY, text: '3. Write a composition about "The importance of Education" (approx 150 words).', type: 'text', correctAnswer: '', marks: 10, topic: 'Writing', explanation: 'Essay writing skills.' }
+    ]
 };
 
 const ISLAMIC_STUDIES_2025_EXAM: Exam = {
@@ -152,7 +154,10 @@ const ISLAMIC_STUDIES_2025_EXAM: Exam = {
     durationMinutes: 90,
     language: 'arabic',
     direction: 'rtl',
-    questions: []
+    questions: [
+        { id: 'isl-1', section: SectionType.MCQ, text: '1. أركان الإسلام:', type: 'mcq', options: ['ثلاثة', 'أربعة', 'خمسة', 'ستة'], correctAnswer: 'خمسة', marks: 1, topic: 'Fiqh', explanation: 'أركان الإسلام خمسة.' },
+        { id: 'isl-2', section: SectionType.MCQ, text: '2. أول سورة نزلت في القرآن هي:', type: 'mcq', options: ['الفاتحة', 'العلق', 'البقرة', 'الناس'], correctAnswer: 'العلق', marks: 1, topic: 'Quran', explanation: 'اقرأ باسم ربك الذي خلق.' }
+    ]
 };
 
 const BUSINESS_2025_EXAM: Exam = {
@@ -161,7 +166,11 @@ const BUSINESS_2025_EXAM: Exam = {
     subject: SUBJECT_CONFIG.business.label,
     subjectKey: SUBJECT_CONFIG.business.key,
     durationMinutes: 120,
-    questions: []
+    questions: [
+        { id: 'bus-1', section: SectionType.MCQ, text: '1. Limited Liability means:', type: 'mcq', options: ['Shareholders pay all debts', 'Shareholders only lose investment', 'Government pays debts', 'No debts allowd'], correctAnswer: 'Shareholders only lose investment', marks: 1, topic: 'Legal Structures', explanation: 'Liability is limited to capital invested.' },
+        { id: 'bus-2', section: SectionType.MCQ, text: '2. The primary goal of a business is:', type: 'mcq', options: ['Charity', 'Profit Maximization', 'Employment', 'Taxation'], correctAnswer: 'Profit Maximization', marks: 1, topic: 'Objectives', explanation: 'Commercial businesses aim for profit.' },
+        { id: 'bus-3', section: SectionType.CALCULATION, text: '3. Calculate Gross Profit if Sales = $10,000 and Cost of Goods Sold = $6,000.', type: 'text', correctAnswer: '$4,000', marks: 2, topic: 'Accounting', explanation: 'Sales - COGS = GP.' }
+    ]
 };
 
 const ARABIC_2025_EXAM: Exam = {
@@ -174,7 +183,8 @@ const ARABIC_2025_EXAM: Exam = {
     direction: 'rtl',
     authority: 'SOMALI_GOV',
     questions: [
-        { id: 'ara-1', section: SectionType.MCQ, text: 'ضد كلمة «الكرم»:', type: 'mcq', options: ['الحقد', 'الحسد', 'الترف', 'البخل'], correctAnswer: 'البخل', marks: 1, topic: 'Vocabulary', explanation: 'الكرم يعني العطاء، وضده البخل.' },
+        { id: 'ara-1', section: SectionType.MCQ, text: '1. ضد كلمة «الكرم»:', type: 'mcq', options: ['الحقد', 'الحسد', 'الترف', 'البخل'], correctAnswer: 'البخل', marks: 1, topic: 'Vocabulary', explanation: 'الكرم يعني العطاء، وضده البخل.' },
+        { id: 'ara-2', section: SectionType.MCQ, text: '2. (كتب) الطالب الدرس. الفعل "كتب" هو فعل:', type: 'mcq', options: ['ماضٍ', 'مضارع', 'أمر', 'نهي'], correctAnswer: 'ماضٍ', marks: 1, topic: 'Grammar', explanation: 'دل على حدث في الزمن الماضي.' },
         { id: 'ara-38', section: SectionType.MCQ, text: 'فإن رُزِقتَ خليفةً محمودةً ... قائل هذا البيت هو:', type: 'mcq', options: ['حافظ إبراهيم', 'محمود غنيم', 'أحمد محمد', 'محمود الرصافي'], correctAnswer: 'حافظ إبراهيم', marks: 1, topic: 'Literature', explanation: 'البيت للشاعر حافظ إبراهيم.' }
     ]
 };
@@ -188,7 +198,9 @@ const HISTORY_2025_EXAM: Exam = {
     language: 'somali',
     authority: 'SOMALI_GOV',
     questions: [
-        { id: 'hist-1', section: SectionType.MCQ, text: '1. Goormaa xorriyadda qaadatay Soomaaliya?', type: 'mcq', options: ['1950', '1960', '1970', '1980'], correctAnswer: '1960', marks: 1, topic: 'Somali History', explanation: 'Soomaaliya waxay xorriyadda qaadatay 1da Luulyo 1960.' }
+        { id: 'hist-1', section: SectionType.MCQ, text: '1. Goormaa xorriyadda qaadatay Soomaaliya?', type: 'mcq', options: ['1950', '1960', '1970', '1980'], correctAnswer: '1960', marks: 1, topic: 'Somali History', explanation: 'Soomaaliya waxay xorriyadda qaadatay 1da Luulyo 1960.' },
+        { id: 'hist-2', section: SectionType.MCQ, text: '2. SYL waxaa la aasaasay sannadkii:', type: 'mcq', options: ['1943', '1945', '1954', '1960'], correctAnswer: '1943', marks: 1, topic: 'Independence Movement', explanation: '13-kii May 1943.' },
+        { id: 'hist-3', section: SectionType.SHORT_ANSWER, text: '3. Qor saddex sababood oo keenay dagaalkii 1aad ee adduunka.', type: 'text', correctAnswer: 'Isbahaysiyada, Tartanka hubka, Dilkii Archduke Franz Ferdinand.', marks: 3, topic: 'World History', explanation: 'Sababaha ugu waaweyn ee WW1.' }
     ]
 };
 
@@ -199,7 +211,9 @@ const ICT_2025_EXAM: Exam = {
     subjectKey: SUBJECT_CONFIG.ict.key,
     durationMinutes: 90,
     questions: [
-        { id: 'ict-1', section: SectionType.MCQ, text: '1. What does CPU stand for?', type: 'mcq', options: ['Central Processing Unit', 'Central Power Unit', 'Computer Personal Unit', 'Central Process Utility'], correctAnswer: 'Central Processing Unit', marks: 1, topic: 'Hardware', explanation: 'CPU is the brain of the computer.' }
+        { id: 'ict-1', section: SectionType.MCQ, text: '1. What does CPU stand for?', type: 'mcq', options: ['Central Processing Unit', 'Central Power Unit', 'Computer Personal Unit', 'Central Process Utility'], correctAnswer: 'Central Processing Unit', marks: 1, topic: 'Hardware', explanation: 'CPU is the brain of the computer.' },
+        { id: 'ict-2', section: SectionType.MCQ, text: '2. Which of these is an Output Device?', type: 'mcq', options: ['Keyboard', 'Mouse', 'Monitor', 'Scanner'], correctAnswer: 'Monitor', marks: 1, topic: 'Hardware', explanation: 'Displays information to user.' },
+        { id: 'ict-3', section: SectionType.MCQ, text: '3. RAM is:', type: 'mcq', options: ['Permanent Storage', 'Volatile Memory', 'Optical Storage', 'Magnetic Storage'], correctAnswer: 'Volatile Memory', marks: 1, topic: 'Memory', explanation: 'Data is lost when power is off.' }
     ]
 };
 
